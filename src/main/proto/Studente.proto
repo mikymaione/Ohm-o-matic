@@ -1,0 +1,14 @@
+syntax = "proto3";
+package SSProto;
+
+service Studente {
+    rpc SayHello (HelloRequest) returns (HelloResponse);
+}
+
+message HelloRequest {
+    string greeting = 1;
+}
+
+message HelloResponse {
+    string reply = 1;
+}
