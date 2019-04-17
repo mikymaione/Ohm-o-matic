@@ -1,0 +1,38 @@
+<?xml version="1.0" ?>
+<!--GENERATED FILE, PLEASE DO NOT EDIT!!!--><EXT object="Measurement (structure_autodiagram)" version="4">
+  <OBJECT>
+    <ID name="Measurement (structure_autodiagram)" mc="Standard.ClassDiagram" uid="80c95475-7152-4561-9125-68ebeac506ca"/>
+    <PID name="Measurement" mc="Standard.Class" uid="b6f689bc-3c19-459d-8f18-6a870df223bb"/>
+    <ATTRIBUTES>
+      <ATT name="UiDataVersion">1</ATT>
+      <ATT name="UiData"><![CDATA[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]]></ATT>
+      <ATT name="Name"><![CDATA[Measurement (structure_autodiagram)]]></ATT>
+      <ATT name="status">1970354901745664</ATT>
+    </ATTRIBUTES>
+    <DEPENDENCIES>
+      <LINK relation="Represented">
+        <ID name="Measurement" mc="Standard.Class" uid="b6f689bc-3c19-459d-8f18-6a870df223bb"/>
+        <ID name="Comparable" mc="Standard.Interface" uid="78174ce5-ec12-4f86-8d0b-a34917cc5832"/>
+        <REFOBJ>
+          <ID name="" mc="Standard.InterfaceRealization" uid="b7e6c4ae-f633-4cf0-b7fc-6186c29a5cce"/>
+        </REFOBJ>
+      </LINK>
+      <LINK relation="Extension">
+        <FOREIGNID name="AutoDiagram" mc="Infrastructure.Stereotype" uid="8fb43b1c-7819-11e1-a4f1-002564c97630"/>
+      </LINK>
+      <COMP relation="Properties">
+        <OBJECT>
+          <ID name="AutoDiagram" mc="Infrastructure.PropertyTable" uid="d7777335-ac46-49ca-8d93-aa0044cfe75b"/>
+          <ATTRIBUTES>
+            <ATT name="Name"><![CDATA[AutoDiagram]]></ATT>
+            <ATT name="Content"><![CDATA[#Wed Apr 17 14:26:12 CEST 2019
+Kind=structure_autodiagram
+]]></ATT>
+            <ATT name="status">1970354901745664</ATT>
+          </ATTRIBUTES>
+          <DEPENDENCIES></DEPENDENCIES>
+        </OBJECT>
+      </COMP>
+    </DEPENDENCIES>
+  </OBJECT>
+</EXT>

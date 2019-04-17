@@ -1,0 +1,38 @@
+<?xml version="1.0" ?>
+<!--GENERATED FILE, PLEASE DO NOT EDIT!!!--><EXT object="SmartMeterSimulator (structure_autodiagram)" version="4">
+  <OBJECT>
+    <ID name="SmartMeterSimulator (structure_autodiagram)" mc="Standard.ClassDiagram" uid="24cb12ed-0cc9-483e-826b-76b8e4a0f62e"/>
+    <PID name="SmartMeterSimulator" mc="Standard.Class" uid="6c637d92-6ae8-4e47-bcf3-b36e3ca247ac"/>
+    <ATTRIBUTES>
+      <ATT name="UiDataVersion">1</ATT>
+      <ATT name="UiData"><![CDATA[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]]></ATT>
+      <ATT name="Name"><![CDATA[SmartMeterSimulator (structure_autodiagram)]]></ATT>
+      <ATT name="status">1970354901745664</ATT>
+    </ATTRIBUTES>
+    <DEPENDENCIES>
+      <LINK relation="Represented">
+        <ID name="SmartMeterSimulator" mc="Standard.Class" uid="6c637d92-6ae8-4e47-bcf3-b36e3ca247ac"/>
+        <REFOBJ>
+          <ID name="" mc="Standard.Generalization" uid="28b798f6-53b6-4e2f-9e2c-b935f26e21cf"/>
+        </REFOBJ>
+        <ID name="Simulator" mc="Standard.Class" uid="0df2e587-96f1-4bc8-8a13-fd974b7ced73"/>
+      </LINK>
+      <LINK relation="Extension">
+        <FOREIGNID name="AutoDiagram" mc="Infrastructure.Stereotype" uid="8fb43b1c-7819-11e1-a4f1-002564c97630"/>
+      </LINK>
+      <COMP relation="Properties">
+        <OBJECT>
+          <ID name="AutoDiagram" mc="Infrastructure.PropertyTable" uid="bef3a913-a237-4954-9e7e-08d9e2b3e8de"/>
+          <ATTRIBUTES>
+            <ATT name="Name"><![CDATA[AutoDiagram]]></ATT>
+            <ATT name="Content"><![CDATA[#Wed Apr 17 14:26:12 CEST 2019
+Kind=structure_autodiagram
+]]></ATT>
+            <ATT name="status">1970354901745664</ATT>
+          </ATTRIBUTES>
+          <DEPENDENCIES></DEPENDENCIES>
+        </OBJECT>
+      </COMP>
+    </DEPENDENCIES>
+  </OBJECT>
+</EXT>
