@@ -1,0 +1,40 @@
+<?xml version="1.0" ?>
+<!--GENERATED FILE, PLEASE DO NOT EDIT!!!--><EXT object="GenerationMode" version="4">
+  <OBJECT>
+    <ID name="GenerationMode" mc="Infrastructure.EnumeratedPropertyType" uid="a20c1c9b-692e-4ecc-80e0-c956ea0ab4c3"/>
+    <PID name="JavaDesigner" mc="Infrastructure.ModuleComponent" uid="003800a8-0000-022e-0000-000000000000"/>
+    <ATTRIBUTES>
+      <ATT name="BaseType">String</ATT>
+      <ATT name="Name"><![CDATA[GenerationMode]]></ATT>
+      <ATT name="status">1970354901745664</ATT>
+    </ATTRIBUTES>
+    <DEPENDENCIES>
+      <COMP relation="Litteral">
+        <OBJECT>
+          <ID name="RoundTrip" mc="Infrastructure.PropertyEnumerationLitteral" uid="0c568630-52de-4f7b-bc94-0adee81efff5"/>
+          <ATTRIBUTES>
+            <ATT name="Name"><![CDATA[RoundTrip]]></ATT>
+            <ATT name="status">1970354901745664</ATT>
+          </ATTRIBUTES>
+          <DEPENDENCIES></DEPENDENCIES>
+        </OBJECT>
+        <OBJECT>
+          <ID name="ModelDriven" mc="Infrastructure.PropertyEnumerationLitteral" uid="f0fc2af1-8494-4f27-b4e1-7451a624d943"/>
+          <ATTRIBUTES>
+            <ATT name="Name"><![CDATA[ModelDriven]]></ATT>
+            <ATT name="status">1970354901745664</ATT>
+          </ATTRIBUTES>
+          <DEPENDENCIES></DEPENDENCIES>
+        </OBJECT>
+        <OBJECT>
+          <ID name="Release" mc="Infrastructure.PropertyEnumerationLitteral" uid="8990cc25-c8cb-4cd7-8f6a-4225b11723d5"/>
+          <ATTRIBUTES>
+            <ATT name="Name"><![CDATA[Release]]></ATT>
+            <ATT name="status">1970354901745664</ATT>
+          </ATTRIBUTES>
+          <DEPENDENCIES></DEPENDENCIES>
+        </OBJECT>
+      </COMP>
+    </DEPENDENCIES>
+  </OBJECT>
+</EXT>
