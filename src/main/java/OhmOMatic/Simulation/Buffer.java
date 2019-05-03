@@ -4,18 +4,14 @@ Copyright (c) 2019 Michele Maione
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+package OhmOMatic.Simulation;
 
-import SSProto.StudenteOuterClass;
 import com.modeliosoft.modelio.javadesigner.annotations.objid;
 
-@objid("ed14b82a-b444-4503-b230-bc1f13210710")
-public class UnivServer
+@objid("7a73d3b0-d851-46f7-acf3-002adcc8d984")
+public interface Buffer
 {
-    @objid("15a41159-1a0b-4793-9182-34ecd05fa261")
-    public static void main(String[] args)
-    {
-        StudenteOuterClass s;
-        StudenteOuterClass.HelloRequest r;
-    }
+    @objid("15065812-a1a4-4ab1-896e-a03d73f249d0")
+    void addMeasurement(Measurement m);
 
 }
