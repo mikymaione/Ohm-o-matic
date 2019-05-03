@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
 <!--GENERATED FILE, PLEASE DO NOT EDIT!!!--><EXT object="Simulation" version="4">
   <OBJECT>
-    <ID name="Simulation" mc="Standard.Package" uid="9b60a8a5-edc1-47bd-a842-15db5cbdf52b"/>
-    <PID name="ohm_o_matic" mc="Standard.Package" uid="cdd5f42a-b2ce-44c4-9c57-e0bd962268e2"/>
+    <ID name="Simulation" mc="Standard.Package" uid="fdca2541-f98f-4faf-bdd9-a5128f8cfd64"/>
+    <PID name="OhmOMatic" mc="Standard.Package" uid="68c579d1-7fce-4977-814f-98aecaf15840"/>
     <ATTRIBUTES>
       <ATT name="IsInstantiable">false</ATT>
       <ATT name="IsAbstract">false</ATT>

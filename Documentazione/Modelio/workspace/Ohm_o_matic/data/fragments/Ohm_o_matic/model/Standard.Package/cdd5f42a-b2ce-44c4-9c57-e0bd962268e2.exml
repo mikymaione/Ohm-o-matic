@@ -14,14 +14,13 @@
     </ATTRIBUTES>
     <DEPENDENCIES>
       <COMP relation="OwnedElement">
-        <COMPID name="Casa" mc="Standard.Class" uid="8ad801e7-a53d-47cf-85d5-95e9fde97cb7"/>
         <COMPID name="java" mc="Standard.Package" uid="59ff2538-a155-46ab-90a5-267ed6807cdd"/>
-        <COMPID name="Simulation" mc="Standard.Package" uid="9b60a8a5-edc1-47bd-a842-15db5cbdf52b"/>
-        <COMPID name="UnivServer" mc="Standard.Class" uid="ed14b82a-b444-4503-b230-bc1f13210710"/>
-        <COMPID name="ServerAmministratore" mc="Standard.Class" uid="ab9dec38-97e0-49ec-82c8-a281841a07cb"/>
+        <COMPID name="OhmOMatic" mc="Standard.Package" uid="68c579d1-7fce-4977-814f-98aecaf15840"/>
       </COMP>
       <COMP relation="Product">
         <COMPID name="ohm_o_matic Class diagram" mc="Standard.ClassDiagram" uid="dbf3499f-ea06-46d6-97de-71c6900a50e2"/>
+        <COMPID name="Server" mc="Standard.ClassDiagram" uid="1ec50837-86ce-4650-867b-a93739d872b3"/>
+        <COMPID name="Simulazione" mc="Standard.ClassDiagram" uid="3cef0b49-bf37-486d-a71d-52cf2ffe66b2"/>
       </COMP>
     </DEPENDENCIES>
   </OBJECT>

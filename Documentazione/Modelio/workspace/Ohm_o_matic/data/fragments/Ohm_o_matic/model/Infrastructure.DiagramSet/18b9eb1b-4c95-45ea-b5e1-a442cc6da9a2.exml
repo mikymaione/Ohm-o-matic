@@ -10,7 +10,6 @@
     <DEPENDENCIES>
       <LINK relation="ReferencedDiagram">
         <ID name="Buffer (structure_autodiagram)" mc="Standard.ClassDiagram" uid="6f73e381-ac8a-4c29-bba0-af91afaa7785"/>
-        <ID name="UnivServer (structure_autodiagram)" mc="Standard.ClassDiagram" uid="35ba7ee2-2a5a-4dec-ab65-dc728420aaa2"/>
         <ID name="Measurement (structure_autodiagram)" mc="Standard.ClassDiagram" uid="80c95475-7152-4561-9125-68ebeac506ca"/>
         <ID name="SmartMeterSimulator (structure_autodiagram)" mc="Standard.ClassDiagram" uid="24cb12ed-0cc9-483e-826b-76b8e4a0f62e"/>
         <ID name="Simulator (structure_autodiagram)" mc="Standard.ClassDiagram" uid="6140b4fa-6ab7-4f6b-9a75-c2a74811baac"/>

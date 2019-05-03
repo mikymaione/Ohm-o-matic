@@ -1,30 +1,27 @@
 <?xml version="1.0" ?>
-<!--GENERATED FILE, PLEASE DO NOT EDIT!!!--><EXT object="java" version="4">
+<!--GENERATED FILE, PLEASE DO NOT EDIT!!!--><EXT object="io" version="4">
   <OBJECT>
-    <ID name="java" mc="Standard.Package" uid="59ff2538-a155-46ab-90a5-267ed6807cdd"/>
-    <PID name="ohm_o_matic" mc="Standard.Package" uid="cdd5f42a-b2ce-44c4-9c57-e0bd962268e2"/>
+    <ID name="io" mc="Standard.Package" uid="148c8ab7-9775-4357-b2b1-86a934b8eb9b"/>
+    <PID name="java" mc="Standard.Package" uid="59ff2538-a155-46ab-90a5-267ed6807cdd"/>
     <ATTRIBUTES>
       <ATT name="IsInstantiable">false</ATT>
       <ATT name="IsAbstract">false</ATT>
       <ATT name="IsLeaf">false</ATT>
       <ATT name="IsRoot">false</ATT>
       <ATT name="Visibility">Public</ATT>
-      <ATT name="Name"><![CDATA[java]]></ATT>
+      <ATT name="Name"><![CDATA[io]]></ATT>
       <ATT name="status">1970354901745664</ATT>
     </ATTRIBUTES>
     <DEPENDENCIES>
       <COMP relation="OwnedElement">
-        <COMPID name="lang" mc="Standard.Package" uid="895dc03b-eaf6-41c5-a2a4-3a35b77dec62"/>
-        <COMPID name="util" mc="Standard.Package" uid="20aca7b4-a9ab-4029-addc-5b28a778d9aa"/>
-        <COMPID name="net" mc="Standard.Package" uid="f89da9fc-01cc-4686-b58f-c6b954527355"/>
-        <COMPID name="io" mc="Standard.Package" uid="148c8ab7-9775-4357-b2b1-86a934b8eb9b"/>
+        <COMPID name="IOException" mc="Standard.Class" uid="cf808bc9-13e9-453c-b279-3b6183e36463"/>
       </COMP>
       <LINK relation="Extension">
         <FOREIGNID name="JavaPackage" mc="Infrastructure.Stereotype" uid="01ec23a8-0000-0126-0000-000000000000"/>
       </LINK>
       <COMP relation="Tag">
         <OBJECT>
-          <ID name="" mc="Infrastructure.TaggedValue" uid="f670eb7c-54aa-49e0-8ae7-0d501d3e6a6d"/>
+          <ID name="" mc="Infrastructure.TaggedValue" uid="2376a89a-28d7-4626-bead-402afa6246a8"/>
           <ATTRIBUTES>
             <ATT name="Name"></ATT>
             <ATT name="status">1970354901745664</ATT>

@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<!--GENERATED FILE, PLEASE DO NOT EDIT!!!--><EXT object="REST" version="4">
+  <OBJECT>
+    <ID name="REST" mc="Standard.Package" uid="a2a39de9-4482-4ad8-ba33-1b8c3b8def50"/>
+    <PID name="OhmOMatic" mc="Standard.Package" uid="68c579d1-7fce-4977-814f-98aecaf15840"/>
+    <ATTRIBUTES>
+      <ATT name="IsInstantiable">false</ATT>
+      <ATT name="IsAbstract">false</ATT>
+      <ATT name="IsLeaf">false</ATT>
+      <ATT name="IsRoot">false</ATT>
+      <ATT name="Visibility">Public</ATT>
+      <ATT name="Name"><![CDATA[REST]]></ATT>
+      <ATT name="status">1970354901745664</ATT>
+    </ATTRIBUTES>
+    <DEPENDENCIES>
+      <COMP relation="OwnedElement">
+        <COMPID name="FN" mc="Standard.Package" uid="6d470b95-d704-4942-afa5-f1e471fd2af9"/>
+        <COMPID name="RestServer" mc="Standard.Class" uid="be448204-462c-4a55-a2fd-f8e299f3dda9"/>
+      </COMP>
+      <LINK relation="Extension">
+        <FOREIGNID name="JavaPackage" mc="Infrastructure.Stereotype" uid="01ec23a8-0000-0126-0000-000000000000"/>
+      </LINK>
+    </DEPENDENCIES>
+  </OBJECT>
+</EXT>
