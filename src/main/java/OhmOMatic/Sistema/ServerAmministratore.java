@@ -11,6 +11,11 @@ import java.net.URI;
 public final class ServerAmministratore
 {
 
+    public ServerAmministratore(URI indirizzo)
+    {
+
+    }
+
     public void iscriviCasa(int ID)
     {
 
@@ -21,9 +26,5 @@ public final class ServerAmministratore
 
     }
 
-    public ServerAmministratore(URI indirizzo)
-    {
-
-    }
 
 }

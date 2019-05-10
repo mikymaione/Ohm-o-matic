@@ -10,6 +10,7 @@ import OhmOMatic.Simulation.SmartMeterSimulator;
 
 public class Casa
 {
+
     private SmartMeterSimulator smartMeter;
 
 

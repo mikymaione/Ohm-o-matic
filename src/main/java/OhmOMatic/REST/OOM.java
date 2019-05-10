@@ -12,7 +12,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 @Path("OOM")
-public class OOM
+public final class OOM
 {
     @GET
     @Produces(MediaType.TEXT_PLAIN)

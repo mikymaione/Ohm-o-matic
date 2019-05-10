@@ -6,44 +6,47 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Cli;
 
+import OhmOMatic.Base.BaseCommandLineApplication;
 import OhmOMatic.Sistema.ServerAmministratore;
-import org.apache.commons.cli.*;
-import org.apache.http.client.utils.URIBuilder;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
-import java.io.PrintWriter;
-import java.net.URI;
 import java.net.URISyntaxException;
 
-public final class CliAdmin
+public final class CliAdmin extends BaseCommandLineApplication
 {
 
     public static void main(String[] args)
     {
         final Options options = CreaOpzioni();
-        StampaOpzioni(options);
-
-        CommandLineParser parser = new DefaultParser();
+        StampaOpzioni("CliAdmin", options);
 
         try
         {
-            CommandLine cmd = parser.parse(options, args);
+            CommandLine cmd = getCommandLine(options, args);
 
             try
             {
                 final String server_url = cmd.getOptionValue("u");
                 final String server_port = cmd.getOptionValue("p");
-                
-                final ServerAmministratore serverAmministratore = new ServerAmministratore(StringToURI(server_url, server_port));
+
+                final var serverAmministratore = new ServerAmministratore(StringToURI(server_url, server_port));
 
                 if (cmd.hasOption("a"))
                 {
-                    final String id_casa = cmd.getOptionValue("a");
-                    serverAmministratore.iscriviCasa(Integer.parseInt(id_casa));
+                    final String id_casa_s = cmd.getOptionValue("a");
+                    final var id_casa = Integer.parseUnsignedInt(id_casa_s);
+
+                    serverAmministratore.iscriviCasa(id_casa);
                 }
                 else if (cmd.hasOption("r"))
                 {
-                    final String id_casa = cmd.getOptionValue("r");
-                    serverAmministratore.disiscriviCasa(Integer.parseInt(id_casa));
+                    final String id_casa_s = cmd.getOptionValue("r");
+                    final var id_casa = Integer.parseUnsignedInt(id_casa_s);
+
+                    serverAmministratore.disiscriviCasa(id_casa);
                 }
             }
             catch (URISyntaxException e)
@@ -57,57 +60,35 @@ public final class CliAdmin
         }
     }
 
-    private static URI StringToURI(String url, String port) throws URISyntaxException
-    {
-        final int porta = Integer.parseInt(port);
-
-        URI server_uri = new URIBuilder()
-                .setScheme("http")
-                .setHost(url)
-                .setPort(porta)
-                .build();
-
-        return server_uri;
-    }
-
-    private static void StampaOpzioni(Options options)
-    {
-        HelpFormatter formatter = new HelpFormatter();
-
-        final PrintWriter writer = new PrintWriter(System.out);
-        formatter.printUsage(writer, 80, "CliAdmin", options);
-        writer.flush();
-    }
-
     private static Options CreaOpzioni()
     {
-        Option url = Option.builder("u")
+        final var url = Option.builder("u")
                 .desc("Server URL")
                 .required()
                 .hasArg()
                 .argName("URL")
                 .build();
 
-        Option port = Option.builder("p")
+        final var port = Option.builder("p")
                 .desc("Server port")
                 .required()
                 .hasArg()
                 .argName("PORT")
                 .build();
 
-        Option add = Option.builder("a")
+        final var add = Option.builder("a")
                 .desc("Iscrivi casa")
                 .hasArg()
                 .argName("ID")
                 .build();
 
-        Option remove = Option.builder("r")
+        final var remove = Option.builder("r")
                 .desc("Disiscrivi casa")
                 .hasArg()
                 .argName("ID")
                 .build();
 
-        final Options options = new Options();
+        var options = new Options();
 
         options.addOption(url);
         options.addOption(port);
@@ -116,5 +97,6 @@ public final class CliAdmin
 
         return options;
     }
+
 
 }
