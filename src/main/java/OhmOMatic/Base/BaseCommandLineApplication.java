@@ -23,7 +23,7 @@ public class BaseCommandLineApplication
         return parser.parse(options, args);
     }
 
-    protected static URI StringToURI(String url, String port) throws URISyntaxException
+    protected static URI StringToURI(String url, String port, String root) throws URISyntaxException
     {
         final var port_ = Integer.parseUnsignedInt(port);
 
@@ -31,6 +31,7 @@ public class BaseCommandLineApplication
                 .setScheme("http")
                 .setHost(url)
                 .setPort(port_)
+                .setPath(root)
                 .build();
     }
 

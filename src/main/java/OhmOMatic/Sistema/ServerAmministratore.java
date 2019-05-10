@@ -6,19 +6,44 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Sistema;
 
+import OhmOMatic.ProtoBuffer.HomeOuterClass;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
 import java.net.URI;
 
 public final class ServerAmministratore
 {
 
+    private final Client client;
+    private final WebTarget webTarget;
+
+
     public ServerAmministratore(URI indirizzo)
     {
-
+        client = ClientBuilder.newClient();
+        webTarget = client.target(indirizzo + "/OOM");
     }
 
     public void iscriviCasa(int ID)
     {
+        try
+        {
+            var R = webTarget
+                    .path("iscriviCasa");
 
+            var home = R
+                    .request()
+                    .get(HomeOuterClass.iscriviCasaRes.class);
+
+            if (!home.getOk())
+                System.out.println(home.getErrore());
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
     public void disiscriviCasa(int ID)

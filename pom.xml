@@ -67,11 +67,18 @@
             <version>1.0</version>
         </dependency>
 
-        <!--Grizzly 2-->
+        <!--Grizzly-->
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-grizzly2-http</artifactId>
             <version>2.28</version>
+        </dependency>
+
+        <!--Protobuf Provider for Jersey-->
+        <dependency>
+            <groupId>com.pakulov.jersey.media</groupId>
+            <artifactId>jersey-media-protobuf</artifactId>
+            <version>0.1.0</version>
         </dependency>
 
         <!--Jersey-->
