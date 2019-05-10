@@ -6,39 +6,84 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Cli;
 
+import OhmOMatic.Sistema.ServerAmministratore;
 import org.apache.commons.cli.*;
+
+import java.net.URI;
+import java.net.URISyntaxException;
 
 public final class CliAdmin
 {
+
     public static void main(String[] args)
     {
-        final Options options = new Options();
-        options
-                .addOption("a", "add", false, "Iscrivi casa")
-                .addOption("r", "remove", false, "Disiscrivi casa");
-
-        HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp("Ohm-o-matic - CliAdmin", options);
+        final Options options = CreaOpzioni();
 
         CommandLineParser parser = new DefaultParser();
+
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.printHelp("CliAdmin -u <URL> [OPTIONS]", options);
 
         try
         {
             CommandLine cmd = parser.parse(options, args);
 
-            if (cmd.hasOption("a"))
-            {
+            if (cmd.hasOption("u"))
+                try
+                {
+                    final String server_url = cmd.getOptionValue("URL");
+                    final ServerAmministratore serverAmministratore = new ServerAmministratore(new URI(server_url));
 
-            }
-            else if (cmd.hasOption("r"))
-            {
-
-            }
+                    if (cmd.hasOption("a"))
+                    {
+                        final String id_casa = cmd.getOptionValue("ID");
+                        serverAmministratore.iscriviCasa(Integer.parseInt(id_casa));
+                    }
+                    else if (cmd.hasOption("r"))
+                    {
+                        final String id_casa = cmd.getOptionValue("ID");
+                        serverAmministratore.disiscriviCasa(Integer.parseInt(id_casa));
+                    }
+                }
+                catch (URISyntaxException e)
+                {
+                    e.printStackTrace();
+                }
         }
         catch (ParseException e)
         {
             e.printStackTrace();
         }
+    }
+
+    private static Options CreaOpzioni()
+    {
+        Option url = Option.builder("u")
+                .desc("Server URL")
+                .required()
+                .hasArg()
+                .argName("URL")
+                .build();
+
+        Option add = Option.builder("a")
+                .desc("Iscrivi casa")
+                .hasArg()
+                .argName("ID")
+                .build();
+
+        Option remove = Option.builder("r")
+                .desc("Disiscrivi casa")
+                .hasArg()
+                .argName("ID")
+                .build();
+
+        Options options = new Options();
+
+        options.addOption(url);
+        options.addOption(add);
+        options.addOption(remove);
+
+        return options;
     }
 
 }
