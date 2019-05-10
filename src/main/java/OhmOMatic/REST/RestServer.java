@@ -16,6 +16,8 @@ import java.net.URI;
 public final class RestServer extends BaseCommandLineApplication
 {
 
+    //le rotte (e quindi le funzionalità) si trovano nel file OhmOMatic.REST.OOM.java
+
     private static final String Server_URI = "http://localhost:8080/OOM/";
 
 

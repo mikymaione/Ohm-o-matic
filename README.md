@@ -3,7 +3,7 @@ An open-source distributed and pervasive system for peer-to-peer control of elec
 
 
 ## Minimum system requirements
-1. Java 8
+1. Java 10
 
 
 ## IDE
