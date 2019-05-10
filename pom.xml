@@ -36,6 +36,13 @@
             <version>1.4</version>
         </dependency>
 
+        <!--Apache HttpClient-->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.8</version>
+        </dependency>
+
         <!--Google gRPC-->
         <dependency>
             <groupId>io.grpc</groupId>

@@ -8,7 +8,9 @@ package OhmOMatic.Cli;
 
 import OhmOMatic.Sistema.ServerAmministratore;
 import org.apache.commons.cli.*;
+import org.apache.http.client.utils.URIBuilder;
 
+import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -18,42 +20,63 @@ public final class CliAdmin
     public static void main(String[] args)
     {
         final Options options = CreaOpzioni();
+        StampaOpzioni(options);
 
         CommandLineParser parser = new DefaultParser();
-
-        HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp("CliAdmin -u <URL> [OPTIONS]", options);
 
         try
         {
             CommandLine cmd = parser.parse(options, args);
 
-            if (cmd.hasOption("u"))
-                try
-                {
-                    final String server_url = cmd.getOptionValue("URL");
-                    final ServerAmministratore serverAmministratore = new ServerAmministratore(new URI(server_url));
+            try
+            {
+                final String server_url = cmd.getOptionValue("u");
+                final String server_port = cmd.getOptionValue("p");
+                
+                final ServerAmministratore serverAmministratore = new ServerAmministratore(StringToURI(server_url, server_port));
 
-                    if (cmd.hasOption("a"))
-                    {
-                        final String id_casa = cmd.getOptionValue("ID");
-                        serverAmministratore.iscriviCasa(Integer.parseInt(id_casa));
-                    }
-                    else if (cmd.hasOption("r"))
-                    {
-                        final String id_casa = cmd.getOptionValue("ID");
-                        serverAmministratore.disiscriviCasa(Integer.parseInt(id_casa));
-                    }
-                }
-                catch (URISyntaxException e)
+                if (cmd.hasOption("a"))
                 {
-                    e.printStackTrace();
+                    final String id_casa = cmd.getOptionValue("a");
+                    serverAmministratore.iscriviCasa(Integer.parseInt(id_casa));
                 }
+                else if (cmd.hasOption("r"))
+                {
+                    final String id_casa = cmd.getOptionValue("r");
+                    serverAmministratore.disiscriviCasa(Integer.parseInt(id_casa));
+                }
+            }
+            catch (URISyntaxException e)
+            {
+                e.printStackTrace();
+            }
         }
         catch (ParseException e)
         {
             e.printStackTrace();
         }
+    }
+
+    private static URI StringToURI(String url, String port) throws URISyntaxException
+    {
+        final int porta = Integer.parseInt(port);
+
+        URI server_uri = new URIBuilder()
+                .setScheme("http")
+                .setHost(url)
+                .setPort(porta)
+                .build();
+
+        return server_uri;
+    }
+
+    private static void StampaOpzioni(Options options)
+    {
+        HelpFormatter formatter = new HelpFormatter();
+
+        final PrintWriter writer = new PrintWriter(System.out);
+        formatter.printUsage(writer, 80, "CliAdmin", options);
+        writer.flush();
     }
 
     private static Options CreaOpzioni()
@@ -63,6 +86,13 @@ public final class CliAdmin
                 .required()
                 .hasArg()
                 .argName("URL")
+                .build();
+
+        Option port = Option.builder("p")
+                .desc("Server port")
+                .required()
+                .hasArg()
+                .argName("PORT")
                 .build();
 
         Option add = Option.builder("a")
@@ -77,9 +107,10 @@ public final class CliAdmin
                 .argName("ID")
                 .build();
 
-        Options options = new Options();
+        final Options options = new Options();
 
         options.addOption(url);
+        options.addOption(port);
         options.addOption(add);
         options.addOption(remove);
 
