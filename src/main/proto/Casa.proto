@@ -7,7 +7,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 syntax = "proto3";
 package SSProto;
 
-service Studente {
+service Casa {
     rpc SayHello (HelloRequest) returns (HelloResponse);
 }
 

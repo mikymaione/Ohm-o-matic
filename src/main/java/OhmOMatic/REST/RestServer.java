@@ -27,10 +27,13 @@ public class RestServer
     public static void main(String[] args) throws IOException
     {
         final HttpServer server = startServer();
+
         System.out.println("Ohm-o-matic Server avviato!");
         System.out.println(String.format("Visita %s", BASE_URI));
         System.out.println("Premere invio per terminare...");
+
         System.in.read();
+
         server.stop();
     }
 }

@@ -16,9 +16,9 @@ public class OOM
 {
     @GET
     @Produces(MediaType.TEXT_PLAIN)
-    public String getIt()
+    public String Hello()
     {
-        return "Got it!";
+        return "Benvenuto in Ohm-O-Matic!";
     }
 
 }
