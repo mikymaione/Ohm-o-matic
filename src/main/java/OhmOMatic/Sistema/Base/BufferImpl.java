@@ -28,10 +28,10 @@ public final class BufferImpl implements Buffer
     }
 
 
-    class addMeasurementResult
+    private class addMeasurementResult
     {
-        double media;
-        boolean sendStats;
+        final double media;
+        final boolean sendStats;
 
         public addMeasurementResult(double media, boolean sendStats)
         {
@@ -53,12 +53,11 @@ public final class BufferImpl implements Buffer
                 for (var e : buffer)
                     sum += e.getValue();
 
-                var media = sum / slidingWindowCount;
-                var sendStats = true;
+                final var media = sum / slidingWindowCount;
 
                 buffer_index = -1;
 
-                return new addMeasurementResult(media, sendStats);
+                return new addMeasurementResult(media, true);
             }
             else
             {
@@ -70,7 +69,7 @@ public final class BufferImpl implements Buffer
     @Override
     public void addMeasurement(Measurement m)
     {
-        var r = addMeasurement_sync(m);
+        final var r = addMeasurement_sync(m);
 
         if (r.sendStats)
             listener.meanGenerated(r.media);
