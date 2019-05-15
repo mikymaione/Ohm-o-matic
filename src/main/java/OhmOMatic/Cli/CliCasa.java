@@ -31,7 +31,7 @@ public final class CliCasa extends BaseCommandLineApplication
 
             System.out.println("Casa avviata!");
 
-            final var casa = new Casa(server_url, server_port, id);
+            var casa = new Casa(server_url, server_port, id);
 
             casa.avviaSmartMeter();
             //casa.fermaSmartMeter();

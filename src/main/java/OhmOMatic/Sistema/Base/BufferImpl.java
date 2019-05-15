@@ -11,26 +11,40 @@ import OhmOMatic.Simulation.Measurement;
 
 import java.util.ArrayList;
 
-public class BufferImpl implements Buffer
+public final class BufferImpl implements Buffer
 {
 
     private final int slidingWindowCount;
+
     private int buffer_index = -1;
     private Measurement[] buffer;
-    private ArrayList<Double> medie = new ArrayList<>();
 
+    private ArrayList<Double> medie;
 
-    public BufferImpl()
-    {
-        this(24);
-    }
 
     public BufferImpl(int SlidingWindowCount)
     {
-        this.slidingWindowCount = SlidingWindowCount;
+        slidingWindowCount = SlidingWindowCount;
         buffer = new Measurement[SlidingWindowCount];
+        medie = new ArrayList<>();
     }
 
+
+    public double[] flushMedie()
+    {
+        synchronized (this)
+        {
+            var r = new double[medie.size()];
+            var i = -1;
+
+            for (final var m : medie)
+                r[i += 1] = m;
+
+            medie.clear();
+
+            return r;
+        }
+    }
 
     @Override
     public void addMeasurement(Measurement m)
@@ -46,7 +60,7 @@ public class BufferImpl implements Buffer
                 for (var e : buffer)
                     sum += e.getValue();
 
-                var media = sum / slidingWindowCount;
+                final var media = sum / slidingWindowCount;
                 medie.add(media);
 
                 buffer_index = -1;

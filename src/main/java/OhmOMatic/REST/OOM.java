@@ -29,7 +29,8 @@ public final class OOM
     @Path("/iscriviCasa")
     public HomeOuterClass.iscriviCasaRes iscriviCasa()
     {
-        var home = HomeOuterClass.iscriviCasaRes.newBuilder()
+        var home = HomeOuterClass.iscriviCasaRes
+                .newBuilder()
                 .setOk(false)
                 .setErrore("Non posso aggiungere la tua casa perché mi fai schifo!");
 

@@ -37,7 +37,7 @@ public class BaseCommandLineApplication
 
     protected static void printOptions(String app, Options options)
     {
-        var formatter = new HelpFormatter();
+        final var formatter = new HelpFormatter();
 
         try (final var writer = new PrintWriter(System.out))
         {

@@ -31,7 +31,7 @@ public final class CliAdmin extends BaseCommandLineApplication
                 final var server_url = cmd.getOptionValue("u");
                 final var server_port = cmd.getOptionValue("p");
 
-                final var serverAmministratore = new ServerAmministratore(stringToURI(server_url, server_port, "OOM"));
+                var serverAmministratore = new ServerAmministratore(stringToURI(server_url, server_port, "OOM"));
 
                 if (cmd.hasOption("a"))
                 {

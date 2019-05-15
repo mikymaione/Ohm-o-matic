@@ -13,11 +13,12 @@ public class Casa
 {
 
     private SmartMeterSimulator smartMeter;
-    private BufferImpl theBuffer = new BufferImpl();
+    private BufferImpl theBuffer;
 
-    
+
     public Casa(String indirizzoServer, int numeroPorta, String ID)
     {
+        theBuffer = new BufferImpl(24);
         smartMeter = new SmartMeterSimulator(theBuffer);
     }
 
@@ -45,7 +46,10 @@ public class Casa
 
     public void inviaStatisticheAlServer()
     {
+        final var medie = theBuffer.flushMedie();
 
+        for (final var m : medie)
+            System.out.println(m);
     }
 
 

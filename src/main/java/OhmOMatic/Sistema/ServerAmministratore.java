@@ -16,8 +16,8 @@ import java.net.URI;
 public final class ServerAmministratore
 {
 
-    private final Client client;
-    private final WebTarget webTarget;
+    private Client client;
+    private WebTarget webTarget;
 
 
     public ServerAmministratore(URI indirizzo)

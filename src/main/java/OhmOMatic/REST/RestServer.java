@@ -23,7 +23,7 @@ public final class RestServer extends BaseCommandLineApplication
 
     public static void main(String[] args)
     {
-        final ResourceConfig rc = new ResourceConfig()
+        var rc = new ResourceConfig()
                 .packages("OhmOMatic");
 
         GrizzlyHttpServerFactory.createHttpServer(URI.create(Server_URI), rc);
