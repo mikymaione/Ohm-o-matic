@@ -8,8 +8,9 @@ package OhmOMatic.Sistema;
 
 import OhmOMatic.Simulation.SmartMeterSimulator;
 import OhmOMatic.Sistema.Base.BufferImpl;
+import OhmOMatic.Sistema.Base.MeanListener;
 
-public class Casa
+public class Casa implements MeanListener
 {
 
     private SmartMeterSimulator smartMeter;
@@ -18,7 +19,7 @@ public class Casa
 
     public Casa(String indirizzoServer, int numeroPorta, String ID)
     {
-        theBuffer = new BufferImpl(24);
+        theBuffer = new BufferImpl(24, this);
         smartMeter = new SmartMeterSimulator(theBuffer);
     }
 
@@ -44,12 +45,9 @@ public class Casa
 
     }
 
-    public void inviaStatisticheAlServer()
+    public void inviaStatisticheAlServer(double mean)
     {
-        final var medie = theBuffer.flushMedie();
-
-        for (final var m : medie)
-            System.out.println(m);
+        System.out.println(mean);
     }
 
 
@@ -61,6 +59,12 @@ public class Casa
     public void fermaSmartMeter()
     {
         smartMeter.stop();
+    }
+
+    @Override
+    public void meanGenerated(double mean)
+    {
+        inviaStatisticheAlServer(mean);
     }
 
 

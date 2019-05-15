@@ -65,11 +65,10 @@ public final class CliCasa extends BaseCommandLineApplication
                 .argName("ID")
                 .build();
 
-        var options = new Options();
-
-        options.addOption(url);
-        options.addOption(port);
-        options.addOption(id);
+        final var options = new Options()
+                .addOption(url)
+                .addOption(port)
+                .addOption(id);
 
         return options;
     }

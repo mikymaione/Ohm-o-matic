@@ -9,8 +9,6 @@ package OhmOMatic.Sistema.Base;
 import OhmOMatic.Simulation.Buffer;
 import OhmOMatic.Simulation.Measurement;
 
-import java.util.ArrayList;
-
 public final class BufferImpl implements Buffer
 {
 
@@ -19,35 +17,30 @@ public final class BufferImpl implements Buffer
     private int buffer_index = -1;
     private Measurement[] buffer;
 
-    private ArrayList<Double> medie;
+    private MeanListener listener;
 
 
-    public BufferImpl(int SlidingWindowCount)
+    public BufferImpl(int SlidingWindowCount, MeanListener Listener)
     {
+        listener = Listener;
         slidingWindowCount = SlidingWindowCount;
         buffer = new Measurement[SlidingWindowCount];
-        medie = new ArrayList<>();
     }
 
 
-    public double[] flushMedie()
+    class addMeasurementResult
     {
-        synchronized (this)
+        double media;
+        boolean sendStats;
+
+        public addMeasurementResult(double media, boolean sendStats)
         {
-            var r = new double[medie.size()];
-            var i = -1;
-
-            for (final var m : medie)
-                r[i += 1] = m;
-
-            medie.clear();
-
-            return r;
+            this.media = media;
+            this.sendStats = sendStats;
         }
     }
 
-    @Override
-    public void addMeasurement(Measurement m)
+    private synchronized addMeasurementResult addMeasurement_sync(Measurement m)
     {
         synchronized (this)
         {
@@ -60,12 +53,27 @@ public final class BufferImpl implements Buffer
                 for (var e : buffer)
                     sum += e.getValue();
 
-                final var media = sum / slidingWindowCount;
-                medie.add(media);
+                var media = sum / slidingWindowCount;
+                var sendStats = true;
 
                 buffer_index = -1;
+
+                return new addMeasurementResult(media, sendStats);
+            }
+            else
+            {
+                return new addMeasurementResult(0d, false);
             }
         }
+    }
+
+    @Override
+    public void addMeasurement(Measurement m)
+    {
+        var r = addMeasurement_sync(m);
+
+        if (r.sendStats)
+            listener.meanGenerated(r.media);
     }
 
 

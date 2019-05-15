@@ -40,7 +40,8 @@ public final class CliAdmin extends BaseCommandLineApplication
 
                     serverAmministratore.iscriviCasa(id_casa);
                 }
-                else if (cmd.hasOption("r"))
+
+                if (cmd.hasOption("r"))
                 {
                     final var id_casa_s = cmd.getOptionValue("r");
                     final var id_casa = Integer.parseUnsignedInt(id_casa_s);
@@ -87,12 +88,11 @@ public final class CliAdmin extends BaseCommandLineApplication
                 .argName("ID")
                 .build();
 
-        var options = new Options();
-
-        options.addOption(url);
-        options.addOption(port);
-        options.addOption(add);
-        options.addOption(remove);
+        final var options = new Options()
+                .addOption(url)
+                .addOption(port)
+                .addOption(add)
+                .addOption(remove);
 
         return options;
     }
