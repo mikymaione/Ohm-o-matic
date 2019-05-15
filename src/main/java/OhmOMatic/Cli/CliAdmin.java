@@ -8,7 +8,6 @@ package OhmOMatic.Cli;
 
 import OhmOMatic.Base.BaseCommandLineApplication;
 import OhmOMatic.Sistema.ServerAmministratore;
-import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
@@ -20,30 +19,30 @@ public final class CliAdmin extends BaseCommandLineApplication
 
     public static void main(String[] args)
     {
-        final Options options = CreaOpzioni();
-        StampaOpzioni("CliAdmin", options);
+        final var options = createOptions();
+        printOptions("CliAdmin", options);
 
         try
         {
-            CommandLine cmd = getCommandLine(options, args);
+            final var cmd = getCommandLine(options, args);
 
             try
             {
-                final String server_url = cmd.getOptionValue("u");
-                final String server_port = cmd.getOptionValue("p");
+                final var server_url = cmd.getOptionValue("u");
+                final var server_port = cmd.getOptionValue("p");
 
-                final var serverAmministratore = new ServerAmministratore(StringToURI(server_url, server_port, "OOM"));
+                final var serverAmministratore = new ServerAmministratore(stringToURI(server_url, server_port, "OOM"));
 
                 if (cmd.hasOption("a"))
                 {
-                    final String id_casa_s = cmd.getOptionValue("a");
+                    final var id_casa_s = cmd.getOptionValue("a");
                     final var id_casa = Integer.parseUnsignedInt(id_casa_s);
 
                     serverAmministratore.iscriviCasa(id_casa);
                 }
                 else if (cmd.hasOption("r"))
                 {
-                    final String id_casa_s = cmd.getOptionValue("r");
+                    final var id_casa_s = cmd.getOptionValue("r");
                     final var id_casa = Integer.parseUnsignedInt(id_casa_s);
 
                     serverAmministratore.disiscriviCasa(id_casa);
@@ -60,7 +59,7 @@ public final class CliAdmin extends BaseCommandLineApplication
         }
     }
 
-    private static Options CreaOpzioni()
+    private static Options createOptions()
     {
         final var url = Option.builder("u")
                 .desc("Server URL")

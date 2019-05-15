@@ -23,7 +23,7 @@ public class BaseCommandLineApplication
         return parser.parse(options, args);
     }
 
-    protected static URI StringToURI(String url, String port, String root) throws URISyntaxException
+    protected static URI stringToURI(String url, String port, String root) throws URISyntaxException
     {
         final var port_ = Integer.parseUnsignedInt(port);
 
@@ -35,7 +35,7 @@ public class BaseCommandLineApplication
                 .build();
     }
 
-    protected static void StampaOpzioni(String app, Options options)
+    protected static void printOptions(String app, Options options)
     {
         var formatter = new HelpFormatter();
 

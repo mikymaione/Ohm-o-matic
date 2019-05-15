@@ -8,7 +8,7 @@ package OhmOMatic.Cli;
 
 import OhmOMatic.Base.BaseCommandLineApplication;
 import OhmOMatic.Sistema.Casa;
-import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
@@ -17,15 +17,24 @@ public final class CliCasa extends BaseCommandLineApplication
 
     public static void main(String[] args)
     {
-        final Options options = CreaOpzioni();
-        StampaOpzioni("CliCasa", options);
+        final var options = createOptions();
+        printOptions("CliCasa", options);
 
         try
         {
-            CommandLine cmd = getCommandLine(options, args);
+            final var cmd = getCommandLine(options, args);
 
-            var casa = new Casa("www.stocazzo.it", 8888, 1);
+            final var id = cmd.getOptionValue("i");
+            final var server_url = cmd.getOptionValue("u");
+            final var server_port_s = cmd.getOptionValue("p");
+            final var server_port = Integer.parseUnsignedInt(server_port_s);
+
+            System.out.println("Casa avviata!");
+
+            final var casa = new Casa(server_url, server_port, id);
+
             casa.avviaSmartMeter();
+            //casa.fermaSmartMeter();
         }
         catch (ParseException e)
         {
@@ -33,11 +42,37 @@ public final class CliCasa extends BaseCommandLineApplication
         }
     }
 
-    private static Options CreaOpzioni()
+    private static Options createOptions()
     {
+        final var url = Option.builder("u")
+                .desc("Server URL")
+                .required()
+                .hasArg()
+                .argName("URL")
+                .build();
+
+        final var port = Option.builder("p")
+                .desc("Server port")
+                .required()
+                .hasArg()
+                .argName("PORT")
+                .build();
+
+        final var id = Option.builder("i")
+                .desc("ID")
+                .required()
+                .hasArg()
+                .argName("ID")
+                .build();
+
         var options = new Options();
+
+        options.addOption(url);
+        options.addOption(port);
+        options.addOption(id);
 
         return options;
     }
+
 
 }

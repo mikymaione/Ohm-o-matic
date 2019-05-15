@@ -16,7 +16,7 @@ public class Casa
     private BufferImpl theBuffer = new BufferImpl();
 
     
-    public Casa(String indirizzoServer, int numeroPorta, int ID)
+    public Casa(String indirizzoServer, int numeroPorta, String ID)
     {
         smartMeter = new SmartMeterSimulator(theBuffer);
     }

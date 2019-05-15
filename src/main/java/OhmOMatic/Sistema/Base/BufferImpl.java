@@ -9,17 +9,15 @@ package OhmOMatic.Sistema.Base;
 import OhmOMatic.Simulation.Buffer;
 import OhmOMatic.Simulation.Measurement;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 
 public class BufferImpl implements Buffer
 {
 
-    public final int SlidingWindowCount;
-
-    public ArrayList<Double> Medie = new ArrayList<>();
-
-    private ArrayDeque<Measurement> buffer;
+    private final int slidingWindowCount;
+    private int buffer_index = -1;
+    private Measurement[] buffer;
+    private ArrayList<Double> medie = new ArrayList<>();
 
 
     public BufferImpl()
@@ -29,35 +27,32 @@ public class BufferImpl implements Buffer
 
     public BufferImpl(int SlidingWindowCount)
     {
-        this.SlidingWindowCount = SlidingWindowCount;
-        buffer = new ArrayDeque<>(SlidingWindowCount);
+        this.slidingWindowCount = SlidingWindowCount;
+        buffer = new Measurement[SlidingWindowCount];
     }
 
-
-    private void Elabora()
-    {
-        var somma = 0.0;
-
-        for (var e : buffer)
-            somma += e.getValue();
-
-        var media = somma / SlidingWindowCount;
-        Medie.add(media);
-
-        for (var i = 0; i < SlidingWindowCount / 2; i++)
-            buffer.remove();
-    }
 
     @Override
     public void addMeasurement(Measurement m)
     {
         synchronized (this)
         {
-            buffer.add(m);
+            buffer[buffer_index += 1] = m;
 
-            if (buffer.size() == SlidingWindowCount)
-                Elabora();
+            if (buffer_index + 1 == slidingWindowCount)
+            {
+                var sum = 0d;
+
+                for (var e : buffer)
+                    sum += e.getValue();
+
+                var media = sum / slidingWindowCount;
+                medie.add(media);
+
+                buffer_index = -1;
+            }
         }
     }
+
 
 }
