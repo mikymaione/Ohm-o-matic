@@ -7,7 +7,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package OhmOMatic.Cli;
 
 import OhmOMatic.Base.BaseCommandLineApplication;
-import OhmOMatic.Sistema.ServerAmministratore;
+import OhmOMatic.Sistema.Admin;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
@@ -31,14 +31,14 @@ public final class CliAdmin extends BaseCommandLineApplication
                 final var server_url = cmd.getOptionValue("u");
                 final var server_port = cmd.getOptionValue("p");
 
-                var serverAmministratore = new ServerAmministratore(stringToURI(server_url, server_port, "OOM"));
+                var admin = new Admin(stringToURI(server_url, server_port, "OOM"));
 
                 if (cmd.hasOption("a"))
                 {
                     final var id_casa_s = cmd.getOptionValue("a");
                     final var id_casa = Integer.parseUnsignedInt(id_casa_s);
 
-                    serverAmministratore.iscriviCasa(id_casa);
+                    admin.iscriviCasa(id_casa);
                 }
 
                 if (cmd.hasOption("r"))
@@ -46,7 +46,7 @@ public final class CliAdmin extends BaseCommandLineApplication
                     final var id_casa_s = cmd.getOptionValue("r");
                     final var id_casa = Integer.parseUnsignedInt(id_casa_s);
 
-                    serverAmministratore.disiscriviCasa(id_casa);
+                    admin.disiscriviCasa(id_casa);
                 }
             }
             catch (URISyntaxException e)
@@ -76,23 +76,25 @@ public final class CliAdmin extends BaseCommandLineApplication
                 .argName("PORT")
                 .build();
 
-        final var add = Option.builder("a")
+
+        final var iscriviCasa = Option.builder("a")
                 .desc("Iscrivi casa")
                 .hasArg()
                 .argName("ID")
                 .build();
 
-        final var remove = Option.builder("r")
+        final var disiscriviCasa = Option.builder("r")
                 .desc("Disiscrivi casa")
                 .hasArg()
                 .argName("ID")
                 .build();
 
+
         final var options = new Options()
                 .addOption(url)
                 .addOption(port)
-                .addOption(add)
-                .addOption(remove);
+                .addOption(iscriviCasa)
+                .addOption(disiscriviCasa);
 
         return options;
     }

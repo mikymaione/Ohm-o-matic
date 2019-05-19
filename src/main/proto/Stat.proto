@@ -7,16 +7,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 syntax = "proto3";
 package OhmOMatic.ProtoBuffer;
 
-service Home {
-    rpc iscriviCasa (parametriCasaReq) returns (parametriCasaRes);
-    rpc disiscriviCasa (parametriCasaReq) returns (parametriCasaRes);
+service Stat {
+    rpc aggiungiStatisticaLocale (parametriStatisticaReq) returns (parametriStatisticaRes);
+    rpc aggiungiStatisticaGlobale (parametriStatisticaReq) returns (parametriStatisticaRes);
 }
 
-message parametriCasaReq {
+message parametriStatisticaReq {
     int32 ID = 1;
 }
 
-message parametriCasaRes {
+message parametriStatisticaRes {
     bool ok = 1;
     string errore = 2;
 }

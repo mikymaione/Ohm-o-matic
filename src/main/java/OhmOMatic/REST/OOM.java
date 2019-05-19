@@ -8,30 +8,22 @@ package OhmOMatic.REST;
 
 import OhmOMatic.ProtoBuffer.HomeOuterClass.parametriCasaReq;
 import OhmOMatic.ProtoBuffer.HomeOuterClass.parametriCasaRes;
+import OhmOMatic.ProtoBuffer.StatOuterClass.parametriStatisticaReq;
+import OhmOMatic.ProtoBuffer.StatOuterClass.parametriStatisticaRes;
 
-import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 
 @Path("OOM")
 public final class OOM
 {
 
-    @GET
-    @Produces(MediaType.TEXT_PLAIN)
-    @Path("/hello")
-    public String Hello()
-    {
-        return "Benvenuto in Ohm-O-Matic!";
-    }
-
+    //region Casa
     @PUT
     @Path("/iscriviCasa")
     public parametriCasaRes iscriviCasa(parametriCasaReq par)
     {
-        parametriCasaRes res = parametriCasaRes
+        final var res = parametriCasaRes
                 .newBuilder()
                 .setOk(false)
                 .setErrore("Non posso aggiungere la tua casa perché mi fai schifo!")
@@ -44,7 +36,7 @@ public final class OOM
     @Path("/disiscriviCasa")
     public parametriCasaRes disiscriviCasa(parametriCasaReq par)
     {
-        parametriCasaRes res = parametriCasaRes
+        final var res = parametriCasaRes
                 .newBuilder()
                 .setOk(false)
                 .setErrore("Non posso aggiungere la tua casa perché mi fai schifo!")
@@ -52,6 +44,36 @@ public final class OOM
 
         return res;
     }
+    //endregion
+
+
+    //region Statistiche
+    @PUT
+    @Path("/aggiungiStatisticaLocale")
+    public parametriStatisticaRes aggiungiStatisticaLocale(parametriStatisticaReq par)
+    {
+        final var res = parametriStatisticaRes
+                .newBuilder()
+                .setOk(false)
+                .setErrore("Non posso aggiungere la tua statistica perché mi fai schifo!")
+                .build();
+
+        return res;
+    }
+
+    @PUT
+    @Path("/aggiungiStatisticaGlobale")
+    public parametriStatisticaRes aggiungiStatisticaGlobale(parametriStatisticaReq par)
+    {
+        final var res = parametriStatisticaRes
+                .newBuilder()
+                .setOk(false)
+                .setErrore("Non posso aggiungere la tua statistica perché mi fai schifo!")
+                .build();
+
+        return res;
+    }
+    //endregion
 
 
 }

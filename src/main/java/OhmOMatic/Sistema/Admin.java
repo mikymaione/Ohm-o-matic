@@ -15,19 +15,20 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import java.net.URI;
 
-public final class ServerAmministratore
+public final class Admin
 {
 
     private Client client;
     private WebTarget webTarget;
 
 
-    public ServerAmministratore(URI indirizzo)
+    public Admin(URI indirizzo)
     {
         client = ClientBuilder.newClient();
         webTarget = client.target(indirizzo + "/OOM");
     }
 
+    //region Funzioni
     public void iscriviCasa(int ID)
     {
         try
@@ -35,17 +36,19 @@ public final class ServerAmministratore
             var wt_iscriviCasa = webTarget
                     .path("iscriviCasa");
 
-            parametriCasaReq par = parametriCasaReq
+            final var par = parametriCasaReq
                     .newBuilder()
                     .setID(5)
                     .build();
 
-            parametriCasaRes home = wt_iscriviCasa
+            final var res = wt_iscriviCasa
                     .request()
                     .put(Entity.entity(par, "application/x-protobuf"), parametriCasaRes.class);
 
-            if (!home.getOk())
-                System.out.println(home.getErrore());
+            if (res.getOk())
+                System.out.println("OK!");
+            else
+                System.out.println(res.getErrore());
         }
         catch (Exception e)
         {
@@ -55,8 +58,31 @@ public final class ServerAmministratore
 
     public void disiscriviCasa(int ID)
     {
+        try
+        {
+            var wt_disiscriviCasa = webTarget
+                    .path("disiscriviCasa");
 
+            final var par = parametriCasaReq
+                    .newBuilder()
+                    .setID(5)
+                    .build();
+
+            final var res = wt_disiscriviCasa
+                    .request()
+                    .put(Entity.entity(par, "application/x-protobuf"), parametriCasaRes.class);
+
+            if (res.getOk())
+                System.out.println("OK!");
+            else
+                System.out.println(res.getErrore());
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
+    //endregion
 
 
 }
