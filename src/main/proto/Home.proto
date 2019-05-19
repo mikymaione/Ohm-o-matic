@@ -8,14 +8,15 @@ syntax = "proto3";
 package OhmOMatic.ProtoBuffer;
 
 service Home {
-    rpc iscrivi (iscriviCasaReq) returns (iscriviCasaRes);
+    rpc iscrivi (parametriCasaReq) returns (parametriCasaRes);
+    rpc disiscrivi (parametriCasaReq) returns (parametriCasaRes);
 }
 
-message iscriviCasaReq {
+message parametriCasaReq {
     int32 ID = 1;
 }
 
-message iscriviCasaRes {
+message parametriCasaRes {
     bool ok = 1;
     string errore = 2;
 }

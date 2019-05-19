@@ -6,10 +6,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Sistema;
 
-import OhmOMatic.ProtoBuffer.HomeOuterClass;
+import OhmOMatic.ProtoBuffer.HomeOuterClass.parametriCasaReq;
+import OhmOMatic.ProtoBuffer.HomeOuterClass.parametriCasaRes;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import java.net.URI;
 
@@ -30,12 +32,17 @@ public final class ServerAmministratore
     {
         try
         {
-            var R = webTarget
+            var wt_iscriviCasa = webTarget
                     .path("iscriviCasa");
 
-            var home = R
+            parametriCasaReq par = parametriCasaReq
+                    .newBuilder()
+                    .setID(5)
+                    .build();
+
+            parametriCasaRes home = wt_iscriviCasa
                     .request()
-                    .get(HomeOuterClass.iscriviCasaRes.class);
+                    .put(Entity.entity(par, "application/x-protobuf"), parametriCasaRes.class);
 
             if (!home.getOk())
                 System.out.println(home.getErrore());

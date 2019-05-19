@@ -6,9 +6,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.REST;
 
-import OhmOMatic.ProtoBuffer.HomeOuterClass;
+import OhmOMatic.ProtoBuffer.HomeOuterClass.parametriCasaReq;
+import OhmOMatic.ProtoBuffer.HomeOuterClass.parametriCasaRes;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
@@ -25,16 +27,30 @@ public final class OOM
         return "Benvenuto in Ohm-O-Matic!";
     }
 
-    @GET
+    @PUT
     @Path("/iscriviCasa")
-    public HomeOuterClass.iscriviCasaRes iscriviCasa()
+    public parametriCasaRes iscriviCasa(parametriCasaReq par)
     {
-        var home = HomeOuterClass.iscriviCasaRes
+        parametriCasaRes res = parametriCasaRes
                 .newBuilder()
                 .setOk(false)
-                .setErrore("Non posso aggiungere la tua casa perché mi fai schifo!");
+                .setErrore("Non posso aggiungere la tua casa perché mi fai schifo!")
+                .build();
 
-        return home.build();
+        return res;
+    }
+
+    @PUT
+    @Path("/disiscriviCasa")
+    public parametriCasaRes disiscriviCasa(parametriCasaReq par)
+    {
+        parametriCasaRes res = parametriCasaRes
+                .newBuilder()
+                .setOk(false)
+                .setErrore("Non posso aggiungere la tua casa perché mi fai schifo!")
+                .build();
+
+        return res;
     }
 
 
