@@ -6,12 +6,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Sistema;
 
-import OhmOMatic.ProtoBuffer.HomeOuterClass.parametriCasaReq;
-import OhmOMatic.ProtoBuffer.HomeOuterClass.parametriCasaRes;
+import OhmOMatic.ProtoBuffer.HomeOuterClass.listaCaseRes;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import java.net.URI;
 
@@ -28,25 +26,31 @@ public final class Admin
         webTarget = client.target(indirizzo + "/OOM");
     }
 
-    //region Funzioni
-    public void iscriviCasa(int ID)
+
+    //region Funzioni case
+    public void elencoCase()
     {
         try
         {
-            var wt_iscriviCasa = webTarget
-                    .path("iscriviCasa");
+            var wt = webTarget
+                    .path("elencoCase");
 
-            final var par = parametriCasaReq
-                    .newBuilder()
-                    .setID(5)
-                    .build();
-
-            final var res = wt_iscriviCasa
+            final var lista = wt
                     .request()
-                    .put(Entity.entity(par, "application/x-protobuf"), parametriCasaRes.class);
+                    .get(listaCaseRes.class);
+
+            final var res = lista.getStandardResponse();
 
             if (res.getOk())
+            {
                 System.out.println("OK!");
+                System.out.println("Lista case presenti nel sistema:");
+
+                final var elenco = lista.getCaseList();
+
+                for (var c : elenco)
+                    System.out.println(String.format("-Casa %s (%s:%d)", c.getID(), c.getIP(), c.getPort()));
+            }
             else
                 System.out.println(res.getErrore());
         }
@@ -55,32 +59,27 @@ public final class Admin
             e.printStackTrace();
         }
     }
+    //endregion
 
-    public void disiscriviCasa(int ID)
+    //region Statistiche
+    public void ultimeStatisticheCasa(String id, int n)
     {
-        try
-        {
-            var wt_disiscriviCasa = webTarget
-                    .path("disiscriviCasa");
 
-            final var par = parametriCasaReq
-                    .newBuilder()
-                    .setID(5)
-                    .build();
+    }
 
-            final var res = wt_disiscriviCasa
-                    .request()
-                    .put(Entity.entity(par, "application/x-protobuf"), parametriCasaRes.class);
+    public void ultimeStatisticheCondominio(int n)
+    {
 
-            if (res.getOk())
-                System.out.println("OK!");
-            else
-                System.out.println(res.getErrore());
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
+    }
+
+    public void deviazioneStandardMediaCasa(String id, int n)
+    {
+
+    }
+
+    public void deviazioneStandardMediaCondominio(int n)
+    {
+
     }
     //endregion
 

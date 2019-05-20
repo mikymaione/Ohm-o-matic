@@ -6,9 +6,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Sistema;
 
+import OhmOMatic.ProtoBuffer.Common.standardRes;
+import OhmOMatic.ProtoBuffer.HomeOuterClass;
 import OhmOMatic.Simulation.SmartMeterSimulator;
 import OhmOMatic.Sistema.Base.BufferImpl;
 import OhmOMatic.Sistema.Base.MeanListener;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 
 public class Casa implements MeanListener
 {
@@ -16,9 +23,19 @@ public class Casa implements MeanListener
     private SmartMeterSimulator smartMeter;
     private BufferImpl theBuffer;
 
+    private Client client;
+    private WebTarget webTarget;
 
-    public Casa(String indirizzoServer, int numeroPorta, String ID)
+    final private String ID;
+
+
+    public Casa(String indirizzoREST, String indirizzoServer, int numeroPorta, String id)
     {
+        ID = id;
+
+        client = ClientBuilder.newClient();
+        webTarget = client.target(indirizzoREST + "/OOM");
+
         theBuffer = new BufferImpl(24, this);
         smartMeter = new SmartMeterSimulator(theBuffer);
     }
@@ -26,12 +43,56 @@ public class Casa implements MeanListener
 
     public void iscrivitiAlCondominio()
     {
+        try
+        {
+            var wt = webTarget
+                    .path("iscriviCasa");
 
+            final var par = HomeOuterClass.parametriCasaReq
+                    .newBuilder()
+                    .setID(ID)
+                    .build();
+
+            final var res = wt
+                    .request()
+                    .put(Entity.entity(par, "application/x-protobuf"), standardRes.class);
+
+            if (res.getOk())
+                System.out.println("OK!");
+            else
+                System.out.println(res.getErrore());
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
     public void disiscrivitiDalCondominio()
     {
+        try
+        {
+            var wt = webTarget
+                    .path("disiscriviCasa");
 
+            final var par = HomeOuterClass.parametriCasaReq
+                    .newBuilder()
+                    .setID(ID)
+                    .build();
+
+            final var res = wt
+                    .request()
+                    .put(Entity.entity(par, "application/x-protobuf"), standardRes.class);
+
+            if (res.getOk())
+                System.out.println("OK!");
+            else
+                System.out.println(res.getErrore());
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
 

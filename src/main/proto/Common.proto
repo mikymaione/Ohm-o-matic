@@ -8,26 +8,8 @@ syntax = "proto3";
 
 package OhmOMatic.ProtoBuffer;
 
-import "Common.proto";
 
-
-service Home {
-    rpc iscriviCasa (parametriCasaReq) returns (standardRes);
-    rpc disiscriviCasa (parametriCasaReq) returns (standardRes);
-}
-
-
-message parametriCasaReq {
-    string ID = 1;
-}
-
-message casa {
-    string ID = 1;
-    string IP = 2;
-    int32 Port = 3;
-}
-
-message listaCaseRes {
-    standardRes standardResponse = 1;
-    repeated casa case = 2;
+message standardRes {
+    bool ok = 1;
+    string errore = 2;
 }

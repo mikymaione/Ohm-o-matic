@@ -6,13 +6,18 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.REST;
 
+import OhmOMatic.ProtoBuffer.Common.standardRes;
+import OhmOMatic.ProtoBuffer.HomeOuterClass.casa;
+import OhmOMatic.ProtoBuffer.HomeOuterClass.listaCaseRes;
 import OhmOMatic.ProtoBuffer.HomeOuterClass.parametriCasaReq;
-import OhmOMatic.ProtoBuffer.HomeOuterClass.parametriCasaRes;
 import OhmOMatic.ProtoBuffer.StatOuterClass.parametriStatisticaReq;
-import OhmOMatic.ProtoBuffer.StatOuterClass.parametriStatisticaRes;
+import OhmOMatic.ProtoBuffer.StatOuterClass.parametriStatisticheReq;
 
+import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import java.util.ArrayList;
+
 
 @Path("OOM")
 public final class OOM
@@ -21,25 +26,33 @@ public final class OOM
     //region Casa
     @PUT
     @Path("/iscriviCasa")
-    public parametriCasaRes iscriviCasa(parametriCasaReq par)
+    public standardRes iscriviCasa(parametriCasaReq par)
     {
-        final var res = parametriCasaRes
-                .newBuilder()
-                .setOk(false)
-                .setErrore("Non posso aggiungere la tua casa perché mi fai schifo!")
-                .build();
+        final var res = buildStandardRes(false, "excepsions!");
 
         return res;
     }
 
     @PUT
     @Path("/disiscriviCasa")
-    public parametriCasaRes disiscriviCasa(parametriCasaReq par)
+    public standardRes disiscriviCasa(parametriCasaReq par)
     {
-        final var res = parametriCasaRes
+        final var res = buildStandardRes(false, "excepsions!");
+
+        return res;
+    }
+
+
+    @GET
+    @Path("/elencoCase")
+    public listaCaseRes elencoCase()
+    {
+        final var case_ = new ArrayList<casa>();
+
+        final var res = listaCaseRes
                 .newBuilder()
-                .setOk(false)
-                .setErrore("Non posso aggiungere la tua casa perché mi fai schifo!")
+                .setStandardResponse(buildStandardRes(false, "excepsions!"))
+                .addAllCase(case_)
                 .build();
 
         return res;
@@ -50,30 +63,69 @@ public final class OOM
     //region Statistiche
     @PUT
     @Path("/aggiungiStatisticaLocale")
-    public parametriStatisticaRes aggiungiStatisticaLocale(parametriStatisticaReq par)
+    public standardRes aggiungiStatisticaLocale(parametriStatisticaReq par)
     {
-        final var res = parametriStatisticaRes
-                .newBuilder()
-                .setOk(false)
-                .setErrore("Non posso aggiungere la tua statistica perché mi fai schifo!")
-                .build();
+        final var res = buildStandardRes(false, "excepsions!");
 
         return res;
     }
 
     @PUT
     @Path("/aggiungiStatisticaGlobale")
-    public parametriStatisticaRes aggiungiStatisticaGlobale(parametriStatisticaReq par)
+    public standardRes aggiungiStatisticaGlobale(parametriStatisticaReq par)
     {
-        final var res = parametriStatisticaRes
-                .newBuilder()
-                .setOk(false)
-                .setErrore("Non posso aggiungere la tua statistica perché mi fai schifo!")
-                .build();
+        final var res = buildStandardRes(false, "excepsions!");
+
+        return res;
+    }
+
+
+    @GET
+    @Path("/ultimeStatisticheCasa")
+    public standardRes ultimeStatisticheCasa(parametriStatisticaReq par)
+    {
+        final var res = buildStandardRes(false, "excepsions!");
+
+        return res;
+    }
+
+    @GET
+    @Path("/ultimeStatisticheCondominio")
+    public standardRes ultimeStatisticheCondominio(parametriStatisticheReq par)
+    {
+        final var res = buildStandardRes(false, "excepsions!");
+
+        return res;
+    }
+
+
+    @GET
+    @Path("/deviazioneStandardMediaCasa")
+    public standardRes deviazioneStandardMediaCasa(parametriStatisticaReq par)
+    {
+        final var res = buildStandardRes(false, "excepsions!");
+
+        return res;
+    }
+
+    @GET
+    @Path("/deviazioneStandardMediaCondominio")
+    public standardRes deviazioneStandardMediaCondominio(parametriStatisticheReq par)
+    {
+        final var res = buildStandardRes(false, "excepsions!");
 
         return res;
     }
     //endregion
 
-
+    //region Common functions
+    private standardRes buildStandardRes(boolean Ok, String errore)
+    {
+        return standardRes
+                .newBuilder()
+                .setOk(Ok)
+                .setErrore(errore)
+                .build();
+    }
+    //endregion
 }

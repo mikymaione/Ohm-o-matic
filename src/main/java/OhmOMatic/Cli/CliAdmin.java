@@ -33,21 +33,47 @@ public final class CliAdmin extends BaseCommandLineApplication
 
                 var admin = new Admin(stringToURI(server_url, server_port, "OOM"));
 
-                if (cmd.hasOption("a"))
-                {
-                    final var id_casa_s = cmd.getOptionValue("a");
-                    final var id_casa = Integer.parseUnsignedInt(id_casa_s);
 
-                    admin.iscriviCasa(id_casa);
+                if (cmd.hasOption("e")) //Elenco case
+                {
+                    admin.elencoCase();
                 }
 
-                if (cmd.hasOption("r"))
-                {
-                    final var id_casa_s = cmd.getOptionValue("r");
-                    final var id_casa = Integer.parseUnsignedInt(id_casa_s);
 
-                    admin.disiscriviCasa(id_casa);
+                if (cmd.hasOption("s")) //Ultime N statistiche casa
+                {
+                    final var ops = cmd.getOptionValues("s");
+                    final var id = ops[0];
+                    final var n = Integer.parseUnsignedInt(ops[1]);
+
+                    admin.ultimeStatisticheCasa(id, n);
                 }
+
+                if (cmd.hasOption("g")) //Ultime N statistiche condominio
+                {
+                    final var n_s = cmd.getOptionValue("g");
+                    final var n = Integer.parseUnsignedInt(n_s);
+
+                    admin.ultimeStatisticheCondominio(n);
+                }
+
+                if (cmd.hasOption("y")) //Deviazione standard e media delle ultime N statistiche prodotte da una specifica casa
+                {
+                    final var ops = cmd.getOptionValues("s");
+                    final var id = ops[0];
+                    final var n = Integer.parseUnsignedInt(ops[1]);
+
+                    admin.deviazioneStandardMediaCasa(id, n);
+                }
+
+                if (cmd.hasOption("x")) //Deviazione standard e media delle ultime N statistiche complessive condominiali
+                {
+                    final var n_s = cmd.getOptionValue("g");
+                    final var n = Integer.parseUnsignedInt(n_s);
+
+                    admin.deviazioneStandardMediaCondominio(n);
+                }
+
             }
             catch (URISyntaxException e)
             {
@@ -60,6 +86,7 @@ public final class CliAdmin extends BaseCommandLineApplication
         }
     }
 
+    //region Opzioni command line
     private static Options createOptions()
     {
         final var url = Option.builder("u")
@@ -77,27 +104,51 @@ public final class CliAdmin extends BaseCommandLineApplication
                 .build();
 
 
-        final var iscriviCasa = Option.builder("a")
-                .desc("Iscrivi casa")
-                .hasArg()
-                .argName("ID")
+        final var elencoCase = Option.builder("e")
+                .desc("Elenco case")
                 .build();
 
-        final var disiscriviCasa = Option.builder("r")
-                .desc("Disiscrivi casa")
+
+        final var ultimeStatisticheCasa = Option.builder("s")
+                .desc("Ultime N statistiche casa")
+                .hasArgs()
+                .argName("i")
+                .argName("N")
+                .build();
+
+        final var ultimeStatisticheCondominio = Option.builder("g")
+                .desc("Ultime N statistiche condominio")
                 .hasArg()
-                .argName("ID")
+                .argName("N")
+                .build();
+
+
+        final var deviazioneStandardMediaCasa = Option.builder("y")
+                .desc("Deviazione standard e media delle ultime N statistiche prodotte da una specifica casa")
+                .hasArgs()
+                .argName("i")
+                .argName("N")
+                .build();
+
+        final var deviazioneStandardMediaCondominio = Option.builder("x")
+                .desc("Deviazione standard e media delle ultime N statistiche complessive condominiali")
+                .hasArg()
+                .argName("N")
                 .build();
 
 
         final var options = new Options()
                 .addOption(url)
                 .addOption(port)
-                .addOption(iscriviCasa)
-                .addOption(disiscriviCasa);
+                .addOption(elencoCase)
+                .addOption(ultimeStatisticheCasa)
+                .addOption(ultimeStatisticheCondominio)
+                .addOption(deviazioneStandardMediaCasa)
+                .addOption(deviazioneStandardMediaCondominio);
 
         return options;
     }
+    //endregion
 
 
 }

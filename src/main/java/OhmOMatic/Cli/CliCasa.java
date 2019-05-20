@@ -25,14 +25,16 @@ public final class CliCasa extends BaseCommandLineApplication
             final var cmd = getCommandLine(options, args);
 
             final var id = cmd.getOptionValue("i");
-            final var server_url = cmd.getOptionValue("u");
+            final var rest_url = cmd.getOptionValue("r");
+            final var server_url = cmd.getOptionValue("s");
             final var server_port_s = cmd.getOptionValue("p");
             final var server_port = Integer.parseUnsignedInt(server_port_s);
 
             System.out.println("Casa avviata!");
 
-            var casa = new Casa(server_url, server_port, id);
+            var casa = new Casa(rest_url, server_url, server_port, id);
 
+            casa.iscrivitiAlCondominio();
             casa.avviaSmartMeter();
             //casa.fermaSmartMeter();
         }
@@ -42,9 +44,17 @@ public final class CliCasa extends BaseCommandLineApplication
         }
     }
 
+    //region Opzioni command line
     private static Options createOptions()
     {
-        final var url = Option.builder("u")
+        final var url_rest = Option.builder("r")
+                .desc("REST URL")
+                .required()
+                .hasArg()
+                .argName("URL")
+                .build();
+
+        final var url = Option.builder("s")
                 .desc("Server URL")
                 .required()
                 .hasArg()
@@ -67,12 +77,14 @@ public final class CliCasa extends BaseCommandLineApplication
 
 
         final var options = new Options()
+                .addOption(url_rest)
                 .addOption(url)
                 .addOption(port)
                 .addOption(id);
 
         return options;
     }
+    //endregion
 
 
 }

@@ -5,18 +5,24 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 syntax = "proto3";
+
 package OhmOMatic.ProtoBuffer;
 
+import "Common.proto";
+import "Home.proto";
+
+
 service Stat {
-    rpc aggiungiStatisticaLocale (parametriStatisticaReq) returns (parametriStatisticaRes);
-    rpc aggiungiStatisticaGlobale (parametriStatisticaReq) returns (parametriStatisticaRes);
+    rpc aggiungiStatisticaLocale (parametriStatisticaReq) returns (standardRes);
+    rpc aggiungiStatisticaGlobale (parametriStatisticaReq) returns (standardRes);
+}
+
+
+message parametriStatisticheReq {
+    int32 N = 2;
 }
 
 message parametriStatisticaReq {
-    int32 ID = 1;
-}
-
-message parametriStatisticaRes {
-    bool ok = 1;
-    string errore = 2;
+    parametriCasaReq casa = 1;
+    parametriStatisticheReq par = 2;
 }
