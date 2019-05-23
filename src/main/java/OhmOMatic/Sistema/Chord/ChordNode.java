@@ -18,181 +18,271 @@ package OhmOMatic.Sistema.Chord;
 
 import OhmOMatic.Global.GB;
 
+import java.io.IOException;
+import java.io.Serializable;
+import java.rmi.RemoteException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
-public class ChordNode
+
+public final class ChordNode implements Serializable
 {
 
-    private final int mBit;
-    private final byte[] ID;
-    private final String localURL;
+    private static final long serialVersionUID = 987654321;
 
-    private ChordNode node, predecessor, successor;
-    private ChordNode[] finger;
+    private static final int STABILIZATION_INTERVAL = 4000;
+    private static final int REPLICATION_FACTOR = 2;
+    private static final int PEER_TIMEOUT = 500;
 
-    private byte[] start;
+    private final int mBit = 128;
+
+    private final byte[] key;
+
+    private final HashMap<byte[], Serializable> data = new HashMap<>();
+    private final ChordNode[] fingers = new ChordNode[mBit];
+
+    private volatile Deque<ChordNode> successors = new ArrayDeque<>();
+    private volatile ChordNode predecessor;
 
 
-    public ChordNode(int N_Bit, String localURL) throws NoSuchAlgorithmException
+    public ChordNode(final String host) throws NoSuchAlgorithmException
     {
-        this.localURL = localURL;
-        this.mBit = N_Bit;
+        this.key = GB.sha1(host);
+        this.successor(this);
 
-        this.ID = GB.sha1(localURL);
-        this.finger = new ChordNode[getLengthOfID()];
+        //var stub = (ChordNode) UnicastRemoteObject.exportObject(this, 0);
+        //this.channel = new Channel(host, c -> c.write(stub));
+
+        //new Schedule(() -> this.stabilize(), STABILIZATION_INTERVAL);
     }
 
-    private int getLengthOfID()
+    public ChordNode(final String host, final ChordNode known) throws IOException, NoSuchAlgorithmException
     {
-        return this.ID.length * 8;
+        this(host);
+        this.join(known);
     }
 
-    private ChordNode find_successor(byte[] id)
+    public ChordNode(final String host, final String peer)
     {
-        var n_ = find_predecessor(id);
-
-        return n_.successor;
+        key = null;
+        //this(host, (ChordNode) Proxy.connect(peer));
     }
 
-    private ChordNode find_predecessor(byte[] id)
+    public byte[] key()
     {
-        var n = this;
-        var n_ = n;
-
-        while (!appartiene(id, new ChordNode[]{n_, n_.successor}))
-            n_ = n_.closest_preceding_finger(id);
-
-        return n_;
+        return key;
     }
 
-    private ChordNode closest_preceding_finger(byte[] id)
+
+    public ChordNode successor() throws RemoteException
     {
-        var n = this;
-
-        for (var i = mBit - 1; i-- > 0; )
-            if (appartiene(finger[i].node.ID, new byte[][]{n.ID, id}))
-                return finger[i].node;
-
-        return n;
-    }
-
-    public void join2(ChordNode n_)
-    {
-        var n = this;
-
-        predecessor = null;
-        successor = n_.find_successor(n.ID);
-    }
-
-    public void join(ChordNode n_)
-    {
-        var n = this;
-
-        if (n_ == null)
+        if (!isAlive(fingers[0]))
         {
-            //sei il primo nodo
-            for (var i = 0; i < mBit; i++)
-                finger[i].node = n;
+            synchronized (successors)
+            {
+                this.successor(successors.stream()
+                        .skip(1)
+                        .filter(successor -> isAlive(successor)).findFirst()
+                        .orElse(this)
+                );
+            }
 
-            predecessor = n;
+            reconsileSuccessors();
         }
+
+        return fingers[0];
+    }
+
+    private void successor(final ChordNode chordNode)
+    {
+        synchronized (fingers)
+        {
+            fingers[0] = chordNode;
+        }
+    }
+
+    public Deque<ChordNode> successors()
+    {
+        return successors;
+    }
+
+    public ChordNode predecessor()
+    {
+        if (predecessor != null && !isAlive(predecessor))
+            predecessor = null;
+
+        return predecessor;
+    }
+
+    private void predecessor(final ChordNode chordNode)
+    {
+        predecessor = chordNode;
+    }
+
+    public ChordNode findSuccessor(final byte[] key) throws RemoteException
+    {
+        var successor = this.successor();
+
+        if (GB.compreso(key, this.key, successor.key()))
+            return successor;
+
+        var closest = this.closest(key);
+
+        if (closest == this)
+            return this;
         else
+            return closest.findSuccessor(key);
+    }
+
+    public void notify(final ChordNode chordNode)
+    {
+        var predecessor = this.predecessor();
+
+        if (predecessor == null)
+            this.predecessor(chordNode);
+        else if (chordNode == this)
+            return;
+        else if (GB.compreso(chordNode.key(), predecessor.key(), this.key))
+            this.predecessor(chordNode);
+    }
+
+    public <T extends Serializable> T get(final byte[] key) throws RemoteException
+    {
+        var responsible = this.findSuccessor(key);
+
+        if (this.key.equals(responsible.key()))
+            synchronized (this.data)
+            {
+                return (T) this.data.get(key);
+            }
+        else
+            return (T) responsible.get(key);
+    }
+
+    public <T extends Serializable> T put(final byte[] key, final Serializable object) throws RemoteException
+    {
+        var responsible = this.findSuccessor(key);
+
+        if (this.key.equals(responsible.key()))
+            synchronized (this.data)
+            {
+                return (T) this.data.put(key, object);
+            }
+        else
+            return (T) responsible.put(key, object);
+    }
+
+    public void offer(final byte[] key, final Serializable object)
+    {
+        synchronized (this.data)
         {
-            init_finger_table(n_);
-            update_others();
+            if (!this.data.containsKey(key))
+                this.data.put(key, object);
         }
     }
 
-    private void stabilize()
+    private ChordNode closest(final byte[] key)
     {
-        var n = this;
-        var x = successor.predecessor;
+        var candidate = this;
 
-        if (appartiene(x, new ChordNode[]{n, successor}))
-            successor = x;
-
-        successor.notify(n);
-    }
-
-    private void notify(ChordNode n_)
-    {
-        var n = this;
-
-        if (predecessor == null || appartiene(n_, new ChordNode[]{predecessor, n}))
-            predecessor = n_;
-    }
-
-    private void fix_fingers()
-    {
-        var i = GB.RandomInt(1, finger.length - 1);
-
-        finger[i].node = find_successor(finger[i].start);
-    }
-
-    private void update_others()
-    {
-        var n = this;
-
-        for (var i = 0; i < mBit; i++)
+        synchronized (this.fingers)
         {
-            var p = find_predecessor(null);
-            p.update_finger_table(n, i);
+            for (var chordNode : this.fingers)
+            {
+                if (!isAlive(chordNode))
+                    continue;
+
+                if (GB.compreso(chordNode.key(), this.key, key))
+                    candidate = chordNode;
+            }
+        }
+
+        return candidate;
+    }
+
+    private void join(final ChordNode chordNode) throws RemoteException
+    {
+        successor(chordNode.findSuccessor(this.key));
+    }
+
+    private void stabilize() throws RemoteException
+    {
+        var s = successor();
+        var c = s.predecessor();
+
+        if (c != null && GB.compreso(c.key, key, s.key))
+            successor(c);
+
+        successor().notify(this);
+
+        fixFingers();
+        handoff();
+        reconsileSuccessors();
+    }
+
+    private void fixFingers() throws RemoteException
+    {
+        synchronized (fingers)
+        {
+            for (var bits = 1; bits < fingers.length; bits++)
+                fingers[bits] = findSuccessor(GB.shiftLeft(key, bits));
         }
     }
 
-    private void update_finger_table(ChordNode s, int i)
+    private void handoff() throws RemoteException
     {
-        var n = this;
-
-        if (appartiene(s, new ChordNode[]{n, finger[i].node}))
+        synchronized (data)
         {
-            finger[i].node = s;
-            var p = predecessor;
-            p.update_finger_table(s, i);
+            for (var key : data.keySet())
+            {
+                var r = findSuccessor(key);
+
+                if (!key().equals(r.key()))
+                    r.offer(key, data.remove(key));
+            }
         }
     }
 
-    private void init_finger_table(ChordNode n_)
+    private void reconsileSuccessors() throws RemoteException
     {
-        var n = this;
+        var s = successor();
 
-        finger[0].node = n_.find_successor(finger[0].start);
-        predecessor = successor.predecessor;
-        successor.predecessor = n;
+        if (s == this)
+            return;
 
-        for (var i = 0; i < mBit - 1; i++)
-            if (appartiene(finger[i + 1].start, new ChordNode[]{n, finger[i].node}))
-                finger[i + 1].node = finger[i].node;
-            else
-                finger[i + 1].node = n_.find_successor(finger[i + 1].start);
+        var successori = s.successors();
+
+        successori.addFirst(s);
+
+        if (successori.size() > REPLICATION_FACTOR)
+            successori.removeLast();
+
+        this.successors = successori;
     }
 
-
-    //region Funzioni di utilità
-    private static final boolean appartiene(byte[] an_id, byte[][] elementi)
+    private static boolean isAlive(final ChordNode chordNode)
     {
-        for (var e : elementi)
-            if (an_id.equals(e))
-                return true;
+        try
+        {
+            var future = new FutureTask<>(() -> chordNode.key());
 
-        return false;
+            new Thread(future).start();
+
+            future.get(PEER_TIMEOUT, TimeUnit.MILLISECONDS);
+
+            return true;
+        }
+        catch (InterruptedException | ExecutionException | TimeoutException ex)
+        {
+            return false;
+        }
     }
 
-    private static final boolean appartiene(ChordNode a_node, ChordNode[] elementi)
-    {
-        return appartiene(a_node.ID, elementi);
-    }
-
-    private static final boolean appartiene(byte[] an_id, ChordNode[] elementi)
-    {
-        final var l = elementi.length;
-        var A = new byte[l][];
-
-        for (var i = 0; i < l; i++)
-            A[i] = elementi[i].ID;
-
-        return appartiene(an_id, A);
-    }
-    //endregion
 
 }

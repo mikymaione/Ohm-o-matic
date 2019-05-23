@@ -42,8 +42,7 @@ public class Casa implements MeanListener
 
         try
         {
-            chord = new ChordNode(128, "127.0.0.0:5555");
-            chord.join(null);
+            chord = new ChordNode(indirizzoServer + ":" + numeroPorta);
         }
         catch (NoSuchAlgorithmException e)
         {

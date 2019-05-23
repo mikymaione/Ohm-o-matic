@@ -8,6 +8,7 @@ package OhmOMatic.Global;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Random;
 
 public final class GB
@@ -20,11 +21,50 @@ public final class GB
         return mDigest.digest(input.getBytes());
     }
 
-    public final static int RandomInt(int da, int a)
+    public final static int randomInt(int da, int a)
     {
         var randomGenerator = new Random();
 
         return randomGenerator.nextInt(a) + da;
+    }
+
+    public final static boolean compreso(final byte[] key, final byte[] lower, final byte[] upper)
+    {
+        if (Arrays.compare(lower, upper) > 0)
+            return Arrays.compare(key, lower) < 0 && Arrays.compare(key, upper) <= 1;
+        else
+            return Arrays.compare(key, lower) < 0 || Arrays.compare(key, upper) <= 1;
+    }
+
+    public final static byte[] shiftLeft(byte[] byteArray, int shiftBitCount)
+    {
+        //https://github.com/patrickfav/bytes-java
+
+        final var shiftMod = shiftBitCount % 8;
+        final var carryMask = (byte) ((1 << shiftMod) - 1);
+        final var offsetBytes = (shiftBitCount / 8);
+
+        int sourceIndex;
+        for (var i = 0; i < byteArray.length; i++)
+        {
+            sourceIndex = i + offsetBytes;
+            if (sourceIndex >= byteArray.length)
+            {
+                byteArray[i] = 0;
+            }
+            else
+            {
+                var src = byteArray[sourceIndex];
+                var dst = (byte) (src << shiftMod);
+
+                if (sourceIndex + 1 < byteArray.length)
+                    dst |= byteArray[sourceIndex + 1] >>> (8 - shiftMod) & carryMask;
+
+                byteArray[i] = dst;
+            }
+        }
+
+        return byteArray;
     }
 
 
