@@ -17,7 +17,6 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
-import java.security.NoSuchAlgorithmException;
 
 public class Casa implements MeanListener
 {
@@ -33,21 +32,14 @@ public class Casa implements MeanListener
     private ChordNode chord;
 
 
-    public Casa(String indirizzoREST, String indirizzoServer, int numeroPorta, String id)
+    public Casa(String indirizzoREST, String indirizzoServer, String id)
     {
         ID = id;
 
         client = ClientBuilder.newClient();
         webTarget = client.target(indirizzoREST + "/OOM");
 
-        try
-        {
-            chord = new ChordNode(indirizzoServer + ":" + numeroPorta);
-        }
-        catch (NoSuchAlgorithmException e)
-        {
-            e.printStackTrace();
-        }
+        chord = new ChordNode(indirizzoServer, indirizzoServer + ":8081");
 
         return;
 
