@@ -76,7 +76,15 @@ public class ChordNode
         return n;
     }
 
-    private void join(ChordNode n_)
+    public void join2(ChordNode n_)
+    {
+        var n = this;
+
+        predecessor = null;
+        successor = n_.find_successor(n.ID);
+    }
+
+    public void join(ChordNode n_)
     {
         var n = this;
 

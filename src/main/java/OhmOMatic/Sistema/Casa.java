@@ -11,11 +11,13 @@ import OhmOMatic.ProtoBuffer.HomeOuterClass;
 import OhmOMatic.Simulation.SmartMeterSimulator;
 import OhmOMatic.Sistema.Base.BufferImpl;
 import OhmOMatic.Sistema.Base.MeanListener;
+import OhmOMatic.Sistema.Chord.ChordNode;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
+import java.security.NoSuchAlgorithmException;
 
 public class Casa implements MeanListener
 {
@@ -28,6 +30,8 @@ public class Casa implements MeanListener
 
     final private String ID;
 
+    private ChordNode chord;
+
 
     public Casa(String indirizzoREST, String indirizzoServer, int numeroPorta, String id)
     {
@@ -36,11 +40,23 @@ public class Casa implements MeanListener
         client = ClientBuilder.newClient();
         webTarget = client.target(indirizzoREST + "/OOM");
 
-        theBuffer = new BufferImpl(24, this);
-        smartMeter = new SmartMeterSimulator(theBuffer);
+        try
+        {
+            chord = new ChordNode(128, "127.0.0.0:5555");
+            chord.join(null);
+        }
+        catch (NoSuchAlgorithmException e)
+        {
+            e.printStackTrace();
+        }
+
+        return;
+
+        //theBuffer = new BufferImpl(24, this);
+        //smartMeter = new SmartMeterSimulator(theBuffer);
     }
 
-
+    //region Chiamate WS
     public void iscrivitiAlCondominio()
     {
         try
@@ -95,7 +111,13 @@ public class Casa implements MeanListener
         }
     }
 
+    public void inviaStatisticheAlServer(double mean)
+    {
+        System.out.println(mean);
+    }
+    //endregion
 
+    //region Funzioni sul calcolo del consumo energetico
     public void calcolaConsumoEnergeticoComplessivo()
     {
 
@@ -105,13 +127,9 @@ public class Casa implements MeanListener
     {
 
     }
+    //endregion
 
-    public void inviaStatisticheAlServer(double mean)
-    {
-        System.out.println(mean);
-    }
-
-
+    //region Gestione Smart meter
     public void avviaSmartMeter()
     {
         smartMeter.run();
@@ -127,6 +145,7 @@ public class Casa implements MeanListener
     {
         inviaStatisticheAlServer(mean);
     }
+    //endregion
 
 
 }
