@@ -18,13 +18,9 @@ package OhmOMatic.Sistema.Chord;
 
 import OhmOMatic.Global.GB;
 
-import java.io.IOException;
 import java.io.Serializable;
-import java.rmi.RemoteException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashMap;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
@@ -40,7 +36,8 @@ public final class ChordNode implements Serializable
     private static final int REPLICATION_FACTOR = 2;
     private static final int PEER_TIMEOUT = 500;
 
-    private final int mBit = 128;
+    private static final int mBit = 128;
+
 
     private final byte[] key;
 
@@ -49,6 +46,8 @@ public final class ChordNode implements Serializable
 
     private volatile Deque<ChordNode> successors = new ArrayDeque<>();
     private volatile ChordNode predecessor;
+
+    private Timer timer = new Timer();
 
 
     public ChordNode(final String host) throws NoSuchAlgorithmException
@@ -59,10 +58,10 @@ public final class ChordNode implements Serializable
         //var stub = (ChordNode) UnicastRemoteObject.exportObject(this, 0);
         //this.channel = new Channel(host, c -> c.write(stub));
 
-        //new Schedule(() -> this.stabilize(), STABILIZATION_INTERVAL);
+        timer.schedule(GB.executeTimerTask(this::stabilize), STABILIZATION_INTERVAL);
     }
 
-    public ChordNode(final String host, final ChordNode known) throws IOException, NoSuchAlgorithmException
+    public ChordNode(final String host, final ChordNode known) throws NoSuchAlgorithmException
     {
         this(host);
         this.join(known);
@@ -74,22 +73,19 @@ public final class ChordNode implements Serializable
         //this(host, (ChordNode) Proxy.connect(peer));
     }
 
-    public byte[] key()
-    {
-        return key;
-    }
 
-
-    public ChordNode successor() throws RemoteException
+    public ChordNode successor()
     {
         if (!isAlive(fingers[0]))
         {
             synchronized (successors)
             {
-                this.successor(successors.stream()
-                        .skip(1)
-                        .filter(successor -> isAlive(successor)).findFirst()
-                        .orElse(this)
+                this.successor(
+                        successors.stream()
+                                .skip(1)
+                                .filter(ChordNode::isAlive)
+                                .findFirst()
+                                .orElse(this)
                 );
             }
 
@@ -125,57 +121,57 @@ public final class ChordNode implements Serializable
         predecessor = chordNode;
     }
 
-    public ChordNode findSuccessor(final byte[] key) throws RemoteException
+    public ChordNode findSuccessor(final byte[] key)
     {
-        var successor = this.successor();
+        var s = this.successor();
 
-        if (GB.compreso(key, this.key, successor.key()))
-            return successor;
+        if (GB.compreso(key, this.key, s.key))
+            return s;
 
-        var closest = this.closest(key);
+        var c = this.closest(key);
 
-        if (closest == this)
+        if (c == this)
             return this;
         else
-            return closest.findSuccessor(key);
+            return c.findSuccessor(key);
     }
 
     public void notify(final ChordNode chordNode)
     {
-        var predecessor = this.predecessor();
+        var p = this.predecessor();
 
-        if (predecessor == null)
+        if (p == null)
             this.predecessor(chordNode);
         else if (chordNode == this)
             return;
-        else if (GB.compreso(chordNode.key(), predecessor.key(), this.key))
+        else if (GB.compreso(chordNode.key, p.key, this.key))
             this.predecessor(chordNode);
     }
 
-    public <T extends Serializable> T get(final byte[] key) throws RemoteException
+    public <T extends Serializable> T get(final byte[] key)
     {
-        var responsible = this.findSuccessor(key);
+        var r = this.findSuccessor(key);
 
-        if (this.key.equals(responsible.key()))
+        if (Arrays.equals(this.key, r.key))
             synchronized (this.data)
             {
                 return (T) this.data.get(key);
             }
         else
-            return (T) responsible.get(key);
+            return (T) r.get(key);
     }
 
-    public <T extends Serializable> T put(final byte[] key, final Serializable object) throws RemoteException
+    public <T extends Serializable> T put(final byte[] key, final Serializable object)
     {
-        var responsible = this.findSuccessor(key);
+        var r = this.findSuccessor(key);
 
-        if (this.key.equals(responsible.key()))
+        if (Arrays.equals(this.key, r.key))
             synchronized (this.data)
             {
                 return (T) this.data.put(key, object);
             }
         else
-            return (T) responsible.put(key, object);
+            return (T) r.put(key, object);
     }
 
     public void offer(final byte[] key, final Serializable object)
@@ -189,29 +185,29 @@ public final class ChordNode implements Serializable
 
     private ChordNode closest(final byte[] key)
     {
-        var candidate = this;
+        var c = this;
 
         synchronized (this.fingers)
         {
-            for (var chordNode : this.fingers)
+            for (var n : this.fingers)
             {
-                if (!isAlive(chordNode))
+                if (!isAlive(n))
                     continue;
 
-                if (GB.compreso(chordNode.key(), this.key, key))
-                    candidate = chordNode;
+                if (GB.compreso(n.key, this.key, key))
+                    c = n;
             }
         }
 
-        return candidate;
+        return c;
     }
 
-    private void join(final ChordNode chordNode) throws RemoteException
+    private void join(final ChordNode chordNode)
     {
         successor(chordNode.findSuccessor(this.key));
     }
 
-    private void stabilize() throws RemoteException
+    private void stabilize()
     {
         var s = successor();
         var c = s.predecessor();
@@ -226,7 +222,7 @@ public final class ChordNode implements Serializable
         reconsileSuccessors();
     }
 
-    private void fixFingers() throws RemoteException
+    private void fixFingers()
     {
         synchronized (fingers)
         {
@@ -235,42 +231,42 @@ public final class ChordNode implements Serializable
         }
     }
 
-    private void handoff() throws RemoteException
+    private void handoff()
     {
         synchronized (data)
         {
-            for (var key : data.keySet())
+            for (var k : data.keySet())
             {
-                var r = findSuccessor(key);
+                var s = findSuccessor(k);
 
-                if (!key().equals(r.key()))
-                    r.offer(key, data.remove(key));
+                if (!Arrays.equals(key, s.key))
+                    s.offer(k, data.remove(k));
             }
         }
     }
 
-    private void reconsileSuccessors() throws RemoteException
+    private void reconsileSuccessors()
     {
         var s = successor();
 
         if (s == this)
             return;
 
-        var successori = s.successors();
+        var successors = s.successors();
 
-        successori.addFirst(s);
+        successors.addFirst(s);
 
-        if (successori.size() > REPLICATION_FACTOR)
-            successori.removeLast();
+        if (successors.size() > REPLICATION_FACTOR)
+            successors.removeLast();
 
-        this.successors = successori;
+        this.successors = successors;
     }
 
     private static boolean isAlive(final ChordNode chordNode)
     {
         try
         {
-            var future = new FutureTask<>(() -> chordNode.key());
+            var future = new FutureTask<>(() -> chordNode.key);
 
             new Thread(future).start();
 

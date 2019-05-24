@@ -10,25 +10,27 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.TimerTask;
 
 public final class GB
 {
 
-    public final static byte[] sha1(String input) throws NoSuchAlgorithmException
+    private static Random random = new Random();
+
+
+    public static byte[] sha1(String input) throws NoSuchAlgorithmException
     {
         var mDigest = MessageDigest.getInstance("SHA1");
 
         return mDigest.digest(input.getBytes());
     }
 
-    public final static int randomInt(int da, int a)
+    public static int randomInt(int da, int a)
     {
-        var randomGenerator = new Random();
-
-        return randomGenerator.nextInt(a) + da;
+        return random.nextInt(a) + da;
     }
 
-    public final static boolean compreso(final byte[] key, final byte[] lower, final byte[] upper)
+    public static boolean compreso(final byte[] key, final byte[] lower, final byte[] upper)
     {
         if (Arrays.compare(lower, upper) > 0)
             return Arrays.compare(key, lower) < 0 && Arrays.compare(key, upper) <= 1;
@@ -36,7 +38,7 @@ public final class GB
             return Arrays.compare(key, lower) < 0 || Arrays.compare(key, upper) <= 1;
     }
 
-    public final static byte[] shiftLeft(byte[] byteArray, int shiftBitCount)
+    public static byte[] shiftLeft(byte[] byteArray, int shiftBitCount)
     {
         //https://github.com/patrickfav/bytes-java
 
@@ -45,16 +47,18 @@ public final class GB
         final var offsetBytes = (shiftBitCount / 8);
 
         int sourceIndex;
+
         for (var i = 0; i < byteArray.length; i++)
         {
             sourceIndex = i + offsetBytes;
+
             if (sourceIndex >= byteArray.length)
             {
                 byteArray[i] = 0;
             }
             else
             {
-                var src = byteArray[sourceIndex];
+                final var src = byteArray[sourceIndex];
                 var dst = (byte) (src << shiftMod);
 
                 if (sourceIndex + 1 < byteArray.length)
@@ -65,6 +69,18 @@ public final class GB
         }
 
         return byteArray;
+    }
+
+    public static TimerTask executeTimerTask(Runnable r)
+    {
+        return new TimerTask()
+        {
+            @Override
+            public void run()
+            {
+                r.run();
+            }
+        };
     }
 
 
