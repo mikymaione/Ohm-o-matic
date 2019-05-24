@@ -18,11 +18,20 @@ public final class GB
     private static Random random = new Random();
 
 
-    public static byte[] sha1(String input) throws NoSuchAlgorithmException
+    public static byte[] sha1(String input)
     {
-        var mDigest = MessageDigest.getInstance("SHA1");
+        try
+        {
+            var mDigest = MessageDigest.getInstance("SHA1");
 
-        return mDigest.digest(input.getBytes());
+            return mDigest.digest(input.getBytes());
+        }
+        catch (NoSuchAlgorithmException e)
+        {
+            e.printStackTrace();
+
+            return null;
+        }
     }
 
     public static int randomInt(int da, int a)
