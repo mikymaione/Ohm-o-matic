@@ -11,15 +11,11 @@ package OhmOMatic.ProtoBuffer;
 import "Common.proto";
 
 
-service Home {
-    rpc iscriviCasa (parametriCasaReq) returns (standardRes);
-    rpc disiscriviCasa (parametriCasaReq) returns (standardRes);
+service HomeService {
+    rpc entraNelCondominio (casa) returns (standardRes);
+    rpc esciDalCondominio (casa) returns (standardRes);
 }
 
-
-message parametriCasaReq {
-    string ID = 1;
-}
 
 message casa {
     string ID = 1;
@@ -27,7 +23,7 @@ message casa {
     int32 Port = 3;
 }
 
-message listaCaseRes {
+message listaCase {
     standardRes standardResponse = 1;
     repeated casa case = 2;
 }

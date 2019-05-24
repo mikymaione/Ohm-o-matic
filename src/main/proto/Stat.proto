@@ -12,7 +12,7 @@ import "Common.proto";
 import "Home.proto";
 
 
-service Stat {
+service StatService {
     rpc aggiungiStatisticaLocale (parametriStatisticaReq) returns (standardRes);
     rpc aggiungiStatisticaGlobale (parametriStatisticaReq) returns (standardRes);
 }
@@ -23,6 +23,6 @@ message parametriStatisticheReq {
 }
 
 message parametriStatisticaReq {
-    parametriCasaReq casa = 1;
-    parametriStatisticheReq par = 2;
+    casa homeData = 1;
+    parametriStatisticheReq paramStats = 2;
 }

@@ -32,7 +32,7 @@ public final class CliCasa extends BaseCommandLineApplication
 
             var casa = new Casa(rest_url, server_url, id);
 
-            casa.iscrivitiAlCondominio();
+            casa.iscriviCasa();
             casa.avviaSmartMeter();
             //casa.fermaSmartMeter();
         }

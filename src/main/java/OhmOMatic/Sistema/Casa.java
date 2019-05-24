@@ -7,11 +7,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package OhmOMatic.Sistema;
 
 import OhmOMatic.ProtoBuffer.Common.standardRes;
-import OhmOMatic.ProtoBuffer.HomeOuterClass;
+import OhmOMatic.ProtoBuffer.Home.casa;
+import OhmOMatic.ProtoBuffer.Home.listaCase;
 import OhmOMatic.Simulation.SmartMeterSimulator;
 import OhmOMatic.Sistema.Base.BufferImpl;
 import OhmOMatic.Sistema.Base.MeanListener;
 import OhmOMatic.Sistema.Chord.ChordNode;
+import io.grpc.ManagedChannelBuilder;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -41,6 +43,21 @@ public class Casa implements MeanListener
 
         chord = new ChordNode(indirizzoServer, indirizzoServer + ":8081");
 
+        var channel = ManagedChannelBuilder
+                .forAddress(indirizzoServer, 8081)
+                .usePlaintext()
+                .build();
+
+        /*var stub = HomeService.newBlockingStub((BlockingRpcChannel) channel);
+
+        var c = casa.newBuilder()
+                .setID("Goku")
+                .setIP("localhost")
+                .setPort(8000)
+                .build();*/
+
+        //var R = stub.entraNelCondominio(c);
+
         return;
 
         //theBuffer = new BufferImpl(24, this);
@@ -48,21 +65,23 @@ public class Casa implements MeanListener
     }
 
     //region Chiamate WS
-    public void iscrivitiAlCondominio()
+    public void iscriviCasa()
     {
         try
         {
             var wt = webTarget
                     .path("iscriviCasa");
 
-            final var par = HomeOuterClass.parametriCasaReq
+            final var par = casa
                     .newBuilder()
                     .setID(ID)
                     .build();
 
-            final var res = wt
+            final var resListaCase = wt
                     .request()
-                    .put(Entity.entity(par, "application/x-protobuf"), standardRes.class);
+                    .put(Entity.entity(par, "application/x-protobuf"), listaCase.class);
+
+            final var res = resListaCase.getStandardResponse();
 
             if (res.getOk())
                 System.out.println("OK!");
@@ -75,14 +94,14 @@ public class Casa implements MeanListener
         }
     }
 
-    public void disiscrivitiDalCondominio()
+    public void disiscriviCasa()
     {
         try
         {
             var wt = webTarget
                     .path("disiscriviCasa");
 
-            final var par = HomeOuterClass.parametriCasaReq
+            final var par = casa
                     .newBuilder()
                     .setID(ID)
                     .build();

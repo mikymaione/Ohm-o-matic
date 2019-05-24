@@ -7,11 +7,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package OhmOMatic.REST;
 
 import OhmOMatic.ProtoBuffer.Common.standardRes;
-import OhmOMatic.ProtoBuffer.HomeOuterClass.casa;
-import OhmOMatic.ProtoBuffer.HomeOuterClass.listaCaseRes;
-import OhmOMatic.ProtoBuffer.HomeOuterClass.parametriCasaReq;
-import OhmOMatic.ProtoBuffer.StatOuterClass.parametriStatisticaReq;
-import OhmOMatic.ProtoBuffer.StatOuterClass.parametriStatisticheReq;
+import OhmOMatic.ProtoBuffer.Home.casa;
+import OhmOMatic.ProtoBuffer.Home.listaCase;
+import OhmOMatic.ProtoBuffer.Stat.parametriStatisticaReq;
+import OhmOMatic.ProtoBuffer.Stat.parametriStatisticheReq;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
@@ -26,33 +25,51 @@ public final class OOM
     //region Casa
     @PUT
     @Path("/iscriviCasa")
-    public standardRes iscriviCasa(parametriCasaReq par)
+    public listaCase iscriviCasa(casa par)
     {
-        final var res = buildStandardRes(false, "excepsions!");
+        var iscrizione_casa_nel_DB_ok = true;
+        var iscrizione_casa_nel_DB_errore = "excepsions!";
 
-        return res;
+        //iscrizione casa nel DB
+        //.........
+        //.........
+        //.........
+        //iscrizione casa nel DB
+
+
+        final var resElencoCase = listaCase
+                .newBuilder()
+                .setStandardResponse(buildStandardRes(iscrizione_casa_nel_DB_ok, iscrizione_casa_nel_DB_errore))
+                .addAllCase(getElencoCase())
+                .build();
+
+        return resElencoCase;
     }
 
     @PUT
     @Path("/disiscriviCasa")
-    public standardRes disiscriviCasa(parametriCasaReq par)
+    public standardRes disiscriviCasa(casa par)
     {
         final var res = buildStandardRes(false, "excepsions!");
 
         return res;
     }
 
+    private ArrayList<casa> getElencoCase()
+    {
+        final var elenco_case = new ArrayList<casa>();
+
+        return elenco_case;
+    }
 
     @GET
     @Path("/elencoCase")
-    public listaCaseRes elencoCase()
+    public listaCase elencoCase()
     {
-        final var case_ = new ArrayList<casa>();
-
-        final var res = listaCaseRes
+        final var res = listaCase
                 .newBuilder()
                 .setStandardResponse(buildStandardRes(false, "excepsions!"))
-                .addAllCase(case_)
+                .addAllCase(getElencoCase())
                 .build();
 
         return res;

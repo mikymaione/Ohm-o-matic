@@ -6,7 +6,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Sistema;
 
-import OhmOMatic.ProtoBuffer.HomeOuterClass.listaCaseRes;
+import OhmOMatic.ProtoBuffer.Home.listaCase;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -37,7 +37,7 @@ public final class Admin
 
             final var lista = wt
                     .request()
-                    .get(listaCaseRes.class);
+                    .get(listaCase.class);
 
             final var res = lista.getStandardResponse();
 
