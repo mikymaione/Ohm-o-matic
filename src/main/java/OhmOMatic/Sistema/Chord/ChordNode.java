@@ -60,10 +60,10 @@ public final class ChordNode implements Serializable
         timer.schedule(GB.executeTimerTask(this::stabilize), TIMEOUT_STABILIZZAZIONE);
     }
 
-    public ChordNode(final String host, final ChordNode known)
+    public ChordNode(final String host, final ChordNode join_this_node)
     {
         this(host);
-        join(known);
+        join(join_this_node);
     }
 
     public ChordNode(final String host, final String peer)
@@ -73,11 +73,11 @@ public final class ChordNode implements Serializable
     }
 
     //region Funzioni interne di gestione
-    private static boolean isAlive(final ChordNode chordNode)
+    private static boolean isAlive(final ChordNode n)
     {
         try
         {
-            var t = new FutureTask<>(() -> chordNode.key);
+            var t = new FutureTask<>(() -> n.key);
 
             new Thread(t).start();
 
@@ -91,17 +91,17 @@ public final class ChordNode implements Serializable
         }
     }
 
-    private void setSuccessor(final ChordNode chordNode)
+    private void setSuccessor(final ChordNode n)
     {
         synchronized (fingers)
         {
-            fingers[0] = chordNode;
+            fingers[0] = n;
         }
     }
 
-    private void setPredecessor(final ChordNode chordNode)
+    private void setPredecessor(final ChordNode n)
     {
-        predecessor = chordNode;
+        predecessor = n;
     }
 
     private ChordNode closest_preceding_finger(final byte[] id)
@@ -123,9 +123,9 @@ public final class ChordNode implements Serializable
         return n;
     }
 
-    private void join(final ChordNode chordNode)
+    private void join(final ChordNode n)
     {
-        setSuccessor(chordNode.find_successor(key));
+        setSuccessor(n.find_successor(key));
     }
 
     private void stabilize()
@@ -244,48 +244,47 @@ public final class ChordNode implements Serializable
         return predecessor;
     }
 
-    public void notify(final ChordNode chordNode)
+    public void notify(final ChordNode n)
     {
-        var n = this;
         var p = predecessor();
 
-        if (p == null || GB.compreso(chordNode.key, p.key, n.key))
-            setPredecessor(chordNode);
+        if (p == null || GB.compreso(n.key, p.key, key))
+            setPredecessor(n);
     }
 
-    public void offer(final byte[] aKey, final Serializable object)
+    public void offer(final byte[] id, final Serializable object)
     {
         synchronized (data)
         {
-            if (!data.containsKey(aKey))
-                data.put(aKey, object);
+            if (!data.containsKey(id))
+                data.put(id, object);
         }
     }
 
-    public <T extends Serializable> T get(final byte[] aKey)
+    public <T extends Serializable> T get(final byte[] id)
     {
-        var s = find_successor(aKey);
+        var s = find_successor(id);
 
         if (Arrays.equals(key, s.key))
             synchronized (data)
             {
-                return (T) data.get(aKey);
+                return (T) data.get(id);
             }
         else
-            return (T) s.get(aKey);
+            return (T) s.get(id);
     }
 
-    public <T extends Serializable> T put(final byte[] aKey, final Serializable object)
+    public <T extends Serializable> T put(final byte[] id, final Serializable object)
     {
-        var s = find_successor(aKey);
+        var s = find_successor(id);
 
         if (Arrays.equals(key, s.key))
             synchronized (data)
             {
-                return (T) data.put(aKey, object);
+                return (T) data.put(id, object);
             }
         else
-            return (T) s.put(aKey, object);
+            return (T) s.put(id, object);
     }
     //endregion
 
