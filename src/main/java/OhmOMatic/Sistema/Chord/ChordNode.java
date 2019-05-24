@@ -31,9 +31,9 @@ public final class ChordNode implements Serializable
 
     private static final long serialVersionUID = 987654321;
 
-    private static final int STABILIZATION_INTERVAL = 4000;
-    private static final int REPLICATION_FACTOR = 2;
-    private static final int PEER_TIMEOUT = 500;
+    private static final int TIMEOUT_STABILIZZAZIONE = 4000;
+    private static final int FATTORE_REPLICA = 2;
+    private static final int TIMEOUT_PEER = 500;
 
     private static final int mBit = 128;
 
@@ -57,7 +57,7 @@ public final class ChordNode implements Serializable
         //var stub = (ChordNode) UnicastRemoteObject.exportObject(this, 0);
         //this.channel = new Channel(host, c -> c.write(stub));
 
-        timer.schedule(GB.executeTimerTask(this::stabilize), STABILIZATION_INTERVAL);
+        timer.schedule(GB.executeTimerTask(this::stabilize), TIMEOUT_STABILIZZAZIONE);
     }
 
     public ChordNode(final String host, final ChordNode known)
@@ -81,7 +81,7 @@ public final class ChordNode implements Serializable
 
             new Thread(t).start();
 
-            t.get(PEER_TIMEOUT, TimeUnit.MILLISECONDS);
+            t.get(TIMEOUT_PEER, TimeUnit.MILLISECONDS);
 
             return true;
         }
@@ -104,39 +104,41 @@ public final class ChordNode implements Serializable
         predecessor = chordNode;
     }
 
-    private ChordNode closest(final byte[] aKey)
+    private ChordNode closest_preceding_finger(final byte[] id)
     {
-        var c = this;
+        var n = this;
 
         synchronized (fingers)
         {
-            for (var n : fingers)
+            for (var f : fingers)
             {
-                if (!isAlive(n))
+                if (!isAlive(f))
                     continue;
 
-                if (GB.compreso(n.key, key, aKey))
-                    c = n;
+                if (GB.compreso(f.key, n.key, id))
+                    n = f;
             }
         }
 
-        return c;
+        return n;
     }
 
     private void join(final ChordNode chordNode)
     {
-        setSuccessor(chordNode.findSuccessor(key));
+        setSuccessor(chordNode.find_successor(key));
     }
 
     private void stabilize()
     {
+        var n = this;
         var s = successor();
-        var c = s.predecessor();
+        var x = s.predecessor();
 
-        if (c != null && GB.compreso(c.key, key, s.key))
-            setSuccessor(c);
+        if (x != null && GB.compreso(x.key, n.key, s.key))
+            setSuccessor(x);
 
-        successor().notify(this);
+        s = successor();
+        s.notify(n);
 
         fixFingers();
         handoff();
@@ -147,8 +149,8 @@ public final class ChordNode implements Serializable
     {
         synchronized (fingers)
         {
-            for (var bits = 1; bits < fingers.length; bits++)
-                fingers[bits] = findSuccessor(GB.shiftLeft(key, bits));
+            for (var i = 1; i < fingers.length; i++)
+                fingers[i] = find_successor(GB.shiftLeft(key, i));
         }
     }
 
@@ -158,7 +160,7 @@ public final class ChordNode implements Serializable
         {
             for (var aKey : data.keySet())
             {
-                var s = findSuccessor(aKey);
+                var s = find_successor(aKey);
 
                 if (!Arrays.equals(key, s.key))
                     s.offer(aKey, data.remove(aKey));
@@ -168,19 +170,20 @@ public final class ChordNode implements Serializable
 
     private void reconsileSuccessors()
     {
+        var n = this;
         var s = successor();
 
-        if (s == this)
+        if (s == n)
             return;
 
         var successors = s.successors();
 
         successors.addFirst(s);
 
-        if (successors.size() > REPLICATION_FACTOR)
+        if (successors.size() > FATTORE_REPLICA)
             successors.removeLast();
 
-        this.successors = successors;
+        n.successors = successors;
     }
     //endregion
 
@@ -206,19 +209,20 @@ public final class ChordNode implements Serializable
         return fingers[0];
     }
 
-    public ChordNode findSuccessor(final byte[] aKey)
+    public ChordNode find_successor(final byte[] id)
     {
-        var s = successor();
+        var n = this;
+        var n_ = successor();
 
-        if (GB.compreso(aKey, key, s.key))
-            return s;
+        if (GB.compreso(id, n.key, n_.key))
+            return n_;
 
-        var c = closest(aKey);
+        var f = closest_preceding_finger(id);
 
-        if (c == this)
-            return this;
+        if (f == n)
+            return n;
         else
-            return c.findSuccessor(aKey);
+            return f.find_successor(id);
     }
 
     public Deque<ChordNode> successors()
@@ -236,13 +240,10 @@ public final class ChordNode implements Serializable
 
     public void notify(final ChordNode chordNode)
     {
+        var n = this;
         var p = predecessor();
 
-        if (p == null)
-            setPredecessor(chordNode);
-        else if (chordNode == this)
-            return;
-        else if (GB.compreso(chordNode.key, p.key, key))
+        if (p == null || GB.compreso(chordNode.key, p.key, n.key))
             setPredecessor(chordNode);
     }
 
@@ -257,30 +258,30 @@ public final class ChordNode implements Serializable
 
     public <T extends Serializable> T get(final byte[] aKey)
     {
-        var r = findSuccessor(aKey);
+        var s = find_successor(aKey);
 
-        if (Arrays.equals(key, r.key))
+        if (Arrays.equals(key, s.key))
             synchronized (data)
             {
                 return (T) data.get(aKey);
             }
         else
-            return (T) r.get(aKey);
+            return (T) s.get(aKey);
     }
 
     public <T extends Serializable> T put(final byte[] aKey, final Serializable object)
     {
-        var r = findSuccessor(aKey);
+        var s = find_successor(aKey);
 
-        if (Arrays.equals(key, r.key))
+        if (Arrays.equals(key, s.key))
             synchronized (data)
             {
                 return (T) data.put(aKey, object);
             }
         else
-            return (T) r.put(aKey, object);
+            return (T) s.put(aKey, object);
     }
     //endregion
 
-    
+
 }
