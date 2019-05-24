@@ -40,6 +40,10 @@ public final class CliCasa extends BaseCommandLineApplication
         {
             e.printStackTrace();
         }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
     //region Opzioni command line

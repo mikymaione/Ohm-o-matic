@@ -35,14 +35,12 @@ public class Casa implements MeanListener
     private ChordNode chord;
 
 
-    public Casa(String indirizzoREST, String indirizzoServer, String id)
+    public Casa(String indirizzoREST, String indirizzoServer, String id) throws Exception
     {
         ID = id;
 
         client = ClientBuilder.newClient();
         webTarget = client.target(indirizzoREST + "/OOM");
-
-        chord = new ChordNode(indirizzoServer, indirizzoServer + ":8081");
 
         var channel = ManagedChannelBuilder
                 .forAddress(indirizzoServer, 8081)
@@ -59,10 +57,17 @@ public class Casa implements MeanListener
 
         var R = stub.entraNelCondominio(c);
 
-        return;
-
-        //theBuffer = new BufferImpl(24, this);
-        //smartMeter = new SmartMeterSimulator(theBuffer);
+        if (R.getOk())
+        {
+            chord = new ChordNode(indirizzoServer, indirizzoServer + ":8081");
+            
+            theBuffer = new BufferImpl(24, this);
+            smartMeter = new SmartMeterSimulator(theBuffer);
+        }
+        else
+        {
+            throw new Exception(R.getErrore());
+        }
     }
 
     //region Chiamate WS
