@@ -194,13 +194,19 @@ public final class ChordNode implements Serializable
         {
             synchronized (successors)
             {
-                setSuccessor(
-                        successors.stream()
-                                .skip(1)
-                                .filter(ChordNode::isAlive)
-                                .findFirst()
-                                .orElse(this)
-                );
+                var first = true;
+
+                for (var s : successors)
+                {
+                    if (!first && isAlive(s))
+                    {
+                        setSuccessor(s);
+                        break;
+                    }
+
+                    if (first)
+                        first = false;
+                }
             }
 
             reconsileSuccessors();
