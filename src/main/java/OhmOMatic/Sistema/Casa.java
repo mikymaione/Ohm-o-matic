@@ -9,6 +9,7 @@ package OhmOMatic.Sistema;
 import OhmOMatic.ProtoBuffer.Common.standardRes;
 import OhmOMatic.ProtoBuffer.Home.casa;
 import OhmOMatic.ProtoBuffer.Home.listaCase;
+import OhmOMatic.ProtoBuffer.HomeServiceGrpc;
 import OhmOMatic.Simulation.SmartMeterSimulator;
 import OhmOMatic.Sistema.Base.BufferImpl;
 import OhmOMatic.Sistema.Base.MeanListener;
@@ -48,15 +49,15 @@ public class Casa implements MeanListener
                 .usePlaintext()
                 .build();
 
-        /*var stub = HomeService.newBlockingStub((BlockingRpcChannel) channel);
+        var stub = HomeServiceGrpc.newBlockingStub(channel);
 
         var c = casa.newBuilder()
                 .setID("Goku")
                 .setIP("localhost")
                 .setPort(8000)
-                .build();*/
+                .build();
 
-        //var R = stub.entraNelCondominio(c);
+        var R = stub.entraNelCondominio(c);
 
         return;
 
