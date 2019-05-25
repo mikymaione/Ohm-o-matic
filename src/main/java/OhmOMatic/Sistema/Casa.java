@@ -12,17 +12,22 @@ import OhmOMatic.ProtoBuffer.Home.casa;
 import OhmOMatic.ProtoBuffer.Home.listaCase;
 import OhmOMatic.ProtoBuffer.HomeServiceGrpc;
 import OhmOMatic.ProtoBuffer.HomeServiceGrpc.HomeServiceBlockingStub;
+import OhmOMatic.ProtoBuffer.HomeServiceGrpc.HomeServiceImplBase;
 import OhmOMatic.Simulation.SmartMeterSimulator;
 import OhmOMatic.Sistema.Base.BufferImpl;
 import OhmOMatic.Sistema.Base.MeanListener;
 import OhmOMatic.Sistema.Chord.ChordNode;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.Server;
+import io.grpc.ServerBuilder;
+import io.grpc.stub.StreamObserver;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 public class Casa implements MeanListener, java.lang.AutoCloseable
@@ -34,6 +39,7 @@ public class Casa implements MeanListener, java.lang.AutoCloseable
     private Client client;
     private WebTarget webTargetRest;
 
+    private Server server;
     private ManagedChannel channel;
     private HomeServiceBlockingStub homeServiceBlockingStub;
 
@@ -65,10 +71,37 @@ public class Casa implements MeanListener, java.lang.AutoCloseable
     {
         if (channel != null)
             channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+
+        if (server != null)
+            server.shutdown();
     }
-    
+
 
     //region Funzioni P2P
+    static class HomeServiceImpl extends HomeServiceImplBase
+    {
+        @Override
+        public void entraNelCondominio(casa request, StreamObserver<standardRes> responseObserver)
+        {
+            super.entraNelCondominio(request, responseObserver);
+        }
+
+        @Override
+        public void esciDalCondominio(casa request, StreamObserver<standardRes> responseObserver)
+        {
+            super.esciDalCondominio(request, responseObserver);
+        }
+    }
+
+    private void startServer() throws IOException
+    {
+        server = ServerBuilder
+                .forPort(mioPorta)
+                .addService(new HomeServiceImpl())
+                .build()
+                .start();
+    }
+
     private HomeServiceBlockingStub getStub()
     {
         if (homeServiceBlockingStub == null)
