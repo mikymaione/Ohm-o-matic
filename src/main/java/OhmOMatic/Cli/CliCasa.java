@@ -30,23 +30,25 @@ public final class CliCasa extends BaseCommandLineApplication
             final var peer_address = cmd.getOptionValue("j");
             final var peer_port = stringToInt(cmd.getOptionValue("p"), -1);
 
-            var casa = new Casa(id, rest_url, mio_peer_address, mio_peer_port, peer_address, peer_port);
-            System.out.println("Casa avviata!");
+            try (var casa = new Casa(id, rest_url, mio_peer_address, mio_peer_port, peer_address, peer_port))
+            {
+                System.out.println("Casa avviata!");
 
-            //casa.iscriviCasa();
-            System.out.println("Casa iscritta sul server!");
+                //casa.iscriviCasa();
+                System.out.println("Casa iscritta sul server!");
 
-            casa.entraNelCondominio();
-            System.out.println("Casa nel condominio!");
+                casa.entraNelCondominio();
+                System.out.println("Casa nel condominio!");
 
-            casa.avviaSmartMeter();
-            System.out.println("Smart meter avviato!");
+                casa.avviaSmartMeter();
+                System.out.println("Smart meter avviato!");
 
-            casa.fermaSmartMeter();
-            System.out.println("Smart meter fermato!");
+                casa.fermaSmartMeter();
+                System.out.println("Smart meter fermato!");
 
-            casa.esciDalCondominio();
-            System.out.println("Casa fuori dal condominio!");
+                casa.esciDalCondominio();
+                System.out.println("Casa fuori dal condominio!");
+            }
         }
         catch (Exception e)
         {

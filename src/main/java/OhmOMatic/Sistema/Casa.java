@@ -16,14 +16,16 @@ import OhmOMatic.Simulation.SmartMeterSimulator;
 import OhmOMatic.Sistema.Base.BufferImpl;
 import OhmOMatic.Sistema.Base.MeanListener;
 import OhmOMatic.Sistema.Chord.ChordNode;
+import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
+import java.util.concurrent.TimeUnit;
 
-public class Casa implements MeanListener
+public class Casa implements MeanListener, java.lang.AutoCloseable
 {
 
     private SmartMeterSimulator smartMeterSimulator;
@@ -32,6 +34,7 @@ public class Casa implements MeanListener
     private Client client;
     private WebTarget webTargetRest;
 
+    private ManagedChannel channel;
     private HomeServiceBlockingStub homeServiceBlockingStub;
 
     private ChordNode chord;
@@ -57,13 +60,20 @@ public class Casa implements MeanListener
         portaServerPeer = portaServerPeer_;
     }
 
+    @Override
+    public void close() throws InterruptedException
+    {
+        if (channel != null)
+            channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+    }
+    
 
     //region Funzioni P2P
     private HomeServiceBlockingStub getStub()
     {
         if (homeServiceBlockingStub == null)
         {
-            var channel = ManagedChannelBuilder
+            channel = ManagedChannelBuilder
                     .forAddress(indirizzoServerPeer, portaServerPeer)
                     .usePlaintext()
                     .build();
