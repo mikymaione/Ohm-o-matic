@@ -39,9 +39,9 @@ public class ChordNode implements Serializable, Remote
     private static final int mBit = 128;
 
 
-    private final byte[] key;
+    protected final byte[] key;
 
-    private final HashMap<byte[], Serializable> data = new HashMap<>();
+    protected final HashMap<byte[], Serializable> data = new HashMap<>();
     private final ChordNode[] fingers = new ChordNode[mBit];
 
     private volatile Deque<ChordNode> successors = new ArrayDeque<>();

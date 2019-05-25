@@ -52,6 +52,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             <version>1.4</version>
         </dependency>
 
+        <!--Apache Commons Lang-->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.9</version>
+        </dependency>
+
         <!--Apache HttpClient-->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>

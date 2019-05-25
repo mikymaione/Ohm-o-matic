@@ -16,7 +16,7 @@ public final class GB
 {
 
     private static Random random = new Random();
-
+    
 
     public static byte[] sha1(String input)
     {
