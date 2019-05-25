@@ -12,7 +12,7 @@ import "Common.proto";
 
 
 service HomeService {
-    rpc entraNelCondominio (casa) returns (standardRes);
+    rpc entraNelCondominio (casa) returns (casaRes);
     rpc esciDalCondominio (casa) returns (standardRes);
 }
 
@@ -21,6 +21,11 @@ message casa {
     string ID = 1;
     string IP = 2;
     int32 Port = 3;
+}
+
+message casaRes {
+    standardRes StandardRes = 1;
+    casa Casa = 2;
 }
 
 message listaCase {

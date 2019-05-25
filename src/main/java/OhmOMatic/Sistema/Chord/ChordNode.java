@@ -19,6 +19,7 @@ package OhmOMatic.Sistema.Chord;
 import OhmOMatic.Global.GB;
 
 import java.io.Serializable;
+import java.rmi.Remote;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -26,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 
-public final class ChordNode implements Serializable
+public class ChordNode implements Serializable, Remote
 {
 
     private static final long serialVersionUID = 987654321;
@@ -49,28 +50,14 @@ public final class ChordNode implements Serializable
     private Timer timer = new Timer();
 
 
-    public ChordNode(final String host)
+    public ChordNode(final String ID)
     {
-        key = GB.sha1(host);
+        key = GB.sha1(ID);
         setSuccessor(this);
-
-        //var stub = (ChordNode) UnicastRemoteObject.exportObject(this, 0);
-        //this.channel = new Channel(host, c -> c.write(stub));
 
         timer.schedule(GB.executeTimerTask(this::stabilize), TIMEOUT_STABILIZZAZIONE);
     }
 
-    public ChordNode(final String host, final ChordNode join_this_node)
-    {
-        this(host);
-        join(join_this_node);
-    }
-
-    public ChordNode(final String host, final String peer)
-    {
-        key = null;
-        //this(host, (ChordNode) Proxy.connect(peer));
-    }
 
     //region Funzioni interne di gestione
     private static boolean isAlive(final ChordNode n)
@@ -123,7 +110,7 @@ public final class ChordNode implements Serializable
         return n;
     }
 
-    private void join(final ChordNode n)
+    protected void join(final ChordNode n)
     {
         setSuccessor(n.find_successor(key));
     }

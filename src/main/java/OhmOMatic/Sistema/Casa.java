@@ -9,6 +9,7 @@ package OhmOMatic.Sistema;
 import OhmOMatic.Global.GB;
 import OhmOMatic.ProtoBuffer.Common.standardRes;
 import OhmOMatic.ProtoBuffer.Home.casa;
+import OhmOMatic.ProtoBuffer.Home.casaRes;
 import OhmOMatic.ProtoBuffer.Home.listaCase;
 import OhmOMatic.ProtoBuffer.HomeServiceGrpc;
 import OhmOMatic.ProtoBuffer.HomeServiceGrpc.HomeServiceBlockingStub;
@@ -30,7 +31,7 @@ import javax.ws.rs.client.WebTarget;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-public class Casa implements MeanListener, java.lang.AutoCloseable
+public class Casa extends ChordNode implements MeanListener, AutoCloseable
 {
 
     private SmartMeterSimulator smartMeterSimulator;
@@ -43,8 +44,6 @@ public class Casa implements MeanListener, java.lang.AutoCloseable
     private ManagedChannel gRPC_channel;
     private HomeServiceBlockingStub homeServiceBlockingStub;
 
-    private ChordNode chordNode;
-
     final private String ID;
     final private String indirizzoREST;
     final private String mioIndirizzo;
@@ -53,8 +52,10 @@ public class Casa implements MeanListener, java.lang.AutoCloseable
     final private int portaServerPeer;
 
 
-    public Casa(String id, String indirizzoREST_, String mioIndirizzo_, int miaPorta_, String indirizzoServerPeer_, int portaServerPeer_)
+    public Casa(String id, String indirizzoREST_, String mioIndirizzo_, int miaPorta_, String indirizzoServerPeer_, int portaServerPeer_) throws IOException
     {
+        super(id);
+
         ID = id;
 
         indirizzoREST = indirizzoREST_;
@@ -64,7 +65,10 @@ public class Casa implements MeanListener, java.lang.AutoCloseable
 
         indirizzoServerPeer = indirizzoServerPeer_;
         portaServerPeer = portaServerPeer_;
+
+        start_gRPC_Listening();
     }
+
 
     @Override
     public void close() throws InterruptedException
@@ -85,12 +89,21 @@ public class Casa implements MeanListener, java.lang.AutoCloseable
                 .addService(new HomeServiceImplBase()
                 {
                     @Override
-                    public void entraNelCondominio(casa request, StreamObserver<standardRes> responseObserver)
+                    public void entraNelCondominio(casa request, StreamObserver<casaRes> responseObserver)
                     {
-                        super.entraNelCondominio(request, responseObserver);
-
-                        var res = standardRes.newBuilder()
-                                .setOk(true)
+                        var res = casaRes.newBuilder()
+                                .setStandardRes(
+                                        standardRes.newBuilder()
+                                                .setOk(true)
+                                                .build()
+                                )
+                                .setCasa(
+                                        casa.newBuilder()
+                                                .setID(ID)
+                                                .setIP(mioIndirizzo)
+                                                .setPort(miaPorta)
+                                                .build()
+                                )
                                 .build();
 
                         responseObserver.onNext(res);
@@ -100,8 +113,6 @@ public class Casa implements MeanListener, java.lang.AutoCloseable
                     @Override
                     public void esciDalCondominio(casa request, StreamObserver<standardRes> responseObserver)
                     {
-                        super.esciDalCondominio(request, responseObserver);
-
                         var res = standardRes.newBuilder()
                                 .setOk(true)
                                 .build();
@@ -131,11 +142,7 @@ public class Casa implements MeanListener, java.lang.AutoCloseable
 
     public boolean entraNelCondominio() throws Exception
     {
-        if (GB.stringIsBlank(indirizzoServerPeer))
-        {
-            chordNode = new ChordNode(mioIndirizzo + ":" + miaPorta);
-        }
-        else
+        if (!GB.stringIsBlank(indirizzoServerPeer))
         {
             var stub = getStub();
 
@@ -145,15 +152,19 @@ public class Casa implements MeanListener, java.lang.AutoCloseable
                     .setPort(miaPorta)
                     .build();
 
-            var R = stub.entraNelCondominio(c);
+            var Res = stub.entraNelCondominio(c);
+            var R = Res.getStandardRes();
 
             if (R.getOk())
-                chordNode = new ChordNode(mioIndirizzo + ":" + miaPorta, indirizzoServerPeer + ":" + portaServerPeer);
+            {
+                var serverCasa = Res.getCasa();
+                var n = new ChordNode(serverCasa.getID());
+
+                join(n);
+            }
             else
                 throw new Exception(R.getErrore());
         }
-
-        start_gRPC_Listening();
 
         return true;
     }

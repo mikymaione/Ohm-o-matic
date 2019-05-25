@@ -54,11 +54,11 @@ public class BaseCommandLineApplication
     protected static void printOptions(String app, Options options)
     {
         final var formatter = new HelpFormatter();
+        final var writer = new PrintWriter(System.out);
 
-        try (final var writer = new PrintWriter(System.out))
-        {
-            formatter.printUsage(writer, 80, app, options);
-        }
+        formatter.printUsage(writer, 80, app, options);
+
+        writer.flush();
     }
 
 
