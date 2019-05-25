@@ -44,7 +44,7 @@ public final class CliAdmin extends BaseCommandLineApplication
                 {
                     final var ops = cmd.getOptionValues("s");
                     final var id = ops[0];
-                    final var n = Integer.parseUnsignedInt(ops[1]);
+                    final var n = stringToInt(ops[1], 1);
 
                     admin.ultimeStatisticheCasa(id, n);
                 }
@@ -52,7 +52,7 @@ public final class CliAdmin extends BaseCommandLineApplication
                 if (cmd.hasOption("g")) //Ultime N statistiche condominio
                 {
                     final var n_s = cmd.getOptionValue("g");
-                    final var n = Integer.parseUnsignedInt(n_s);
+                    final var n = stringToInt(n_s, 1);
 
                     admin.ultimeStatisticheCondominio(n);
                 }
@@ -61,7 +61,7 @@ public final class CliAdmin extends BaseCommandLineApplication
                 {
                     final var ops = cmd.getOptionValues("s");
                     final var id = ops[0];
-                    final var n = Integer.parseUnsignedInt(ops[1]);
+                    final var n = stringToInt(ops[1], 1);
 
                     admin.deviazioneStandardMediaCasa(id, n);
                 }
@@ -69,7 +69,7 @@ public final class CliAdmin extends BaseCommandLineApplication
                 if (cmd.hasOption("x")) //Deviazione standard e media delle ultime N statistiche complessive condominiali
                 {
                     final var n_s = cmd.getOptionValue("g");
-                    final var n = Integer.parseUnsignedInt(n_s);
+                    final var n = stringToInt(n_s, 1);
 
                     admin.deviazioneStandardMediaCondominio(n);
                 }

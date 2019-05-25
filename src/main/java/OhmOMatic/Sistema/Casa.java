@@ -6,10 +6,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Sistema;
 
+import OhmOMatic.Global.GB;
 import OhmOMatic.ProtoBuffer.Common.standardRes;
 import OhmOMatic.ProtoBuffer.Home.casa;
 import OhmOMatic.ProtoBuffer.Home.listaCase;
 import OhmOMatic.ProtoBuffer.HomeServiceGrpc;
+import OhmOMatic.ProtoBuffer.HomeServiceGrpc.HomeServiceBlockingStub;
 import OhmOMatic.Simulation.SmartMeterSimulator;
 import OhmOMatic.Sistema.Base.BufferImpl;
 import OhmOMatic.Sistema.Base.MeanListener;
@@ -24,57 +26,98 @@ import javax.ws.rs.client.WebTarget;
 public class Casa implements MeanListener
 {
 
-    private SmartMeterSimulator smartMeter;
+    private SmartMeterSimulator smartMeterSimulator;
     private BufferImpl theBuffer;
 
     private Client client;
-    private WebTarget webTarget;
+    private WebTarget webTargetRest;
 
-    final private String ID;
+    private HomeServiceBlockingStub homeServiceBlockingStub;
 
     private ChordNode chord;
 
+    final private String ID;
+    final private String indirizzoREST;
+    final private String mioIndirizzo;
+    final private int mioPorta;
+    final private String indirizzoServerPeer;
+    final private int portaServerPeer;
 
-    public Casa(String indirizzoREST, String indirizzoServer, String id) throws Exception
+
+    public Casa(String id, String indirizzoREST_, String mioIndirizzo_, int mioPorta_, String indirizzoServerPeer_, int portaServerPeer_)
     {
         ID = id;
 
-        client = ClientBuilder.newClient();
-        webTarget = client.target(indirizzoREST + "/OOM");
+        indirizzoREST = indirizzoREST_;
 
-        var channel = ManagedChannelBuilder
-                .forAddress(indirizzoServer, 8081)
-                .usePlaintext()
-                .build();
+        mioIndirizzo = mioIndirizzo_;
+        mioPorta = mioPorta_;
 
-        var stub = HomeServiceGrpc.newBlockingStub(channel);
+        indirizzoServerPeer = indirizzoServerPeer_;
+        portaServerPeer = portaServerPeer_;
+    }
 
-        var c = casa.newBuilder()
-                .setID("Goku")
-                .setIP("localhost")
-                .setPort(8000)
-                .build();
 
-        var R = stub.entraNelCondominio(c);
-
-        if (R.getOk())
+    //region Funzioni P2P
+    private HomeServiceBlockingStub getStub()
+    {
+        if (homeServiceBlockingStub == null)
         {
-            chord = new ChordNode(indirizzoServer, indirizzoServer + ":8081");
-            
-            theBuffer = new BufferImpl(24, this);
-            smartMeter = new SmartMeterSimulator(theBuffer);
+            var channel = ManagedChannelBuilder
+                    .forAddress(indirizzoServerPeer, portaServerPeer)
+                    .usePlaintext()
+                    .build();
+
+            homeServiceBlockingStub = HomeServiceGrpc.newBlockingStub(channel);
+        }
+
+        return homeServiceBlockingStub;
+    }
+
+    public void entraNelCondominio() throws Exception
+    {
+        if (GB.stringIsBlank(indirizzoServerPeer))
+        {
+            chord = new ChordNode(mioIndirizzo + ":" + mioPorta);
         }
         else
         {
-            throw new Exception(R.getErrore());
+            var stub = getStub();
+
+            var c = casa.newBuilder()
+                    .setID("Goku")
+                    .setIP("localhost")
+                    .setPort(8000)
+                    .build();
+
+            var R = stub.entraNelCondominio(c);
+
+            if (R.getOk())
+                chord = new ChordNode(mioIndirizzo + ":" + mioPorta, indirizzoServerPeer + ":" + portaServerPeer);
+            else
+                throw new Exception(R.getErrore());
         }
     }
+    //endregion
 
     //region Chiamate WS
+    private WebTarget getWebTarget()
+    {
+        if (webTargetRest == null)
+        {
+            client = ClientBuilder.newClient();
+            webTargetRest = client.target(indirizzoREST + "/OOM");
+        }
+
+        return webTargetRest;
+    }
+
     public void iscriviCasa()
     {
         try
         {
+            var webTarget = getWebTarget();
+
             var wt = webTarget
                     .path("iscriviCasa");
 
@@ -104,6 +147,8 @@ public class Casa implements MeanListener
     {
         try
         {
+            var webTarget = getWebTarget();
+
             var wt = webTarget
                     .path("disiscriviCasa");
 
@@ -146,13 +191,28 @@ public class Casa implements MeanListener
     //endregion
 
     //region Gestione Smart meter
+    private SmartMeterSimulator getSmartMeter()
+    {
+        if (smartMeterSimulator == null)
+        {
+            theBuffer = new BufferImpl(24, this);
+            smartMeterSimulator = new SmartMeterSimulator(theBuffer);
+        }
+
+        return smartMeterSimulator;
+    }
+
     public void avviaSmartMeter()
     {
+        var smartMeter = getSmartMeter();
+
         smartMeter.run();
     }
 
     public void fermaSmartMeter()
     {
+        var smartMeter = getSmartMeter();
+
         smartMeter.stop();
     }
 

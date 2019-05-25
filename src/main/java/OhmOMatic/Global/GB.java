@@ -34,6 +34,11 @@ public final class GB
         }
     }
 
+    public static boolean stringIsBlank(String s)
+    {
+        return (s == null || s.equals("") || s.equals(" "));
+    }
+
     public static int randomInt(int da, int a)
     {
         return random.nextInt(a) + da;

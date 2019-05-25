@@ -10,7 +10,6 @@ import OhmOMatic.Base.BaseCommandLineApplication;
 import OhmOMatic.Sistema.Casa;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 
 public final class CliCasa extends BaseCommandLineApplication
 {
@@ -26,19 +25,24 @@ public final class CliCasa extends BaseCommandLineApplication
 
             final var id = cmd.getOptionValue("i");
             final var rest_url = cmd.getOptionValue("r");
-            final var server_url = cmd.getOptionValue("j");
+            final var mio_peer_address = cmd.getOptionValue("k");
+            final var mio_peer_port = stringToInt(cmd.getOptionValue("q"), -1);
+            final var peer_address = cmd.getOptionValue("j");
+            final var peer_port = stringToInt(cmd.getOptionValue("p"), -1);
 
+            var casa = new Casa(id, rest_url, mio_peer_address, mio_peer_port, peer_address, peer_port);
             System.out.println("Casa avviata!");
 
-            var casa = new Casa(rest_url, server_url, id);
+            //casa.iscriviCasa();
+            System.out.println("Casa iscritta sul server!");
 
-            casa.iscriviCasa();
+            casa.entraNelCondominio();
+            System.out.println("Casa nel condominio!");
+
             casa.avviaSmartMeter();
+            System.out.println("Smart meter avviato!");
+
             //casa.fermaSmartMeter();
-        }
-        catch (ParseException e)
-        {
-            e.printStackTrace();
         }
         catch (Exception e)
         {
@@ -49,7 +53,7 @@ public final class CliCasa extends BaseCommandLineApplication
     //region Opzioni command line
     private static Options createOptions()
     {
-        final var url_rest = Option.builder("r")
+        final var rest_url = Option.builder("r")
                 .desc("REST URL")
                 .required()
                 .hasArg()
@@ -63,17 +67,40 @@ public final class CliCasa extends BaseCommandLineApplication
                 .argName("ID")
                 .build();
 
-        final var url = Option.builder("j")
-                .desc("Server URL")
+        final var mio_peer_address = Option.builder("k")
+                .desc("My P2P Address")
+                .required()
                 .hasArg()
-                .argName("URL")
+                .argName("MyAddress")
+                .build();
+
+        final var mio_peer_port = Option.builder("q")
+                .desc("My P2P Port")
+                .required()
+                .hasArg()
+                .argName("MyPort")
+                .build();
+
+        final var peer_address = Option.builder("j")
+                .desc("P2P Server Address")
+                .hasArg()
+                .argName("Address")
+                .build();
+
+        final var peer_port = Option.builder("p")
+                .desc("P2P Server Port")
+                .hasArg()
+                .argName("Port")
                 .build();
 
 
         final var options = new Options()
-                .addOption(url_rest)
+                .addOption(rest_url)
                 .addOption(id)
-                .addOption(url);
+                .addOption(mio_peer_address)
+                .addOption(mio_peer_port)
+                .addOption(peer_address)
+                .addOption(peer_port);
 
         return options;
     }

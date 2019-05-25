@@ -16,6 +16,22 @@ import java.net.URISyntaxException;
 public class BaseCommandLineApplication
 {
 
+    protected static int stringToInt(String s, int default_)
+    {
+        var r = default_;
+
+        try
+        {
+            r = Integer.parseUnsignedInt(s);
+        }
+        catch (Exception e)
+        {
+            //non integer
+        }
+
+        return r;
+    }
+
     protected static CommandLine getCommandLine(Options options, String[] args) throws ParseException
     {
         var parser = new DefaultParser();
