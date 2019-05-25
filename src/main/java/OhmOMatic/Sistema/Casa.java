@@ -74,7 +74,7 @@ public class Casa implements MeanListener
         return homeServiceBlockingStub;
     }
 
-    public void entraNelCondominio() throws Exception
+    public boolean entraNelCondominio() throws Exception
     {
         if (GB.stringIsBlank(indirizzoServerPeer))
         {
@@ -85,9 +85,9 @@ public class Casa implements MeanListener
             var stub = getStub();
 
             var c = casa.newBuilder()
-                    .setID("Goku")
-                    .setIP("localhost")
-                    .setPort(8000)
+                    .setID(ID)
+                    .setIP(mioIndirizzo)
+                    .setPort(mioPorta)
                     .build();
 
             var R = stub.entraNelCondominio(c);
@@ -97,6 +97,26 @@ public class Casa implements MeanListener
             else
                 throw new Exception(R.getErrore());
         }
+
+        return true;
+    }
+
+    public boolean esciDalCondominio() throws Exception
+    {
+        var stub = getStub();
+
+        var c = casa.newBuilder()
+                .setID(ID)
+                .setIP(mioIndirizzo)
+                .setPort(mioPorta)
+                .build();
+
+        var R = stub.esciDalCondominio(c);
+
+        if (!R.getOk())
+            throw new Exception(R.getErrore());
+
+        return true;
     }
     //endregion
 
@@ -121,9 +141,10 @@ public class Casa implements MeanListener
             var wt = webTarget
                     .path("iscriviCasa");
 
-            final var par = casa
-                    .newBuilder()
+            final var par = casa.newBuilder()
                     .setID(ID)
+                    .setIP(mioIndirizzo)
+                    .setPort(mioPorta)
                     .build();
 
             final var resListaCase = wt
@@ -152,9 +173,10 @@ public class Casa implements MeanListener
             var wt = webTarget
                     .path("disiscriviCasa");
 
-            final var par = casa
-                    .newBuilder()
+            final var par = casa.newBuilder()
                     .setID(ID)
+                    .setIP(mioIndirizzo)
+                    .setPort(mioPorta)
                     .build();
 
             final var res = wt

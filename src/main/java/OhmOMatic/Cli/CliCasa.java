@@ -42,7 +42,11 @@ public final class CliCasa extends BaseCommandLineApplication
             casa.avviaSmartMeter();
             System.out.println("Smart meter avviato!");
 
-            //casa.fermaSmartMeter();
+            casa.fermaSmartMeter();
+            System.out.println("Smart meter fermato!");
+
+            casa.esciDalCondominio();
+            System.out.println("Casa fuori dal condominio!");
         }
         catch (Exception e)
         {
