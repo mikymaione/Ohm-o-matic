@@ -17,8 +17,6 @@ import OhmOMatic.ProtoBuffer.HomeServiceGrpc.HomeServiceImplBase;
 import OhmOMatic.Simulation.SmartMeterSimulator;
 import OhmOMatic.Sistema.Base.BufferImpl;
 import OhmOMatic.Sistema.Base.MeanListener;
-import OhmOMatic.Sistema.Chord.ChordNode;
-import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Server;
@@ -45,14 +43,12 @@ public class Casa implements MeanListener, AutoCloseable
     private ManagedChannel gRPC_channel;
     private HomeServiceBlockingStub homeServiceBlockingStub;
 
-    final private String ID;
-    final private String indirizzoREST;
-    final private String mioIndirizzo;
-    final private int miaPorta;
-    final private String indirizzoServerPeer;
-    final private int portaServerPeer;
-
-    final private ChordNode chordNode;
+    private final String ID;
+    private final String indirizzoREST;
+    private final String mioIndirizzo;
+    private final int miaPorta;
+    private final String indirizzoServerPeer;
+    private final int portaServerPeer;
 
 
     public Casa(String id, String indirizzoREST_, String mioIndirizzo_, int miaPorta_, String indirizzoServerPeer_, int portaServerPeer_) throws IOException
@@ -66,8 +62,6 @@ public class Casa implements MeanListener, AutoCloseable
 
         indirizzoServerPeer = indirizzoServerPeer_;
         portaServerPeer = portaServerPeer_;
-
-        chordNode = new ChordNode(ID);
 
         start_gRPC_Listening();
     }
@@ -93,34 +87,23 @@ public class Casa implements MeanListener, AutoCloseable
                     @Override
                     public void entraNelCondominio(casa request, StreamObserver<casaRes> responseObserver)
                     {
-                        try
-                        {
-                            var ser = GB.serialize(chordNode);
-                            var bys = ByteString.copyFrom(ser);
+                        var res = casaRes.newBuilder()
+                                .setStandardRes(
+                                        standardRes.newBuilder()
+                                                .setOk(true)
+                                                .build()
+                                )
+                                .setCasa(
+                                        casa.newBuilder()
+                                                .setID(ID)
+                                                .setIP(mioIndirizzo)
+                                                .setPort(miaPorta)
+                                                .build()
+                                )
+                                .build();
 
-                            var res = casaRes.newBuilder()
-                                    .setStandardRes(
-                                            standardRes.newBuilder()
-                                                    .setOk(true)
-                                                    .build()
-                                    )
-                                    .setCasa(
-                                            casa.newBuilder()
-                                                    .setID(ID)
-                                                    .setIP(mioIndirizzo)
-                                                    .setPort(miaPorta)
-                                                    .build()
-                                    )
-                                    .setNode(bys)
-                                    .build();
-
-                            responseObserver.onNext(res);
-                            responseObserver.onCompleted();
-                        }
-                        catch (Exception e)
-                        {
-                            e.printStackTrace();
-                        }
+                        responseObserver.onNext(res);
+                        responseObserver.onCompleted();
                     }
 
                     @Override
@@ -155,7 +138,11 @@ public class Casa implements MeanListener, AutoCloseable
 
     public boolean entraNelCondominio() throws Exception
     {
-        if (!GB.stringIsBlank(indirizzoServerPeer))
+        if (GB.stringIsBlank(indirizzoServerPeer))
+        {
+
+        }
+        else
         {
             var stub = getStub();
 
@@ -170,12 +157,9 @@ public class Casa implements MeanListener, AutoCloseable
 
             if (R.getOk())
             {
-                var bys = Res.getNode();
-                var bya = bys.toByteArray();
-                var obj = GB.deserialize(bya);
-                var node = (ChordNode) obj;
+                var k = Res.getCasa();
 
-                chordNode.join(node);
+
             }
             else
                 throw new Exception(R.getErrore());
@@ -282,9 +266,7 @@ public class Casa implements MeanListener, AutoCloseable
         var ts = System.currentTimeMillis();
         var k = GB.sha1(ID + "_" + ts);
 
-        chordNode.put(k, mean);
-
-        chordNode.printData();
+        System.out.println("Mean: " + mean);
     }
     //endregion
 
@@ -330,6 +312,100 @@ public class Casa implements MeanListener, AutoCloseable
     public void meanGenerated(double mean)
     {
         inviaStatistiche(mean);
+    }
+    //endregion
+
+
+    //region Chord
+    class Chord
+    {
+        private final int mBit = 160; //sha1
+        private byte[] key;
+        private Chord predecessor, successor;
+
+        private volatile Chord[] finger = new Chord[mBit];
+        private int next;
+
+        // create a new Chord ring.
+        private void create()
+        {
+            predecessor = null;
+            successor = this;
+        }
+
+        // ask node n to find the successor of id
+        private Chord find_successor(byte[] key)
+        {
+            if (GB.compreso(key, this.key, successor.key))
+                return successor;
+            else
+            {
+                var n0 = closest_preceding_node(key);
+
+                return n0.find_successor(key);
+            }
+        }
+
+        // search the local table for the highest predecessor of id
+        private Chord closest_preceding_node(byte[] key)
+        {
+            for (var i = mBit - 1; i-- > 0; )
+                if (GB.compreso(finger[i].key, this.key, key))
+                    return finger[i];
+
+            return this;
+        }
+
+        // join a Chord ring containing node n_
+        private void join(Chord n_)
+        {
+            predecessor = null;
+            successor = n_.find_successor(this.key);
+        }
+
+        // called periodically. n asks the successor
+        // about its predecessor, verifies if n's immediate
+        // successor is consistent, and tells the successor about n
+        private void stabilize()
+        {
+            var x = successor.predecessor;
+
+            if (GB.compreso(x.key, this.key, successor.key))
+                successor = x;
+
+            successor.notify(this);
+        }
+
+        // n_ thinks it might be our predecessor.
+        private void notify(Chord n_)
+        {
+            if (predecessor == null || GB.compreso(n_.key, predecessor.key, this.key))
+                predecessor = n_;
+        }
+
+        // called periodically. refreshes finger table entries.
+        // next stores the index of the finger to fix
+        private void fix_fingers()
+        {
+            next = next + 1;
+
+            if (next > mBit)
+                next = 1;
+
+            finger[next] = find_successor(null);
+        }
+
+        // called periodically. checks whether predecessor has failed.
+        private void check_predecessor()
+        {
+            if (isActive(predecessor))
+                predecessor = null;
+        }
+
+        private boolean isActive(Chord e)
+        {
+            return true;
+        }
     }
     //endregion
 
