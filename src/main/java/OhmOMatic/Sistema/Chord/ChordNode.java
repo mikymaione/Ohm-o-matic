@@ -19,7 +19,6 @@ package OhmOMatic.Sistema.Chord;
 import OhmOMatic.Global.GB;
 
 import java.io.Serializable;
-import java.rmi.Remote;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -27,10 +26,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 
-public class ChordNode implements Serializable, Remote
+public class ChordNode
 {
-
-    private static final long serialVersionUID = 987654321;
 
     private static final int TIMEOUT_STABILIZZAZIONE = 4000;
     private static final int FATTORE_REPLICA = 2;

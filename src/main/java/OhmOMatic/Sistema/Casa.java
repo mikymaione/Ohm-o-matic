@@ -18,13 +18,11 @@ import OhmOMatic.Simulation.SmartMeterSimulator;
 import OhmOMatic.Sistema.Base.BufferImpl;
 import OhmOMatic.Sistema.Base.MeanListener;
 import OhmOMatic.Sistema.Chord.ChordNode;
-import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
-import org.apache.commons.lang3.SerializationUtils;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -82,12 +80,9 @@ public class Casa extends ChordNode implements MeanListener, AutoCloseable
             gRPC_listner.shutdown();
     }
 
-
     //region Funzioni P2P
     private void start_gRPC_Listening() throws IOException
     {
-        var n = this;
-
         gRPC_listner = ServerBuilder
                 .forPort(miaPorta)
                 .addService(new HomeServiceImplBase()
@@ -95,8 +90,6 @@ public class Casa extends ChordNode implements MeanListener, AutoCloseable
                     @Override
                     public void entraNelCondominio(casa request, StreamObserver<casaRes> responseObserver)
                     {
-                        var bs = ByteString.copyFrom(SerializationUtils.serialize(n));
-
                         var res = casaRes.newBuilder()
                                 .setStandardRes(
                                         standardRes.newBuilder()
@@ -110,7 +103,6 @@ public class Casa extends ChordNode implements MeanListener, AutoCloseable
                                                 .setPort(miaPorta)
                                                 .build()
                                 )
-                                .setChordNodeChunk(bs)
                                 .build();
 
                         responseObserver.onNext(res);
@@ -160,7 +152,7 @@ public class Casa extends ChordNode implements MeanListener, AutoCloseable
                     .build();
 
             var Res = stub.entraNelCondominio(c);
-            /*var R = Res.getStandardRes();
+            var R = Res.getStandardRes();
 
             if (R.getOk())
             {
@@ -170,7 +162,7 @@ public class Casa extends ChordNode implements MeanListener, AutoCloseable
                 join(n);
             }
             else
-                throw new Exception(R.getErrore());*/
+                throw new Exception(R.getErrore());
         }
 
         return true;
