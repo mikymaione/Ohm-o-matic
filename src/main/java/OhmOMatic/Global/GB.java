@@ -6,6 +6,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Global;
 
+import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -16,7 +17,37 @@ public final class GB
 {
 
     private static Random random = new Random();
-    
+
+
+    public static void clearScreen()
+    {
+        System.out.print("\033[H\033[2J");
+        System.out.flush();
+    }
+
+    public static byte[] serialize(Object obj) throws IOException
+    {
+        try (
+                var out = new ByteArrayOutputStream();
+                var os = new ObjectOutputStream(out)
+        )
+        {
+            os.writeObject(obj);
+
+            return out.toByteArray();
+        }
+    }
+
+    public static Object deserialize(byte[] data) throws IOException, ClassNotFoundException
+    {
+        try (
+                var in = new ByteArrayInputStream(data);
+                var is = new ObjectInputStream(in)
+        )
+        {
+            return is.readObject();
+        }
+    }
 
     public static byte[] sha1(String input)
     {

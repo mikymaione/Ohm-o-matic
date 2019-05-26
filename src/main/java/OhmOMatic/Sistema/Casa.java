@@ -18,6 +18,7 @@ import OhmOMatic.Simulation.SmartMeterSimulator;
 import OhmOMatic.Sistema.Base.BufferImpl;
 import OhmOMatic.Sistema.Base.MeanListener;
 import OhmOMatic.Sistema.Chord.ChordNode;
+import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Server;
@@ -31,7 +32,7 @@ import javax.ws.rs.client.WebTarget;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-public class Casa extends ChordNode implements MeanListener, AutoCloseable
+public class Casa implements MeanListener, AutoCloseable
 {
 
     private SmartMeterSimulator smartMeterSimulator;
@@ -51,11 +52,11 @@ public class Casa extends ChordNode implements MeanListener, AutoCloseable
     final private String indirizzoServerPeer;
     final private int portaServerPeer;
 
+    final private ChordNode chordNode;
+
 
     public Casa(String id, String indirizzoREST_, String mioIndirizzo_, int miaPorta_, String indirizzoServerPeer_, int portaServerPeer_) throws IOException
     {
-        super(id);
-
         ID = id;
 
         indirizzoREST = indirizzoREST_;
@@ -65,6 +66,8 @@ public class Casa extends ChordNode implements MeanListener, AutoCloseable
 
         indirizzoServerPeer = indirizzoServerPeer_;
         portaServerPeer = portaServerPeer_;
+
+        chordNode = new ChordNode(ID);
 
         start_gRPC_Listening();
     }
@@ -90,23 +93,34 @@ public class Casa extends ChordNode implements MeanListener, AutoCloseable
                     @Override
                     public void entraNelCondominio(casa request, StreamObserver<casaRes> responseObserver)
                     {
-                        var res = casaRes.newBuilder()
-                                .setStandardRes(
-                                        standardRes.newBuilder()
-                                                .setOk(true)
-                                                .build()
-                                )
-                                .setCasa(
-                                        casa.newBuilder()
-                                                .setID(ID)
-                                                .setIP(mioIndirizzo)
-                                                .setPort(miaPorta)
-                                                .build()
-                                )
-                                .build();
+                        try
+                        {
+                            var ser = GB.serialize(chordNode);
+                            var bys = ByteString.copyFrom(ser);
 
-                        responseObserver.onNext(res);
-                        responseObserver.onCompleted();
+                            var res = casaRes.newBuilder()
+                                    .setStandardRes(
+                                            standardRes.newBuilder()
+                                                    .setOk(true)
+                                                    .build()
+                                    )
+                                    .setCasa(
+                                            casa.newBuilder()
+                                                    .setID(ID)
+                                                    .setIP(mioIndirizzo)
+                                                    .setPort(miaPorta)
+                                                    .build()
+                                    )
+                                    .setNode(bys)
+                                    .build();
+
+                            responseObserver.onNext(res);
+                            responseObserver.onCompleted();
+                        }
+                        catch (Exception e)
+                        {
+                            e.printStackTrace();
+                        }
                     }
 
                     @Override
@@ -156,10 +170,12 @@ public class Casa extends ChordNode implements MeanListener, AutoCloseable
 
             if (R.getOk())
             {
-                var serverCasa = Res.getCasa();
-                var n = new ChordNode(serverCasa.getID());
+                var bys = Res.getNode();
+                var bya = bys.toByteArray();
+                var obj = GB.deserialize(bya);
+                var node = (ChordNode) obj;
 
-                join(n);
+                chordNode.join(node);
             }
             else
                 throw new Exception(R.getErrore());
@@ -263,10 +279,12 @@ public class Casa extends ChordNode implements MeanListener, AutoCloseable
 
     public void inviaStatistiche(double mean)
     {
-        put(key, mean);
+        var ts = System.currentTimeMillis();
+        var k = GB.sha1(ID + "_" + ts);
 
-        for (var d : data.entrySet())
-            System.out.println("Energia consumata da " + d.getKey() + ": " + d.getValue() + "KW");
+        chordNode.put(k, mean);
+
+        chordNode.printData();
     }
     //endregion
 

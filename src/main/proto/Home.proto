@@ -26,6 +26,7 @@ message casa {
 message casaRes {
     standardRes StandardRes = 1;
     casa Casa = 2;
+    bytes node = 3;
 }
 
 message listaCase {

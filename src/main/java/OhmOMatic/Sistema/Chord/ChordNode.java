@@ -19,40 +19,41 @@ package OhmOMatic.Sistema.Chord;
 import OhmOMatic.Global.GB;
 
 import java.io.Serializable;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.concurrent.*;
 
 
-public class ChordNode
+public class ChordNode implements Serializable
 {
 
     private static final int TIMEOUT_STABILIZZAZIONE = 4000;
     private static final int FATTORE_REPLICA = 2;
     private static final int TIMEOUT_PEER = 500;
 
-    private static final int mBit = 128;
+    private static final int mBit = 4;
 
 
-    protected final byte[] key;
+    private final String ID;
+    private final byte[] key;
 
-    protected final HashMap<byte[], Serializable> data = new HashMap<>();
+    private final HashMap<byte[], Serializable> data = new HashMap<>();
     private final ChordNode[] fingers = new ChordNode[mBit];
 
     private volatile Deque<ChordNode> successors = new ArrayDeque<>();
     private volatile ChordNode predecessor;
 
-    private Timer timer = new Timer();
 
-
-    public ChordNode(final String ID)
+    public ChordNode(final String ID_)
     {
-        key = GB.sha1(ID);
+        ID = ID_;
+        key = GB.sha1(ID_);
         setSuccessor(this);
 
-        timer.schedule(GB.executeTimerTask(this::stabilize), TIMEOUT_STABILIZZAZIONE);
+        //var executor = Executors.newSingleThreadScheduledExecutor();
+        //executor.scheduleAtFixedRate(GB.executeTimerTask(this::stabilize), TIMEOUT_STABILIZZAZIONE, TIMEOUT_STABILIZZAZIONE, TimeUnit.MILLISECONDS);
     }
 
 
@@ -107,7 +108,7 @@ public class ChordNode
         return n;
     }
 
-    protected void join(final ChordNode n)
+    public void join(final ChordNode n)
     {
         setSuccessor(n.find_successor(key));
     }
@@ -243,6 +244,32 @@ public class ChordNode
             if (!data.containsKey(id))
                 data.put(id, object);
         }
+    }
+
+    public void printData()
+    {
+        var s = predecessor();
+        var n = s;
+
+        if (s == null)
+            s = this;
+
+        GB.clearScreen();
+
+        do
+        {
+            System.out.println("Nodo: " + s.ID);
+
+            for (var d : s.data.entrySet())
+                System.out.println("-Energia consumata " + d.getKey() + ": " + d.getValue() + "KW");
+
+            n = s;
+            s = successor();
+
+            if (s == null)
+                break;
+        }
+        while (!Arrays.equals(n.key, s.key));
     }
 
     public <T extends Serializable> T get(final byte[] id)
