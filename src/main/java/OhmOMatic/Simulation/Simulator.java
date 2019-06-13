@@ -11,78 +11,78 @@ import java.util.Random;
 
 public abstract class Simulator extends Thread
 {
-    
-    protected volatile boolean stopCondition = false;
 
-    private long midnight;
+	protected volatile boolean stopCondition = false;
 
-    private String id;
+	private long midnight;
 
-    private String type;
+	private String id;
 
-    protected Random rnd = new Random();
+	private String type;
 
-    private Buffer buffer;
+	protected Random rnd = new Random();
 
-
-    public abstract void run();
+	private Buffer buffer;
 
 
-    public Simulator(String id, String type, Buffer buffer)
-    {
-        this.id = id;
-        this.type = type;
-        this.buffer = buffer;
-        this.midnight = computeMidnightMilliseconds();
-    }
+	public abstract void run();
 
-    public void stopMeGently()
-    {
-        stopCondition = true;
-    }
 
-    protected void addMeasurement(double measurement)
-    {
-        buffer.addMeasurement(new Measurement(id, type, measurement, deltaTime()));
-    }
+	public Simulator(String id, String type, Buffer buffer)
+	{
+		this.id = id;
+		this.type = type;
+		this.buffer = buffer;
+		this.midnight = computeMidnightMilliseconds();
+	}
 
-    public Buffer getBuffer()
-    {
-        return buffer;
-    }
+	public void stopMeGently()
+	{
+		stopCondition = true;
+	}
 
-    protected void sensorSleep(long milliseconds)
-    {
-        try
-        {
-            Thread.sleep(milliseconds);
-        }
-        catch (InterruptedException e)
-        {
-            e.printStackTrace();
-        }
-    }
+	protected void addMeasurement(double measurement)
+	{
+		buffer.addMeasurement(new Measurement(id, type, measurement, deltaTime()));
+	}
 
-    private long computeMidnightMilliseconds()
-    {
-        Calendar c = Calendar.getInstance();
+	public Buffer getBuffer()
+	{
+		return buffer;
+	}
 
-        c.set(Calendar.HOUR_OF_DAY, 0);
-        c.set(Calendar.MINUTE, 0);
-        c.set(Calendar.SECOND, 0);
-        c.set(Calendar.MILLISECOND, 0);
+	protected void sensorSleep(long milliseconds)
+	{
+		try
+		{
+			Thread.sleep(milliseconds);
+		}
+		catch (InterruptedException e)
+		{
+			e.printStackTrace();
+		}
+	}
 
-        return c.getTimeInMillis();
-    }
+	private long computeMidnightMilliseconds()
+	{
+		Calendar c = Calendar.getInstance();
 
-    private long deltaTime()
-    {
-        return System.currentTimeMillis() - midnight;
-    }
+		c.set(Calendar.HOUR_OF_DAY, 0);
+		c.set(Calendar.MINUTE, 0);
+		c.set(Calendar.SECOND, 0);
+		c.set(Calendar.MILLISECOND, 0);
 
-    public String getIdentifier()
-    {
-        return id;
-    }
+		return c.getTimeInMillis();
+	}
+
+	private long deltaTime()
+	{
+		return System.currentTimeMillis() - midnight;
+	}
+
+	public String getIdentifier()
+	{
+		return id;
+	}
 
 }

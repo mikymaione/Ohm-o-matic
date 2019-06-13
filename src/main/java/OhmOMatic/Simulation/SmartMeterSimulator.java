@@ -8,59 +8,59 @@ package OhmOMatic.Simulation;
 
 public class SmartMeterSimulator extends Simulator
 {
-    private final double A = 0.4;
-    private final double W = 0.01;
+	private final double A = 0.4;
+	private final double W = 0.01;
 
-    private static int ID = 1;
+	private static int ID = 1;
 
-    private volatile boolean boost;
-
-
-    public SmartMeterSimulator(String id, Buffer buffer)
-    {
-        super(id, "Plug", buffer);
-    }
-
-    public SmartMeterSimulator(Buffer buffer)
-    {
-        super("plug-" + (ID++), "Plug", buffer);
-    }
+	private volatile boolean boost;
 
 
-    @Override
-    public void run()
-    {
-        double i = rnd.nextInt();
-        long waitingTime;
+	public SmartMeterSimulator(String id, Buffer buffer)
+	{
+		super(id, "Plug", buffer);
+	}
 
-        while (!stopCondition)
-        {
-            double value = getElecticityValue(i);
+	public SmartMeterSimulator(Buffer buffer)
+	{
+		super("plug-" + (ID++), "Plug", buffer);
+	}
 
-            if (boost)
-                value += 3;
 
-            addMeasurement(value);
+	@Override
+	public void run()
+	{
+		double i = rnd.nextInt();
+		long waitingTime;
 
-            waitingTime = 100 + (int) (Math.random() * 200);
-            sensorSleep(waitingTime);
+		while (!stopCondition)
+		{
+			double value = getElecticityValue(i);
 
-            i += 0.2;
-        }
-    }
+			if (boost)
+				value += 3;
 
-    private double getElecticityValue(double t)
-    {
-        return Math.abs(A * Math.sin(W * t) + rnd.nextGaussian() * 0.3);
-    }
+			addMeasurement(value);
 
-    public void boost() throws InterruptedException
-    {
-        boost = true;
+			waitingTime = 100 + (int) (Math.random() * 200);
+			sensorSleep(waitingTime);
 
-        Thread.sleep(5000);
+			i += 0.2;
+		}
+	}
 
-        boost = false;
-    }
+	private double getElecticityValue(double t)
+	{
+		return Math.abs(A * Math.sin(W * t) + rnd.nextGaussian() * 0.3);
+	}
+
+	public void boost() throws InterruptedException
+	{
+		boost = true;
+
+		Thread.sleep(5000);
+
+		boost = false;
+	}
 
 }

@@ -33,287 +33,287 @@ import java.util.concurrent.TimeUnit;
 public class Casa implements MeanListener, AutoCloseable
 {
 
-    private SmartMeterSimulator smartMeterSimulator;
-    private BufferImpl theBuffer;
+	private SmartMeterSimulator smartMeterSimulator;
+	private BufferImpl theBuffer;
 
-    private Client client;
-    private WebTarget webTargetRest;
+	private Client client;
+	private WebTarget webTargetRest;
 
-    private Server gRPC_listner;
-    private ManagedChannel gRPC_channel;
-    private HomeServiceBlockingStub homeServiceBlockingStub;
+	private Server gRPC_listner;
+	private ManagedChannel gRPC_channel;
+	private HomeServiceBlockingStub homeServiceBlockingStub;
 
-    private final String ID;
-    private final String indirizzoREST;
-    private final String mioIndirizzo;
-    private final int miaPorta;
-    private final String indirizzoServerPeer;
-    private final int portaServerPeer;
-
-
-    public Casa(String id, String indirizzoREST_, String mioIndirizzo_, int miaPorta_, String indirizzoServerPeer_, int portaServerPeer_) throws IOException
-    {
-        ID = id;
-
-        indirizzoREST = indirizzoREST_;
-
-        mioIndirizzo = mioIndirizzo_;
-        miaPorta = miaPorta_;
-
-        indirizzoServerPeer = indirizzoServerPeer_;
-        portaServerPeer = portaServerPeer_;
-
-        start_gRPC_Listening();
-    }
+	private final String ID;
+	private final String indirizzoREST;
+	private final String mioIndirizzo;
+	private final int miaPorta;
+	private final String indirizzoServerPeer;
+	private final int portaServerPeer;
 
 
-    @Override
-    public void close() throws InterruptedException
-    {
-        if (gRPC_channel != null)
-            gRPC_channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+	public Casa(String id, String indirizzoREST_, String mioIndirizzo_, int miaPorta_, String indirizzoServerPeer_, int portaServerPeer_) throws IOException
+	{
+		ID = id;
 
-        if (gRPC_listner != null)
-            gRPC_listner.shutdown();
-    }
+		indirizzoREST = indirizzoREST_;
 
-    //region Funzioni P2P
-    private void start_gRPC_Listening() throws IOException
-    {
-        gRPC_listner = ServerBuilder
-                .forPort(miaPorta)
-                .addService(new HomeServiceImplBase()
-                {
-                    @Override
-                    public void entraNelCondominio(casa request, StreamObserver<casaRes> responseObserver)
-                    {
-                        var res = casaRes.newBuilder()
-                                .setStandardRes(
-                                        standardRes.newBuilder()
-                                                .setOk(true)
-                                                .build()
-                                )
-                                .setCasa(
-                                        casa.newBuilder()
-                                                .setID(ID)
-                                                .setIP(mioIndirizzo)
-                                                .setPort(miaPorta)
-                                                .build()
-                                )
-                                .build();
+		mioIndirizzo = mioIndirizzo_;
+		miaPorta = miaPorta_;
 
-                        responseObserver.onNext(res);
-                        responseObserver.onCompleted();
-                    }
+		indirizzoServerPeer = indirizzoServerPeer_;
+		portaServerPeer = portaServerPeer_;
 
-                    @Override
-                    public void esciDalCondominio(casa request, StreamObserver<standardRes> responseObserver)
-                    {
-                        var res = standardRes.newBuilder()
-                                .setOk(true)
-                                .build();
-
-                        responseObserver.onNext(res);
-                        responseObserver.onCompleted();
-                    }
-                })
-                .build()
-                .start();
-    }
-
-    private HomeServiceBlockingStub getStub()
-    {
-        if (homeServiceBlockingStub == null)
-        {
-            gRPC_channel = ManagedChannelBuilder
-                    .forAddress(indirizzoServerPeer, portaServerPeer)
-                    .usePlaintext()
-                    .build();
-
-            homeServiceBlockingStub = HomeServiceGrpc.newBlockingStub(gRPC_channel);
-        }
-
-        return homeServiceBlockingStub;
-    }
-
-    public boolean entraNelCondominio() throws Exception
-    {
-        if (GB.stringIsBlank(indirizzoServerPeer))
-        {
-
-        }
-        else
-        {
-            var stub = getStub();
-
-            var c = casa.newBuilder()
-                    .setID(ID)
-                    .setIP(mioIndirizzo)
-                    .setPort(miaPorta)
-                    .build();
-
-            var Res = stub.entraNelCondominio(c);
-            var R = Res.getStandardRes();
-
-            if (R.getOk())
-            {
-                var k = Res.getCasa();
+		start_gRPC_Listening();
+	}
 
 
-            }
-            else
-                throw new Exception(R.getErrore());
-        }
+	@Override
+	public void close() throws InterruptedException
+	{
+		if (gRPC_channel != null)
+			gRPC_channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
 
-        return true;
-    }
+		if (gRPC_listner != null)
+			gRPC_listner.shutdown();
+	}
 
-    public boolean esciDalCondominio() throws Exception
-    {
-        var stub = getStub();
+	//region Funzioni P2P
+	private void start_gRPC_Listening() throws IOException
+	{
+		gRPC_listner = ServerBuilder
+				.forPort(miaPorta)
+				.addService(new HomeServiceImplBase()
+				{
+					@Override
+					public void entraNelCondominio(casa request, StreamObserver<casaRes> responseObserver)
+					{
+						var res = casaRes.newBuilder()
+								.setStandardRes(
+										standardRes.newBuilder()
+												.setOk(true)
+												.build()
+								)
+								.setCasa(
+										casa.newBuilder()
+												.setID(ID)
+												.setIP(mioIndirizzo)
+												.setPort(miaPorta)
+												.build()
+								)
+								.build();
 
-        var c = casa.newBuilder()
-                .setID(ID)
-                .setIP(mioIndirizzo)
-                .setPort(miaPorta)
-                .build();
+						responseObserver.onNext(res);
+						responseObserver.onCompleted();
+					}
 
-        var R = stub.esciDalCondominio(c);
+					@Override
+					public void esciDalCondominio(casa request, StreamObserver<standardRes> responseObserver)
+					{
+						var res = standardRes.newBuilder()
+								.setOk(true)
+								.build();
 
-        if (!R.getOk())
-            throw new Exception(R.getErrore());
+						responseObserver.onNext(res);
+						responseObserver.onCompleted();
+					}
+				})
+				.build()
+				.start();
+	}
 
-        return true;
-    }
-    //endregion
+	private HomeServiceBlockingStub getStub()
+	{
+		if (homeServiceBlockingStub == null)
+		{
+			gRPC_channel = ManagedChannelBuilder
+					.forAddress(indirizzoServerPeer, portaServerPeer)
+					.usePlaintext()
+					.build();
 
-    //region Chiamate WS
-    private WebTarget getWebTarget()
-    {
-        if (webTargetRest == null)
-        {
-            client = ClientBuilder.newClient();
-            webTargetRest = client.target(indirizzoREST + "/OOM");
-        }
+			homeServiceBlockingStub = HomeServiceGrpc.newBlockingStub(gRPC_channel);
+		}
 
-        return webTargetRest;
-    }
+		return homeServiceBlockingStub;
+	}
 
-    public void iscriviCasa()
-    {
-        try
-        {
-            var webTarget = getWebTarget();
+	public boolean entraNelCondominio() throws Exception
+	{
+		if (GB.stringIsBlank(indirizzoServerPeer))
+		{
 
-            var wt = webTarget
-                    .path("iscriviCasa");
+		}
+		else
+		{
+			var stub = getStub();
 
-            final var par = casa.newBuilder()
-                    .setID(ID)
-                    .setIP(mioIndirizzo)
-                    .setPort(miaPorta)
-                    .build();
+			var c = casa.newBuilder()
+					.setID(ID)
+					.setIP(mioIndirizzo)
+					.setPort(miaPorta)
+					.build();
 
-            final var resListaCase = wt
-                    .request()
-                    .put(Entity.entity(par, "application/x-protobuf"), listaCase.class);
+			var Res = stub.entraNelCondominio(c);
+			var R = Res.getStandardRes();
 
-            final var res = resListaCase.getStandardResponse();
+			if (R.getOk())
+			{
+				var k = Res.getCasa();
 
-            if (res.getOk())
-                System.out.println("OK!");
-            else
-                System.out.println(res.getErrore());
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-    }
 
-    public void disiscriviCasa()
-    {
-        try
-        {
-            var webTarget = getWebTarget();
+			}
+			else
+				throw new Exception(R.getErrore());
+		}
 
-            var wt = webTarget
-                    .path("disiscriviCasa");
+		return true;
+	}
 
-            final var par = casa.newBuilder()
-                    .setID(ID)
-                    .setIP(mioIndirizzo)
-                    .setPort(miaPorta)
-                    .build();
+	public boolean esciDalCondominio() throws Exception
+	{
+		var stub = getStub();
 
-            final var res = wt
-                    .request()
-                    .put(Entity.entity(par, "application/x-protobuf"), standardRes.class);
+		var c = casa.newBuilder()
+				.setID(ID)
+				.setIP(mioIndirizzo)
+				.setPort(miaPorta)
+				.build();
 
-            if (res.getOk())
-                System.out.println("OK!");
-            else
-                System.out.println(res.getErrore());
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-    }
+		var R = stub.esciDalCondominio(c);
 
-    public void inviaStatistiche(double mean)
-    {
-        var ts = System.currentTimeMillis();
-        var k = GB.sha1(ID + "_" + ts);
+		if (!R.getOk())
+			throw new Exception(R.getErrore());
 
-        System.out.println("Mean: " + mean);
-    }
-    //endregion
+		return true;
+	}
+	//endregion
 
-    //region Funzioni sul calcolo del consumo energetico
-    public void calcolaConsumoEnergeticoComplessivo()
-    {
+	//region Chiamate WS
+	private WebTarget getWebTarget()
+	{
+		if (webTargetRest == null)
+		{
+			client = ClientBuilder.newClient();
+			webTargetRest = client.target(indirizzoREST + "/OOM");
+		}
 
-    }
+		return webTargetRest;
+	}
 
-    public void richiediAlCondominioDiPoterConsumareOltreLaMedia()
-    {
+	public void iscriviCasa()
+	{
+		try
+		{
+			var webTarget = getWebTarget();
 
-    }
-    //endregion
+			var wt = webTarget
+					.path("iscriviCasa");
 
-    //region Gestione Smart meter
-    private SmartMeterSimulator getSmartMeter()
-    {
-        if (smartMeterSimulator == null)
-        {
-            theBuffer = new BufferImpl(24, this);
-            smartMeterSimulator = new SmartMeterSimulator(theBuffer);
-        }
+			final var par = casa.newBuilder()
+					.setID(ID)
+					.setIP(mioIndirizzo)
+					.setPort(miaPorta)
+					.build();
 
-        return smartMeterSimulator;
-    }
+			final var resListaCase = wt
+					.request()
+					.put(Entity.entity(par, "application/x-protobuf"), listaCase.class);
 
-    public void avviaSmartMeter()
-    {
-        var smartMeter = getSmartMeter();
+			final var res = resListaCase.getStandardResponse();
 
-        smartMeter.run();
-    }
+			if (res.getOk())
+				System.out.println("OK!");
+			else
+				System.out.println(res.getErrore());
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
 
-    public void fermaSmartMeter()
-    {
-        var smartMeter = getSmartMeter();
+	public void disiscriviCasa()
+	{
+		try
+		{
+			var webTarget = getWebTarget();
 
-        smartMeter.stop();
-    }
+			var wt = webTarget
+					.path("disiscriviCasa");
 
-    @Override
-    public void meanGenerated(double mean)
-    {
-        inviaStatistiche(mean);
-    }
-    //endregion
+			final var par = casa.newBuilder()
+					.setID(ID)
+					.setIP(mioIndirizzo)
+					.setPort(miaPorta)
+					.build();
+
+			final var res = wt
+					.request()
+					.put(Entity.entity(par, "application/x-protobuf"), standardRes.class);
+
+			if (res.getOk())
+				System.out.println("OK!");
+			else
+				System.out.println(res.getErrore());
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	public void inviaStatistiche(double mean)
+	{
+		var ts = System.currentTimeMillis();
+		var k = GB.sha1(ID + "_" + ts);
+
+		System.out.println("Mean: " + mean);
+	}
+	//endregion
+
+	//region Funzioni sul calcolo del consumo energetico
+	public void calcolaConsumoEnergeticoComplessivo()
+	{
+
+	}
+
+	public void richiediAlCondominioDiPoterConsumareOltreLaMedia()
+	{
+
+	}
+	//endregion
+
+	//region Gestione Smart meter
+	private SmartMeterSimulator getSmartMeter()
+	{
+		if (smartMeterSimulator == null)
+		{
+			theBuffer = new BufferImpl(24, this);
+			smartMeterSimulator = new SmartMeterSimulator(theBuffer);
+		}
+
+		return smartMeterSimulator;
+	}
+
+	public void avviaSmartMeter()
+	{
+		var smartMeter = getSmartMeter();
+
+		smartMeter.run();
+	}
+
+	public void fermaSmartMeter()
+	{
+		var smartMeter = getSmartMeter();
+
+		smartMeter.stop();
+	}
+
+	@Override
+	public void meanGenerated(double mean)
+	{
+		inviaStatistiche(mean);
+	}
+	//endregion
 
 
 }

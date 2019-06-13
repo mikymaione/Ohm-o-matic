@@ -12,68 +12,68 @@ import OhmOMatic.Simulation.Measurement;
 public final class BufferImpl implements Buffer
 {
 
-    private final int slidingWindowCount;
+	private final int slidingWindowCount;
 
-    private int buffer_index = -1;
-    private Measurement[] buffer;
+	private int buffer_index = -1;
+	private Measurement[] buffer;
 
-    private MeanListener listener;
-
-
-    public BufferImpl(int SlidingWindowCount, MeanListener Listener)
-    {
-        listener = Listener;
-        slidingWindowCount = SlidingWindowCount;
-        buffer = new Measurement[SlidingWindowCount];
-    }
+	private MeanListener listener;
 
 
-    private class addMeasurementResult
-    {
-        final double media;
-        final boolean sendStats;
+	public BufferImpl(int SlidingWindowCount, MeanListener Listener)
+	{
+		listener = Listener;
+		slidingWindowCount = SlidingWindowCount;
+		buffer = new Measurement[SlidingWindowCount];
+	}
 
-        public addMeasurementResult(double media, boolean sendStats)
-        {
-            this.media = media;
-            this.sendStats = sendStats;
-        }
-    }
 
-    private synchronized addMeasurementResult addMeasurement_sync(Measurement m)
-    {
-        synchronized (this)
-        {
-            buffer[buffer_index += 1] = m;
+	private class addMeasurementResult
+	{
+		final double media;
+		final boolean sendStats;
 
-            if (buffer_index + 1 == slidingWindowCount)
-            {
-                var sum = 0d;
+		public addMeasurementResult(double media, boolean sendStats)
+		{
+			this.media = media;
+			this.sendStats = sendStats;
+		}
+	}
 
-                for (var e : buffer)
-                    sum += e.getValue();
+	private synchronized addMeasurementResult addMeasurement_sync(Measurement m)
+	{
+		synchronized (this)
+		{
+			buffer[buffer_index += 1] = m;
 
-                final var media = sum / slidingWindowCount;
+			if (buffer_index + 1 == slidingWindowCount)
+			{
+				var sum = 0d;
 
-                buffer_index = -1;
+				for (var e : buffer)
+					sum += e.getValue();
 
-                return new addMeasurementResult(media, true);
-            }
-            else
-            {
-                return new addMeasurementResult(0d, false);
-            }
-        }
-    }
+				final var media = sum / slidingWindowCount;
 
-    @Override
-    public void addMeasurement(Measurement m)
-    {
-        final var r = addMeasurement_sync(m);
+				buffer_index = -1;
 
-        if (r.sendStats)
-            listener.meanGenerated(r.media);
-    }
+				return new addMeasurementResult(media, true);
+			}
+			else
+			{
+				return new addMeasurementResult(0d, false);
+			}
+		}
+	}
+
+	@Override
+	public void addMeasurement(Measurement m)
+	{
+		final var r = addMeasurement_sync(m);
+
+		if (r.sendStats)
+			listener.meanGenerated(r.media);
+	}
 
 
 }

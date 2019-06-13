@@ -10,102 +10,102 @@ import OhmOMatic.Global.GB;
 
 public class Chord
 {
-    private final int mBit = 160; //sha1
-    private final byte[] key;
-    private Chord predecessor, successor;
+	private final int mBit = 160; //sha1
+	private final byte[] key;
+	private Chord predecessor, successor;
 
-    private volatile Chord[] finger = new Chord[mBit];
-    private int next;
+	private volatile Chord[] finger = new Chord[mBit];
+	private int next;
 
-    private final String address;
-    private final int port;
+	private final String address;
+	private final int port;
 
-    // create a new Chord ring.
-    public Chord(byte[] key_, String address_, int port_)
-    {
-        key = key_;
-        address = address_;
-        port = port_;
-        predecessor = null;
-        successor = this;
-    }
+	// create a new Chord ring.
+	public Chord(byte[] key_, String address_, int port_)
+	{
+		key = key_;
+		address = address_;
+		port = port_;
+		predecessor = null;
+		successor = this;
+	}
 
-    // ask node n to find the successor of id
-    private Chord find_successor(byte[] key)
-    {
-        if (GB.compreso(key, this.key, successor.key))
-        {
-            return successor;
-        }
-        else
-        {
-            var n0 = closest_preceding_node(key);
+	// ask node n to find the successor of id
+	private Chord find_successor(byte[] key)
+	{
+		if (GB.compreso(key, this.key, successor.key))
+		{
+			return successor;
+		}
+		else
+		{
+			var n0 = closest_preceding_node(key);
 
-            return n0.find_successor(key);
-        }
-    }
+			return n0.find_successor(key);
+		}
+	}
 
-    // search the local table for the highest predecessor of id
-    private Chord closest_preceding_node(byte[] key)
-    {
-        for (var i = mBit - 1; i-- > 0; )
-            if (GB.compreso(finger[i].key, this.key, key))
-                return finger[i];
+	// search the local table for the highest predecessor of id
+	private Chord closest_preceding_node(byte[] key)
+	{
+		for (var i = mBit - 1; i-- > 0; )
+			if (GB.compreso(finger[i].key, this.key, key))
+				return finger[i];
 
-        return this;
-    }
+		return this;
+	}
 
-    // join a Chord ring containing node n_
-    private void join(byte[] server_key, String server_address, int server_port)
-    {
-        var n_ = new Chord(server_key, server_address, server_port);
-        predecessor = null;
-        successor = n_.find_successor(this.key);
-    }
+	// join a Chord ring containing node n_
+	private void join(byte[] server_key, String server_address, int server_port)
+	{
+		var n_ = new Chord(server_key, server_address, server_port);
+		predecessor = null;
+		successor = n_.find_successor(this.key);
+	}
 
-    // called periodically. n asks the successor
-    // about its predecessor, verifies if n's immediate
-    // successor is consistent, and tells the successor about n
-    private void stabilize()
-    {
-        var x = successor.predecessor;
+	// called periodically. n asks the successor
+	// about its predecessor, verifies if n's immediate
+	// successor is consistent, and tells the successor about n
+	private void stabilize()
+	{
+		var x = successor.predecessor;
 
-        if (GB.compreso(x.key, this.key, successor.key))
-            successor = x;
+		if (GB.compreso(x.key, this.key, successor.key))
+			successor = x;
 
-        successor.notify(this);
-    }
+		successor.notify(this);
+	}
 
-    // n_ thinks it might be our predecessor.
-    private void notify(Chord n_)
-    {
-        if (predecessor == null || GB.compreso(n_.key, predecessor.key, this.key))
-            predecessor = n_;
-    }
+	// n_ thinks it might be our predecessor.
+	private void notify(Chord n_)
+	{
+		if (predecessor == null || GB.compreso(n_.key, predecessor.key, this.key))
+			predecessor = n_;
+	}
 
-    // called periodically. refreshes finger table entries.
-    // next stores the index of the finger to fix
-    private void fix_fingers()
-    {
-        next = next + 1;
+	// called periodically. refreshes finger table entries.
+	// next stores the index of the finger to fix
+	private void fix_fingers()
+	{
+		next = next + 1;
 
-        if (next > mBit)
-            next = 1;
+		if (next > mBit)
+			next = 1;
 
-        finger[next] = find_successor(null);
-    }
+		finger[next] = find_successor(null);
+	}
 
-    // called periodically. checks whether predecessor has failed.
-    private void check_predecessor()
-    {
-        if (isActive(predecessor))
-            predecessor = null;
-    }
+	// called periodically. checks whether predecessor has failed.
+	private void check_predecessor()
+	{
+		if (isActive(predecessor))
+			predecessor = null;
+	}
 
-    private boolean isActive(Chord e)
-    {
-        return true;
-    }
+	private boolean isActive(Chord e)
+	{
+		return true;
+	}
 
 
 }

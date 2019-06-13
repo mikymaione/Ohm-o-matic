@@ -16,50 +16,50 @@ import java.net.URISyntaxException;
 public class BaseCommandLineApplication
 {
 
-    protected static int stringToInt(String s, int default_)
-    {
-        var r = default_;
+	protected static int stringToInt(String s, int default_)
+	{
+		var r = default_;
 
-        try
-        {
-            r = Integer.parseUnsignedInt(s);
-        }
-        catch (Exception e)
-        {
-            //non integer
-        }
+		try
+		{
+			r = Integer.parseUnsignedInt(s);
+		}
+		catch (Exception e)
+		{
+			//non integer
+		}
 
-        return r;
-    }
+		return r;
+	}
 
-    protected static CommandLine getCommandLine(Options options, String[] args) throws ParseException
-    {
-        var parser = new DefaultParser();
+	protected static CommandLine getCommandLine(Options options, String[] args) throws ParseException
+	{
+		var parser = new DefaultParser();
 
-        return parser.parse(options, args);
-    }
+		return parser.parse(options, args);
+	}
 
-    protected static URI stringToURI(String url, String port, String root) throws URISyntaxException
-    {
-        final var port_ = Integer.parseUnsignedInt(port);
+	protected static URI stringToURI(String url, String port, String root) throws URISyntaxException
+	{
+		final var port_ = Integer.parseUnsignedInt(port);
 
-        return new URIBuilder()
-                .setScheme("http")
-                .setHost(url)
-                .setPort(port_)
-                .setPath(root)
-                .build();
-    }
+		return new URIBuilder()
+				.setScheme("http")
+				.setHost(url)
+				.setPort(port_)
+				.setPath(root)
+				.build();
+	}
 
-    protected static void printOptions(String app, Options options)
-    {
-        final var formatter = new HelpFormatter();
-        final var writer = new PrintWriter(System.out);
+	protected static void printOptions(String app, Options options)
+	{
+		final var formatter = new HelpFormatter();
+		final var writer = new PrintWriter(System.out);
 
-        formatter.printUsage(writer, 80, app, options);
+		formatter.printUsage(writer, 80, app, options);
 
-        writer.flush();
-    }
+		writer.flush();
+	}
 
 
 }

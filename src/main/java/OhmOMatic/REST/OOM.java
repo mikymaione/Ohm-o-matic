@@ -22,127 +22,127 @@ import java.util.ArrayList;
 public final class OOM
 {
 
-    //region Casa
-    @PUT
-    @Path("/iscriviCasa")
-    public listaCase iscriviCasa(casa par)
-    {
-        var iscrizione_casa_nel_DB_ok = true;
-        var iscrizione_casa_nel_DB_errore = "excepsions!";
+	//region Casa
+	@PUT
+	@Path("/iscriviCasa")
+	public listaCase iscriviCasa(casa par)
+	{
+		var iscrizione_casa_nel_DB_ok = true;
+		var iscrizione_casa_nel_DB_errore = "excepsions!";
 
-        //iscrizione casa nel DB
-        //.........
-        //.........
-        //.........
-        //iscrizione casa nel DB
-
-
-        final var resElencoCase = listaCase
-                .newBuilder()
-                .setStandardResponse(buildStandardRes(iscrizione_casa_nel_DB_ok, iscrizione_casa_nel_DB_errore))
-                .addAllCase(getElencoCase())
-                .build();
-
-        return resElencoCase;
-    }
-
-    @PUT
-    @Path("/disiscriviCasa")
-    public standardRes disiscriviCasa(casa par)
-    {
-        final var res = buildStandardRes(false, "excepsions!");
-
-        return res;
-    }
-
-    private ArrayList<casa> getElencoCase()
-    {
-        final var elenco_case = new ArrayList<casa>();
-
-        return elenco_case;
-    }
-
-    @GET
-    @Path("/elencoCase")
-    public listaCase elencoCase()
-    {
-        final var res = listaCase
-                .newBuilder()
-                .setStandardResponse(buildStandardRes(false, "excepsions!"))
-                .addAllCase(getElencoCase())
-                .build();
-
-        return res;
-    }
-    //endregion
+		//iscrizione casa nel DB
+		//.........
+		//.........
+		//.........
+		//iscrizione casa nel DB
 
 
-    //region Statistiche
-    @PUT
-    @Path("/aggiungiStatisticaLocale")
-    public standardRes aggiungiStatisticaLocale(parametriStatisticaReq par)
-    {
-        final var res = buildStandardRes(false, "excepsions!");
+		final var resElencoCase = listaCase
+				.newBuilder()
+				.setStandardResponse(buildStandardRes(iscrizione_casa_nel_DB_ok, iscrizione_casa_nel_DB_errore))
+				.addAllCase(getElencoCase())
+				.build();
 
-        return res;
-    }
+		return resElencoCase;
+	}
 
-    @PUT
-    @Path("/aggiungiStatisticaGlobale")
-    public standardRes aggiungiStatisticaGlobale(parametriStatisticaReq par)
-    {
-        final var res = buildStandardRes(false, "excepsions!");
+	@PUT
+	@Path("/disiscriviCasa")
+	public standardRes disiscriviCasa(casa par)
+	{
+		final var res = buildStandardRes(false, "excepsions!");
 
-        return res;
-    }
+		return res;
+	}
+
+	private ArrayList<casa> getElencoCase()
+	{
+		final var elenco_case = new ArrayList<casa>();
+
+		return elenco_case;
+	}
+
+	@GET
+	@Path("/elencoCase")
+	public listaCase elencoCase()
+	{
+		final var res = listaCase
+				.newBuilder()
+				.setStandardResponse(buildStandardRes(false, "excepsions!"))
+				.addAllCase(getElencoCase())
+				.build();
+
+		return res;
+	}
+	//endregion
 
 
-    @GET
-    @Path("/ultimeStatisticheCasa")
-    public standardRes ultimeStatisticheCasa(parametriStatisticaReq par)
-    {
-        final var res = buildStandardRes(false, "excepsions!");
+	//region Statistiche
+	@PUT
+	@Path("/aggiungiStatisticaLocale")
+	public standardRes aggiungiStatisticaLocale(parametriStatisticaReq par)
+	{
+		final var res = buildStandardRes(false, "excepsions!");
 
-        return res;
-    }
+		return res;
+	}
 
-    @GET
-    @Path("/ultimeStatisticheCondominio")
-    public standardRes ultimeStatisticheCondominio(parametriStatisticheReq par)
-    {
-        final var res = buildStandardRes(false, "excepsions!");
+	@PUT
+	@Path("/aggiungiStatisticaGlobale")
+	public standardRes aggiungiStatisticaGlobale(parametriStatisticaReq par)
+	{
+		final var res = buildStandardRes(false, "excepsions!");
 
-        return res;
-    }
+		return res;
+	}
 
 
-    @GET
-    @Path("/deviazioneStandardMediaCasa")
-    public standardRes deviazioneStandardMediaCasa(parametriStatisticaReq par)
-    {
-        final var res = buildStandardRes(false, "excepsions!");
+	@GET
+	@Path("/ultimeStatisticheCasa")
+	public standardRes ultimeStatisticheCasa(parametriStatisticaReq par)
+	{
+		final var res = buildStandardRes(false, "excepsions!");
 
-        return res;
-    }
+		return res;
+	}
 
-    @GET
-    @Path("/deviazioneStandardMediaCondominio")
-    public standardRes deviazioneStandardMediaCondominio(parametriStatisticheReq par)
-    {
-        final var res = buildStandardRes(false, "excepsions!");
+	@GET
+	@Path("/ultimeStatisticheCondominio")
+	public standardRes ultimeStatisticheCondominio(parametriStatisticheReq par)
+	{
+		final var res = buildStandardRes(false, "excepsions!");
 
-        return res;
-    }
-    //endregion
+		return res;
+	}
 
-    //region Common functions
-    private standardRes buildStandardRes(boolean Ok, String errore)
-    {
-        return standardRes
-                .newBuilder()
-                .setOk(Ok)
-                .setErrore(errore)
-                .build();
-    }
-    //endregion
+
+	@GET
+	@Path("/deviazioneStandardMediaCasa")
+	public standardRes deviazioneStandardMediaCasa(parametriStatisticaReq par)
+	{
+		final var res = buildStandardRes(false, "excepsions!");
+
+		return res;
+	}
+
+	@GET
+	@Path("/deviazioneStandardMediaCondominio")
+	public standardRes deviazioneStandardMediaCondominio(parametriStatisticheReq par)
+	{
+		final var res = buildStandardRes(false, "excepsions!");
+
+		return res;
+	}
+	//endregion
+
+	//region Common functions
+	private standardRes buildStandardRes(boolean Ok, String errore)
+	{
+		return standardRes
+				.newBuilder()
+				.setOk(Ok)
+				.setErrore(errore)
+				.build();
+	}
+	//endregion
 }

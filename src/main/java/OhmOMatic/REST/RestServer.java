@@ -16,31 +16,31 @@ import java.net.URI;
 public final class RestServer extends BaseCommandLineApplication
 {
 
-    //le rotte (e quindi le funzionalità) si trovano nel file OhmOMatic.REST.OOM.java
+	//le rotte (e quindi le funzionalità) si trovano nel file OhmOMatic.REST.OOM.java
 
-    private static final String Server_URI = "http://localhost:8080/OOM/";
+	private static final String Server_URI = "http://localhost:8080/OOM/";
 
 
-    public static void main(String[] args)
-    {
-        var rc = new ResourceConfig()
-                .packages("OhmOMatic");
+	public static void main(String[] args)
+	{
+		var rc = new ResourceConfig()
+				.packages("OhmOMatic");
 
-        GrizzlyHttpServerFactory.createHttpServer(URI.create(Server_URI), rc);
+		GrizzlyHttpServerFactory.createHttpServer(URI.create(Server_URI), rc);
 
-        System.out.println("Ohm-o-matic - Server avviato!");
-        System.out.println(String.format("Visita %s", Server_URI));
-        System.out.println("Premere invio per terminare...");
+		System.out.println("Ohm-o-matic - Server avviato!");
+		System.out.println(String.format("Visita %s", Server_URI));
+		System.out.println("Premere invio per terminare...");
 
-        try
-        {
-            System.in.read();
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-    }
+		try
+		{
+			System.in.read();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
 
 
 }

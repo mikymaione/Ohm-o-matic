@@ -11,6 +11,6 @@ import java.util.EventListener;
 public interface MeanListener extends EventListener
 {
 
-    void meanGenerated(double mean);
+	void meanGenerated(double mean);
 
 }

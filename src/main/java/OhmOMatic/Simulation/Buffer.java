@@ -8,6 +8,6 @@ package OhmOMatic.Simulation;
 
 public interface Buffer
 {
-    void addMeasurement(Measurement m);
+	void addMeasurement(Measurement m);
 
 }

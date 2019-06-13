@@ -16,72 +16,72 @@ import java.net.URI;
 public final class Admin
 {
 
-    private Client client;
-    private WebTarget webTarget;
+	private Client client;
+	private WebTarget webTarget;
 
 
-    public Admin(URI indirizzo)
-    {
-        client = ClientBuilder.newClient();
-        webTarget = client.target(indirizzo + "/OOM");
-    }
+	public Admin(URI indirizzo)
+	{
+		client = ClientBuilder.newClient();
+		webTarget = client.target(indirizzo + "/OOM");
+	}
 
 
-    //region Funzioni case
-    public void elencoCase()
-    {
-        try
-        {
-            var wt = webTarget
-                    .path("elencoCase");
+	//region Funzioni case
+	public void elencoCase()
+	{
+		try
+		{
+			var wt = webTarget
+					.path("elencoCase");
 
-            final var lista = wt
-                    .request()
-                    .get(listaCase.class);
+			final var lista = wt
+					.request()
+					.get(listaCase.class);
 
-            final var res = lista.getStandardResponse();
+			final var res = lista.getStandardResponse();
 
-            if (res.getOk())
-            {
-                System.out.println("OK!");
-                System.out.println("Lista case presenti nel sistema:");
+			if (res.getOk())
+			{
+				System.out.println("OK!");
+				System.out.println("Lista case presenti nel sistema:");
 
-                final var elenco = lista.getCaseList();
+				final var elenco = lista.getCaseList();
 
-                for (var c : elenco)
-                    System.out.println(String.format("-Casa %s (%s:%d)", c.getID(), c.getIP(), c.getPort()));
-            }
-            else
-                System.out.println(res.getErrore());
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-    }
-    //endregion
+				for (var c : elenco)
+					System.out.println(String.format("-Casa %s (%s:%d)", c.getID(), c.getIP(), c.getPort()));
+			}
+			else
+				System.out.println(res.getErrore());
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+	//endregion
 
-    //region Statistiche
-    public void ultimeStatisticheCasa(String id, int n)
-    {
+	//region Statistiche
+	public void ultimeStatisticheCasa(String id, int n)
+	{
 
-    }
+	}
 
-    public void ultimeStatisticheCondominio(int n)
-    {
+	public void ultimeStatisticheCondominio(int n)
+	{
 
-    }
+	}
 
-    public void deviazioneStandardMediaCasa(String id, int n)
-    {
+	public void deviazioneStandardMediaCasa(String id, int n)
+	{
 
-    }
+	}
 
-    public void deviazioneStandardMediaCondominio(int n)
-    {
+	public void deviazioneStandardMediaCondominio(int n)
+	{
 
-    }
-    //endregion
+	}
+	//endregion
 
 
 }

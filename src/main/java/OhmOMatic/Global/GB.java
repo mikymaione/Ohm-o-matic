@@ -16,117 +16,117 @@ import java.util.TimerTask;
 public final class GB
 {
 
-    private static Random random = new Random();
+	private static Random random = new Random();
 
 
-    public static void clearScreen()
-    {
-        System.out.print("\033[H\033[2J");
-        System.out.flush();
-    }
+	public static void clearScreen()
+	{
+		System.out.print("\033[H\033[2J");
+		System.out.flush();
+	}
 
-    public static byte[] serialize(Object obj) throws IOException
-    {
-        try (
-                var out = new ByteArrayOutputStream();
-                var os = new ObjectOutputStream(out)
-        )
-        {
-            os.writeObject(obj);
+	public static byte[] serialize(Object obj) throws IOException
+	{
+		try (
+				var out = new ByteArrayOutputStream();
+				var os = new ObjectOutputStream(out)
+		)
+		{
+			os.writeObject(obj);
 
-            return out.toByteArray();
-        }
-    }
+			return out.toByteArray();
+		}
+	}
 
-    public static Object deserialize(byte[] data) throws IOException, ClassNotFoundException
-    {
-        try (
-                var in = new ByteArrayInputStream(data);
-                var is = new ObjectInputStream(in)
-        )
-        {
-            return is.readObject();
-        }
-    }
+	public static Object deserialize(byte[] data) throws IOException, ClassNotFoundException
+	{
+		try (
+				var in = new ByteArrayInputStream(data);
+				var is = new ObjectInputStream(in)
+		)
+		{
+			return is.readObject();
+		}
+	}
 
-    public static byte[] sha1(String input)
-    {
-        try
-        {
-            var mDigest = MessageDigest.getInstance("SHA1");
+	public static byte[] sha1(String input)
+	{
+		try
+		{
+			var mDigest = MessageDigest.getInstance("SHA1");
 
-            return mDigest.digest(input.getBytes());
-        }
-        catch (NoSuchAlgorithmException e)
-        {
-            e.printStackTrace();
+			return mDigest.digest(input.getBytes());
+		}
+		catch (NoSuchAlgorithmException e)
+		{
+			e.printStackTrace();
 
-            return null;
-        }
-    }
+			return null;
+		}
+	}
 
-    public static boolean stringIsBlank(String s)
-    {
-        return (s == null || s.equals("") || s.equals(" "));
-    }
+	public static boolean stringIsBlank(String s)
+	{
+		return (s == null || s.equals("") || s.equals(" "));
+	}
 
-    public static int randomInt(int da, int a)
-    {
-        return random.nextInt(a) + da;
-    }
+	public static int randomInt(int da, int a)
+	{
+		return random.nextInt(a) + da;
+	}
 
-    public static boolean compreso(final byte[] key, final byte[] lower, final byte[] upper)
-    {
-        if (Arrays.compare(lower, upper) > 0)
-            return Arrays.compare(key, lower) < 0 && Arrays.compare(key, upper) <= 1;
-        else
-            return Arrays.compare(key, lower) < 0 || Arrays.compare(key, upper) <= 1;
-    }
+	public static boolean compreso(final byte[] key, final byte[] lower, final byte[] upper)
+	{
+		if (Arrays.compare(lower, upper) > 0)
+			return Arrays.compare(key, lower) < 0 && Arrays.compare(key, upper) <= 1;
+		else
+			return Arrays.compare(key, lower) < 0 || Arrays.compare(key, upper) <= 1;
+	}
 
-    public static byte[] shiftLeft(byte[] byteArray, int shiftBitCount)
-    {
-        //https://github.com/patrickfav/bytes-java
+	public static byte[] shiftLeft(byte[] byteArray, int shiftBitCount)
+	{
+		//https://github.com/patrickfav/bytes-java
 
-        final var shiftMod = shiftBitCount % 8;
-        final var carryMask = (byte) ((1 << shiftMod) - 1);
-        final var offsetBytes = (shiftBitCount / 8);
+		final var shiftMod = shiftBitCount % 8;
+		final var carryMask = (byte) ((1 << shiftMod) - 1);
+		final var offsetBytes = (shiftBitCount / 8);
 
-        int sourceIndex;
+		int sourceIndex;
 
-        for (var i = 0; i < byteArray.length; i++)
-        {
-            sourceIndex = i + offsetBytes;
+		for (var i = 0; i < byteArray.length; i++)
+		{
+			sourceIndex = i + offsetBytes;
 
-            if (sourceIndex >= byteArray.length)
-            {
-                byteArray[i] = 0;
-            }
-            else
-            {
-                final var src = byteArray[sourceIndex];
-                var dst = (byte) (src << shiftMod);
+			if (sourceIndex >= byteArray.length)
+			{
+				byteArray[i] = 0;
+			}
+			else
+			{
+				final var src = byteArray[sourceIndex];
+				var dst = (byte) (src << shiftMod);
 
-                if (sourceIndex + 1 < byteArray.length)
-                    dst |= byteArray[sourceIndex + 1] >>> (8 - shiftMod) & carryMask;
+				if (sourceIndex + 1 < byteArray.length)
+					dst |= byteArray[sourceIndex + 1] >>> (8 - shiftMod) & carryMask;
 
-                byteArray[i] = dst;
-            }
-        }
+				byteArray[i] = dst;
+			}
+		}
 
-        return byteArray;
-    }
+		return byteArray;
+	}
 
-    public static TimerTask executeTimerTask(Runnable r)
-    {
-        return new TimerTask()
-        {
-            @Override
-            public void run()
-            {
-                r.run();
-            }
-        };
-    }
+	public static TimerTask executeTimerTask(Runnable r)
+	{
+		return new TimerTask()
+		{
+			@Override
+			public void run()
+			{
+				r.run();
+			}
+		};
+	}
 
 
 }
