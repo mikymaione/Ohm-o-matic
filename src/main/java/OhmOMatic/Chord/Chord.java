@@ -11,16 +11,21 @@ import OhmOMatic.Global.GB;
 public class Chord
 {
     private final int mBit = 160; //sha1
-    private byte[] key;
+    private final byte[] key;
     private Chord predecessor, successor;
 
     private volatile Chord[] finger = new Chord[mBit];
     private int next;
 
+    private final String address;
+    private final int port;
+
     // create a new Chord ring.
-    public Chord(byte[] key_)
+    public Chord(byte[] key_, String address_, int port_)
     {
         key = key_;
+        address = address_;
+        port = port_;
         predecessor = null;
         successor = this;
     }
@@ -29,7 +34,9 @@ public class Chord
     private Chord find_successor(byte[] key)
     {
         if (GB.compreso(key, this.key, successor.key))
+        {
             return successor;
+        }
         else
         {
             var n0 = closest_preceding_node(key);
@@ -49,8 +56,9 @@ public class Chord
     }
 
     // join a Chord ring containing node n_
-    private void join(Chord n_)
+    private void join(byte[] server_key, String server_address, int server_port)
     {
+        var n_ = new Chord(server_key, server_address, server_port);
         predecessor = null;
         successor = n_.find_successor(this.key);
     }
