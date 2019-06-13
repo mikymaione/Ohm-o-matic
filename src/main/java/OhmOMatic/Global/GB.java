@@ -6,6 +6,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Global;
 
+import com.google.protobuf.ByteString;
+
 import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -73,6 +75,15 @@ public final class GB
 	public static int randomInt(int da, int a)
 	{
 		return random.nextInt(a) + da;
+	}
+
+	public static boolean compreso(final ByteString key, final ByteString lower, final ByteString upper)
+	{
+		var k = key.toByteArray();
+		var l = lower.toByteArray();
+		var u = upper.toByteArray();
+
+		return compreso(k, l, u);
 	}
 
 	public static boolean compreso(final byte[] key, final byte[] lower, final byte[] upper)

@@ -20,6 +20,14 @@ service HomeService {
 message casa {
     string IP = 1;
     int32 Port = 2;
+
+    bytes key = 3;
+
+    bytes predecessor = 4;
+    bytes successor = 5;
+
+    int32 next = 6;
+    repeated bytes finger = 7;
 }
 
 message casaRes {

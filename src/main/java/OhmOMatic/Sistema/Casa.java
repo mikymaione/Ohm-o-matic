@@ -51,6 +51,7 @@ public class Casa implements MeanListener, AutoCloseable
 	private final String serverAddress;
 	private final int serverPort;
 
+	private final Chord chord;
 
 	private static byte[] toSha1(String ip, int port)
 	{
@@ -59,15 +60,12 @@ public class Casa implements MeanListener, AutoCloseable
 
 	public Casa(String indirizzoREST_, String mioIndirizzo_, int miaPorta_, String indirizzoServerPeer_, int portaServerPeer_) throws IOException
 	{
-		key = toSha1(mioIndirizzo_, miaPorta_);
-
-		predecessor = null;
-		successor = this;
-
 		RESTAddress = indirizzoREST_;
 
 		myAddress = mioIndirizzo_;
 		myPort = miaPorta_;
+
+		chord = new Chord(mioIndirizzo_, miaPorta_);
 
 		serverAddress = indirizzoServerPeer_;
 		serverPort = portaServerPeer_;
@@ -87,85 +85,96 @@ public class Casa implements MeanListener, AutoCloseable
 	}
 
 	//region Chord
-	private final int mBit = 160; //sha1
-	private final byte[] key;
-	private Casa predecessor, successor;
+	private final static int mBit = 160; //sha1
 
-	private volatile Casa[] finger = new Casa[mBit];
-	private int next;
+	class Chord
+	{
+		private final byte[] key;
+		private Chord predecessor, successor;
+
+		private volatile Chord[] finger = new Chord[mBit];
+		private int next;
+
+		Chord(String mioIndirizzo_, int miaPorta_)
+		{
+			key = toSha1(mioIndirizzo_, miaPorta_);
+			predecessor = null;
+			successor = this;
+		}
+	}
 
 	// ask node n to find the successor of id
-	private Casa find_successor(byte[] key)
+	private static Chord find_successor(Chord c, byte[] key)
 	{
-		if (GB.compreso(key, this.key, successor.key))
+		if (GB.compreso(key, c.key, c.successor.key))
 		{
-			return successor;
+			return c.successor;
 		}
 		else
 		{
-			var n0 = closest_preceding_node(key);
+			var n0 = closest_preceding_node(c, key);
 
-			return n0.find_successor(key);
+			return find_successor(n0, key);
 		}
 	}
 
 	// search the local table for the highest predecessor of id
-	private Casa closest_preceding_node(byte[] key)
+	private static Chord closest_preceding_node(Chord c, byte[] key)
 	{
 		for (var i = mBit - 1; i-- > 0; )
-			if (GB.compreso(finger[i].key, this.key, key))
-				return finger[i];
+			if (GB.compreso(c.finger[i].key, c.key, key))
+				return c.finger[i];
 
-		return this;
+		return c;
 	}
 
-	// join a Casa ring containing node n_
-	private void join(Casa n_)
+	// join a Chord ring containing node n_
+	private static void join(Chord c, Chord n_)
 	{
-		predecessor = null;
-		successor = n_.find_successor(this.key);
+		c.predecessor = null;
+		c.successor = find_successor(n_, c.key);
 	}
 
 	// called periodically. n asks the successor
 	// about its predecessor, verifies if n's immediate
 	// successor is consistent, and tells the successor about n
-	private void stabilize()
+	private static void stabilize(Chord c)
 	{
-		var x = successor.predecessor;
+		var x = c.successor.predecessor;
 
-		if (GB.compreso(x.key, this.key, successor.key))
-			successor = x;
+		if (GB.compreso(x.key, c.key, c.successor.key))
+			c.successor = x;
 
-		successor.notify(this);
+		notify_(c.successor, c);
 	}
 
 	// n_ thinks it might be our predecessor.
-	private void notify(Casa n_)
+	private static void notify_(Chord c, Chord n_)
 	{
-		if (predecessor == null || GB.compreso(n_.key, predecessor.key, this.key))
-			predecessor = n_;
+		if (c.predecessor == null || GB.compreso(n_.key, c.predecessor.key, c.key))
+			c.predecessor = n_;
 	}
 
 	// called periodically. refreshes finger table entries.
 	// next stores the index of the finger to fix
-	private void fix_fingers()
+	private static void fix_fingers(Chord c)
 	{
-		next = next + 1;
+		c.next++;
 
-		if (next > mBit)
-			next = 1;
+		if (c.next > mBit)
+			c.next = 1;
 
-		finger[next] = find_successor(null);
+		c.finger[c.next] = find_successor(c, null);
 	}
 
 	// called periodically. checks whether predecessor has failed.
-	private void check_predecessor()
+	private static void check_predecessor(Chord c)
 	{
-		if (isActive(predecessor))
-			predecessor = null;
+		if (isActive(c, c.predecessor))
+			c.predecessor = null;
 	}
 
-	private boolean isActive(Casa e)
+	private static boolean isActive(Chord c, Chord e)
 	{
 		return true;
 	}
