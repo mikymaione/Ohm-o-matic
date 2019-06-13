@@ -17,6 +17,7 @@ import OhmOMatic.ProtoBuffer.HomeServiceGrpc.HomeServiceImplBase;
 import OhmOMatic.Simulation.SmartMeterSimulator;
 import OhmOMatic.Sistema.Base.BufferImpl;
 import OhmOMatic.Sistema.Base.MeanListener;
+import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Server;
@@ -92,15 +93,35 @@ public class Casa implements MeanListener, AutoCloseable
 		private final byte[] key;
 		private Chord predecessor, successor;
 
+		private final String IP;
+		private final int Port;
+
 		private volatile Chord[] finger = new Chord[mBit];
 		private int next;
 
 		Chord(String mioIndirizzo_, int miaPorta_)
 		{
 			key = toSha1(mioIndirizzo_, miaPorta_);
+
+			IP = mioIndirizzo_;
+			Port = miaPorta_;
+
 			predecessor = null;
 			successor = this;
 		}
+	}
+
+	private static casa ChordToCasa(Chord c)
+	{
+		return casa
+				.newBuilder()
+				.setIP(c.IP)
+				.setPort(c.Port)
+				.setKey(ByteString.copyFrom(c.key))
+				.setPredecessor(ByteString.copyFrom(c.predecessor.key))
+				.setSuccessor(ByteString.copyFrom(c.successor.key))
+				.setNext(c.next)
+				.build();
 	}
 
 	// ask node n to find the successor of id
