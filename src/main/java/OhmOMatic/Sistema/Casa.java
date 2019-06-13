@@ -43,8 +43,6 @@ public class Casa implements MeanListener, AutoCloseable
 	private ManagedChannel gRPC_channel;
 	private HomeServiceBlockingStub homeServiceBlockingStub;
 
-	private final String ID;
-
 	private final String RESTAddress;
 
 	private final String myAddress;
@@ -54,10 +52,14 @@ public class Casa implements MeanListener, AutoCloseable
 	private final int serverPort;
 
 
-	public Casa(String id, String indirizzoREST_, String mioIndirizzo_, int miaPorta_, String indirizzoServerPeer_, int portaServerPeer_) throws IOException
+	private static byte[] toSha1(String ip, int port)
 	{
-		ID = id;
-		key = GB.sha1(id);
+		return GB.sha1(ip + ":" + port);
+	}
+
+	public Casa(String indirizzoREST_, String mioIndirizzo_, int miaPorta_, String indirizzoServerPeer_, int portaServerPeer_) throws IOException
+	{
+		key = toSha1(mioIndirizzo_, miaPorta_);
 
 		predecessor = null;
 		successor = this;
@@ -177,7 +179,7 @@ public class Casa implements MeanListener, AutoCloseable
 				.addService(new HomeServiceImplBase()
 				{
 					@Override
-					public void entraNelCondominio(casa request, StreamObserver<casaRes> responseObserver)
+					public void join(casa request, StreamObserver<casaRes> responseObserver)
 					{
 						var res = casaRes.newBuilder()
 								.setStandardRes(
