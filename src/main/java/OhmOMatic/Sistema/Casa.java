@@ -189,7 +189,6 @@ public class Casa implements MeanListener, AutoCloseable
 								)
 								.setCasa(
 										casa.newBuilder()
-												.setID(ID)
 												.setIP(myAddress)
 												.setPort(myPort)
 												.build()
@@ -241,12 +240,11 @@ public class Casa implements MeanListener, AutoCloseable
 			var stub = getStub();
 
 			var c = casa.newBuilder()
-					.setID(ID)
 					.setIP(myAddress)
 					.setPort(myPort)
 					.build();
 
-			var Res = stub.entraNelCondominio(c);
+			var Res = stub.join(c);
 			var R = Res.getStandardRes();
 
 			if (R.getOk())
@@ -266,7 +264,6 @@ public class Casa implements MeanListener, AutoCloseable
 		var stub = getStub();
 
 		var c = casa.newBuilder()
-				.setID(ID)
 				.setIP(myAddress)
 				.setPort(myPort)
 				.build();
@@ -302,7 +299,6 @@ public class Casa implements MeanListener, AutoCloseable
 					.path("iscriviCasa");
 
 			final var par = casa.newBuilder()
-					.setID(ID)
 					.setIP(myAddress)
 					.setPort(myPort)
 					.build();
@@ -334,7 +330,6 @@ public class Casa implements MeanListener, AutoCloseable
 					.path("disiscriviCasa");
 
 			final var par = casa.newBuilder()
-					.setID(ID)
 					.setIP(myAddress)
 					.setPort(myPort)
 					.build();
@@ -356,8 +351,8 @@ public class Casa implements MeanListener, AutoCloseable
 
 	public void inviaStatistiche(double mean)
 	{
-		var ts = System.currentTimeMillis();
-		var k = GB.sha1(ID + "_" + ts);
+		//var ts = System.currentTimeMillis();
+		//var k = GB.sha1(ID + "_" + ts);
 
 		System.out.println("Mean: " + mean);
 	}
