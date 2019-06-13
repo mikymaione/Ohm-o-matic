@@ -44,24 +44,31 @@ public class Casa implements MeanListener, AutoCloseable
 	private HomeServiceBlockingStub homeServiceBlockingStub;
 
 	private final String ID;
-	private final String indirizzoREST;
-	private final String mioIndirizzo;
-	private final int miaPorta;
-	private final String indirizzoServerPeer;
-	private final int portaServerPeer;
+
+	private final String RESTAddress;
+
+	private final String myAddress;
+	private final int myPort;
+
+	private final String serverAddress;
+	private final int serverPort;
 
 
 	public Casa(String id, String indirizzoREST_, String mioIndirizzo_, int miaPorta_, String indirizzoServerPeer_, int portaServerPeer_) throws IOException
 	{
 		ID = id;
+		key = GB.sha1(id);
 
-		indirizzoREST = indirizzoREST_;
+		predecessor = null;
+		successor = this;
 
-		mioIndirizzo = mioIndirizzo_;
-		miaPorta = miaPorta_;
+		RESTAddress = indirizzoREST_;
 
-		indirizzoServerPeer = indirizzoServerPeer_;
-		portaServerPeer = portaServerPeer_;
+		myAddress = mioIndirizzo_;
+		myPort = miaPorta_;
+
+		serverAddress = indirizzoServerPeer_;
+		serverPort = portaServerPeer_;
 
 		start_gRPC_Listening();
 	}
@@ -77,11 +84,96 @@ public class Casa implements MeanListener, AutoCloseable
 			gRPC_listner.shutdown();
 	}
 
+	//region Chord
+	private final int mBit = 160; //sha1
+	private final byte[] key;
+	private Casa predecessor, successor;
+
+	private volatile Casa[] finger = new Casa[mBit];
+	private int next;
+
+	// ask node n to find the successor of id
+	private Casa find_successor(byte[] key)
+	{
+		if (GB.compreso(key, this.key, successor.key))
+		{
+			return successor;
+		}
+		else
+		{
+			var n0 = closest_preceding_node(key);
+
+			return n0.find_successor(key);
+		}
+	}
+
+	// search the local table for the highest predecessor of id
+	private Casa closest_preceding_node(byte[] key)
+	{
+		for (var i = mBit - 1; i-- > 0; )
+			if (GB.compreso(finger[i].key, this.key, key))
+				return finger[i];
+
+		return this;
+	}
+
+	// join a Casa ring containing node n_
+	private void join(Casa n_)
+	{
+		predecessor = null;
+		successor = n_.find_successor(this.key);
+	}
+
+	// called periodically. n asks the successor
+	// about its predecessor, verifies if n's immediate
+	// successor is consistent, and tells the successor about n
+	private void stabilize()
+	{
+		var x = successor.predecessor;
+
+		if (GB.compreso(x.key, this.key, successor.key))
+			successor = x;
+
+		successor.notify(this);
+	}
+
+	// n_ thinks it might be our predecessor.
+	private void notify(Casa n_)
+	{
+		if (predecessor == null || GB.compreso(n_.key, predecessor.key, this.key))
+			predecessor = n_;
+	}
+
+	// called periodically. refreshes finger table entries.
+	// next stores the index of the finger to fix
+	private void fix_fingers()
+	{
+		next = next + 1;
+
+		if (next > mBit)
+			next = 1;
+
+		finger[next] = find_successor(null);
+	}
+
+	// called periodically. checks whether predecessor has failed.
+	private void check_predecessor()
+	{
+		if (isActive(predecessor))
+			predecessor = null;
+	}
+
+	private boolean isActive(Casa e)
+	{
+		return true;
+	}
+	//endregion
+
 	//region Funzioni P2P
 	private void start_gRPC_Listening() throws IOException
 	{
 		gRPC_listner = ServerBuilder
-				.forPort(miaPorta)
+				.forPort(myPort)
 				.addService(new HomeServiceImplBase()
 				{
 					@Override
@@ -96,8 +188,8 @@ public class Casa implements MeanListener, AutoCloseable
 								.setCasa(
 										casa.newBuilder()
 												.setID(ID)
-												.setIP(mioIndirizzo)
-												.setPort(miaPorta)
+												.setIP(myAddress)
+												.setPort(myPort)
 												.build()
 								)
 								.build();
@@ -126,7 +218,7 @@ public class Casa implements MeanListener, AutoCloseable
 		if (homeServiceBlockingStub == null)
 		{
 			gRPC_channel = ManagedChannelBuilder
-					.forAddress(indirizzoServerPeer, portaServerPeer)
+					.forAddress(serverAddress, serverPort)
 					.usePlaintext()
 					.build();
 
@@ -138,7 +230,7 @@ public class Casa implements MeanListener, AutoCloseable
 
 	public boolean entraNelCondominio() throws Exception
 	{
-		if (GB.stringIsBlank(indirizzoServerPeer))
+		if (GB.stringIsBlank(serverAddress))
 		{
 
 		}
@@ -148,8 +240,8 @@ public class Casa implements MeanListener, AutoCloseable
 
 			var c = casa.newBuilder()
 					.setID(ID)
-					.setIP(mioIndirizzo)
-					.setPort(miaPorta)
+					.setIP(myAddress)
+					.setPort(myPort)
 					.build();
 
 			var Res = stub.entraNelCondominio(c);
@@ -158,7 +250,6 @@ public class Casa implements MeanListener, AutoCloseable
 			if (R.getOk())
 			{
 				var k = Res.getCasa();
-
 
 			}
 			else
@@ -174,8 +265,8 @@ public class Casa implements MeanListener, AutoCloseable
 
 		var c = casa.newBuilder()
 				.setID(ID)
-				.setIP(mioIndirizzo)
-				.setPort(miaPorta)
+				.setIP(myAddress)
+				.setPort(myPort)
 				.build();
 
 		var R = stub.esciDalCondominio(c);
@@ -193,7 +284,7 @@ public class Casa implements MeanListener, AutoCloseable
 		if (webTargetRest == null)
 		{
 			client = ClientBuilder.newClient();
-			webTargetRest = client.target(indirizzoREST + "/OOM");
+			webTargetRest = client.target(RESTAddress + "/OOM");
 		}
 
 		return webTargetRest;
@@ -210,8 +301,8 @@ public class Casa implements MeanListener, AutoCloseable
 
 			final var par = casa.newBuilder()
 					.setID(ID)
-					.setIP(mioIndirizzo)
-					.setPort(miaPorta)
+					.setIP(myAddress)
+					.setPort(myPort)
 					.build();
 
 			final var resListaCase = wt
@@ -242,8 +333,8 @@ public class Casa implements MeanListener, AutoCloseable
 
 			final var par = casa.newBuilder()
 					.setID(ID)
-					.setIP(mioIndirizzo)
-					.setPort(miaPorta)
+					.setIP(myAddress)
+					.setPort(myPort)
 					.build();
 
 			final var res = wt
