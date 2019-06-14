@@ -91,23 +91,21 @@ public class Casa implements MeanListener, AutoCloseable
 	class Chord
 	{
 		private final byte[] key;
-		private Chord predecessor, successor;
+		private byte[] predecessor, successor;
 
 		private final String IP;
 		private final int Port;
 
-		private volatile Chord[] finger = new Chord[mBit];
+		private volatile byte[][] finger = new byte[mBit][];
 		private int next;
 
 		Chord(String mioIndirizzo_, int miaPorta_)
 		{
 			key = toSha1(mioIndirizzo_, miaPorta_);
+			successor = key;
 
 			IP = mioIndirizzo_;
 			Port = miaPorta_;
-
-			predecessor = null;
-			successor = this;
 		}
 	}
 
@@ -118,16 +116,20 @@ public class Casa implements MeanListener, AutoCloseable
 				.setIP(c.IP)
 				.setPort(c.Port)
 				.setKey(ByteString.copyFrom(c.key))
-				.setPredecessor(ByteString.copyFrom(c.predecessor.key))
-				.setSuccessor(ByteString.copyFrom(c.successor.key))
+				.setPredecessor(ByteString.copyFrom(c.predecessor))
+				.setSuccessor(ByteString.copyFrom(c.successor))
 				.setNext(c.next)
 				.build();
+	}
+
+	private static Chord byteToChord(byte[] k){
+
 	}
 
 	// ask node n to find the successor of id
 	private static Chord find_successor(Chord c, byte[] key)
 	{
-		if (GB.compreso(key, c.key, c.successor.key))
+		if (GB.compreso(key, c.key, c.successor))
 		{
 			return c.successor;
 		}
