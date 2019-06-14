@@ -12,4 +12,5 @@ package OhmOMatic.ProtoBuffer;
 message standardRes {
     bool ok = 1;
     string errore = 2;
+    string msg = 3;
 }

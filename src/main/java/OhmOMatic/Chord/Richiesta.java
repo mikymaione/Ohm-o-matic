@@ -4,40 +4,19 @@ Copyright (c) 2019 Michele Maione
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-syntax = "proto3";
+package OhmOMatic.Chord;
 
-package OhmOMatic.ProtoBuffer;
+public enum Richiesta
+{
+	join,
+	esciDalCondominio,
+	requestAddress,
 
-import "Common.proto";
+	FINDSUCC_,
+	CLOSEST_,
+	IAMPRE_,
 
-
-service HomeService {
-    rpc join (casa) returns (casaRes);
-    rpc esciDalCondominio (casa) returns (standardRes);
-
-    rpc requestAddress (casa) returns (standardRes);
-    rpc FINDSUCC_ (casa) returns (standardRes);
-    rpc CLOSEST_ (casa) returns (standardRes);
-    rpc IAMPRE_ (casa) returns (standardRes);
-    rpc YOURPRE (casa) returns (standardRes);
-    rpc YOURSUCC (casa) returns (standardRes);
-    rpc KEEP (casa) returns (standardRes);
-}
-
-
-message casa {
-    int64 ID = 1;
-
-    string IP = 2;
-    int32 port = 3;
-}
-
-message casaRes {
-    standardRes StandardRes = 1;
-    casa Casa = 2;
-}
-
-message listaCase {
-    standardRes standardResponse = 1;
-    repeated casa case = 2;
+	YOURPRE,
+	YOURSUCC,
+	KEEP
 }

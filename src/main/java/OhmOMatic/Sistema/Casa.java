@@ -17,7 +17,6 @@ import OhmOMatic.ProtoBuffer.HomeServiceGrpc.HomeServiceImplBase;
 import OhmOMatic.Simulation.SmartMeterSimulator;
 import OhmOMatic.Sistema.Base.BufferImpl;
 import OhmOMatic.Sistema.Base.MeanListener;
-import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Server;
@@ -52,7 +51,6 @@ public class Casa implements MeanListener, AutoCloseable
 	private final String serverAddress;
 	private final int serverPort;
 
-	private final Chord chord;
 
 	private static byte[] toSha1(String ip, int port)
 	{
@@ -65,8 +63,6 @@ public class Casa implements MeanListener, AutoCloseable
 
 		myAddress = mioIndirizzo_;
 		myPort = miaPorta_;
-
-		chord = new Chord(mioIndirizzo_, miaPorta_);
 
 		serverAddress = indirizzoServerPeer_;
 		serverPort = portaServerPeer_;
@@ -84,124 +80,6 @@ public class Casa implements MeanListener, AutoCloseable
 		if (gRPC_listner != null)
 			gRPC_listner.shutdown();
 	}
-
-	//region Chord
-	private final static int mBit = 160; //sha1
-
-	class Chord
-	{
-		private final byte[] key;
-		private byte[] predecessor, successor;
-
-		private final String IP;
-		private final int Port;
-
-		private volatile byte[][] finger = new byte[mBit][];
-		private int next;
-
-		Chord(String mioIndirizzo_, int miaPorta_)
-		{
-			key = toSha1(mioIndirizzo_, miaPorta_);
-			successor = key;
-
-			IP = mioIndirizzo_;
-			Port = miaPorta_;
-		}
-	}
-
-	private static casa ChordToCasa(Chord c)
-	{
-		return casa
-				.newBuilder()
-				.setIP(c.IP)
-				.setPort(c.Port)
-				.setKey(ByteString.copyFrom(c.key))
-				.setPredecessor(ByteString.copyFrom(c.predecessor))
-				.setSuccessor(ByteString.copyFrom(c.successor))
-				.setNext(c.next)
-				.build();
-	}
-
-	private static Chord byteToChord(byte[] k){
-
-	}
-
-	// ask node n to find the successor of id
-	private static Chord find_successor(Chord c, byte[] key)
-	{
-		if (GB.compreso(key, c.key, c.successor))
-		{
-			return c.successor;
-		}
-		else
-		{
-			var n0 = closest_preceding_node(c, key);
-
-			return find_successor(n0, key);
-		}
-	}
-
-	// search the local table for the highest predecessor of id
-	private static Chord closest_preceding_node(Chord c, byte[] key)
-	{
-		for (var i = mBit - 1; i-- > 0; )
-			if (GB.compreso(c.finger[i].key, c.key, key))
-				return c.finger[i];
-
-		return c;
-	}
-
-	// join a Chord ring containing node n_
-	private static void join(Chord c, Chord n_)
-	{
-		c.predecessor = null;
-		c.successor = find_successor(n_, c.key);
-	}
-
-	// called periodically. n asks the successor
-	// about its predecessor, verifies if n's immediate
-	// successor is consistent, and tells the successor about n
-	private static void stabilize(Chord c)
-	{
-		var x = c.successor.predecessor;
-
-		if (GB.compreso(x.key, c.key, c.successor.key))
-			c.successor = x;
-
-		notify_(c.successor, c);
-	}
-
-	// n_ thinks it might be our predecessor.
-	private static void notify_(Chord c, Chord n_)
-	{
-		if (c.predecessor == null || GB.compreso(n_.key, c.predecessor.key, c.key))
-			c.predecessor = n_;
-	}
-
-	// called periodically. refreshes finger table entries.
-	// next stores the index of the finger to fix
-	private static void fix_fingers(Chord c)
-	{
-		c.next++;
-
-		if (c.next > mBit)
-			c.next = 1;
-
-		c.finger[c.next] = find_successor(c, null);
-	}
-
-	// called periodically. checks whether predecessor has failed.
-	private static void check_predecessor(Chord c)
-	{
-		if (isActive(c, c.predecessor))
-			c.predecessor = null;
-	}
-
-	private static boolean isActive(Chord c, Chord e)
-	{
-		return true;
-	}
-	//endregion
 
 	//region Funzioni P2P
 	private void start_gRPC_Listening() throws IOException
