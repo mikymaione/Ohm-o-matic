@@ -1,3 +1,9 @@
+/*
+MIT License
+Copyright (c) 2019 Michele Maione
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
 package OhmOMatic.Chord;
 
 import OhmOMatic.ProtoBuffer.Common;
@@ -8,13 +14,7 @@ import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 
 import java.io.IOException;
-
-/**
- * Listener thread that keeps listening to a port and asks talker thread to process
- * when a request is accepted.
- *
- * @author Chuan Xia
- */
+import java.net.InetSocketAddress;
 
 public class Listener extends Thread
 {
@@ -131,9 +131,10 @@ public class Listener extends Thread
 
 							try
 							{
-								var param = request.getIP() + ":" + request.getPort();
-								var new_pre = Helper.createSocketAddress(param);
+								var new_pre = new InetSocketAddress(request.getIP(), request.getPort());
+
 								local.notified(new_pre);
+
 								var ret = "NOTIFIED";
 
 								sr = Common.standardRes.newBuilder()

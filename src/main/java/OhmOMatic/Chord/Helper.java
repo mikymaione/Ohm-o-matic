@@ -1,3 +1,9 @@
+/*
+MIT License
+Copyright (c) 2019 Michele Maione
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
 package OhmOMatic.Chord;
 
 import OhmOMatic.ProtoBuffer.Common;
@@ -5,32 +11,15 @@ import OhmOMatic.ProtoBuffer.Home;
 import OhmOMatic.ProtoBuffer.HomeServiceGrpc;
 import io.grpc.ManagedChannelBuilder;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 
-/**
- * A helper method that does the following things:
- * (1) Hashing - for string, for socket address, and integer number
- * (2) Computation - relative id (one node is how far behind another node),
- * a address' hex string and its percentage position in the ring (so we can
- * easily draw the picture of ring!), address' 8-digit hex string, the ith
- * start of a node's finger table, power of two (to avoid computation of power
- * of 2 everytime we need it)
- * (3) Network and address services - send request to a node to get desired
- * socket address/response, create socket address object using string, read
- * string from an input stream.
- *
- * @author Chuan Xia
- */
-
 public class Helper
 {
 
-	private static HashMap<Integer, Long> powerOfTwo = null;
+	private static HashMap<Integer, Long> powerOfTwo = new HashMap<>();
 
 	/**
 	 * Constructor
@@ -38,9 +27,7 @@ public class Helper
 	public Helper()
 	{
 		//initialize power of two table
-		powerOfTwo = new HashMap<Integer, Long>();
-
-		long base = 1;
+		var base = 1L;
 
 		for (var i = 0; i <= 32; i++)
 		{
@@ -58,6 +45,7 @@ public class Helper
 	public static long hashSocketAddress(InetSocketAddress addr)
 	{
 		int i = addr.hashCode();
+
 		return hashHashCode(i);
 	}
 
@@ -70,6 +58,7 @@ public class Helper
 	public static long hashString(String s)
 	{
 		int i = s.hashCode();
+
 		return hashHashCode(i);
 	}
 
@@ -111,14 +100,15 @@ public class Helper
 			md.update(hashbytes);
 			byte[] result = md.digest();
 
-			byte[] compressed = new byte[4];
-			for (int j = 0; j < 4; j++)
+			var compressed = new byte[4];
+
+			for (var j = 0; j < 4; j++)
 			{
 				byte temp = result[j];
-				for (int k = 1; k < 5; k++)
-				{
+
+				for (var k = 1; k < 5; k++)
 					temp = (byte) (temp ^ result[j + k]);
-				}
+
 				compressed[j] = temp;
 			}
 
@@ -127,6 +117,7 @@ public class Helper
 
 			return ret;
 		}
+
 		return 0;
 	}
 
@@ -140,7 +131,7 @@ public class Helper
 	 */
 	public static long computeRelativeId(long universal, long local)
 	{
-		var ret = universal - local;
+		long ret = universal - local;
 
 		if (ret < 0)
 			ret += powerOfTwo.get(32);
@@ -157,7 +148,7 @@ public class Helper
 	 */
 	public static String hexIdAndPosition(InetSocketAddress addr)
 	{
-		var hash = hashSocketAddress(addr);
+		long hash = hashSocketAddress(addr);
 
 		return (longTo8DigitHex(hash) + " (" + hash * 100 / Helper.getPowerOfTwo(32) + "%)");
 	}
@@ -168,8 +159,9 @@ public class Helper
 	 */
 	public static String longTo8DigitHex(long l)
 	{
-		var hex = Long.toHexString(l);
-		var lack = 8 - hex.length();
+		String hex = Long.toHexString(l);
+		int lack = 8 - hex.length();
+
 		var sb = new StringBuilder();
 
 		for (var i = lack; i > 0; i--)
@@ -187,7 +179,7 @@ public class Helper
 	 * @param i:      finger table index
 	 * @return finger[i].start's identifier
 	 */
-	public static long ithStart(long nodeid, int i)
+	public static long iThStart(long nodeid, int i)
 	{
 		return (nodeid + powerOfTwo.get(i - 1)) % powerOfTwo.get(32);
 	}
@@ -244,7 +236,7 @@ public class Helper
 		{
 			var c = request.getCasa();
 
-			return Helper.createSocketAddress(c.getIP() + ":" + c.getPort());
+			return new InetSocketAddress(c.getIP(), c.getPort());
 		}
 	}
 
@@ -328,65 +320,6 @@ public class Helper
 			default:
 				throw new Exception("Switch " + req + " non implementato");
 		}
-	}
-
-	/**
-	 * Create InetSocketAddress using ip address and port number
-	 *
-	 * @param addr: socket address string, e.g. 127.0.0.1:8080
-	 * @return created InetSocketAddress object;
-	 * return null if:
-	 * (1) not valid input
-	 * (2) cannot find split input into ip and port strings
-	 * (3) fail to parse ip address.
-	 */
-	public static InetSocketAddress createSocketAddress(String addr)
-	{
-		// input null, return null
-		if (addr == null)
-		{
-			return null;
-		}
-
-		// split input into ip string and port string
-		String[] splitted = addr.split(":");
-
-		// can split string
-		if (splitted.length >= 2)
-		{
-			//get and pre-process ip address string
-			String ip = splitted[0];
-			if (ip.startsWith("/"))
-			{
-				ip = ip.substring(1);
-			}
-
-			//parse ip address, if fail, return null
-			InetAddress m_ip = null;
-			try
-			{
-				m_ip = InetAddress.getByName(ip);
-			}
-			catch (UnknownHostException e)
-			{
-				System.out.println("Cannot create ip address: " + ip);
-				return null;
-			}
-
-			// parse port number
-			String port = splitted[1];
-			int m_port = Integer.parseInt(port);
-
-			// combine ip addr and port in socket address
-			return new InetSocketAddress(m_ip, m_port);
-		}
-
-		// cannot split string
-		else
-		{
-			return null;
-		}
-
 	}
 
 

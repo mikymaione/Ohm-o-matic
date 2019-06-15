@@ -1,14 +1,13 @@
+/*
+MIT License
+Copyright (c) 2019 Michele Maione
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
 package OhmOMatic.Chord;
 
 import java.net.InetSocketAddress;
 import java.util.Scanner;
-
-/**
- * Query class that offers the interface by which users can do
- * search by querying a valid chord node.
- *
- * @author Chuan Xia
- */
 
 public class Query
 {
@@ -24,12 +23,12 @@ public class Query
 		if (args.length == 2)
 		{
 			// try to parse socket address from args, if fail, exit
-			localAddress = Helper.createSocketAddress(args[0] + ":" + args[1]);
+			localAddress = new InetSocketAddress(args[0], Integer.parseInt(args[1]));
+
 			if (localAddress == null)
 			{
 				System.out.println("Cannot find address you are trying to contact. Now exit.");
 				System.exit(0);
-				;
 			}
 
 			// successfully constructed socket address of the node we are 

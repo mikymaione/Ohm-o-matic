@@ -1,69 +1,48 @@
+/*
+MIT License
+Copyright (c) 2019 Michele Maione
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
 package OhmOMatic.Chord;
 
-import java.net.InetSocketAddress;
 import java.util.Random;
-
-/**
- * Fixfingers thread that periodically access a random entry in finger table
- * and fix it.
- *
- * @author Chuan Xia
- */
 
 public class FixFingers extends Thread
 {
 
 	private Node local;
-	private final Random random;
-	boolean alive;
+	private final Random random = new Random();
+	private boolean alive = true;
+
 
 	public FixFingers(Node node)
 	{
 		local = node;
-		alive = true;
-		random = new Random();
+	}
+
+	public void die()
+	{
+		alive = false;
 	}
 
 	@Override
 	public void run()
 	{
 		while (alive)
-		{
-			int i = random.nextInt(31) + 2;
-			InetSocketAddress ithfinger = null;
-
 			try
 			{
-				ithfinger = local.find_successor(Helper.ithStart(local.getId(), i));
-			}
-			catch (Exception e)
-			{
-				e.printStackTrace();
-			}
+				var i = random.nextInt(31) + 2;
+				var iThFinger = local.find_successor(Helper.iThStart(local.getId(), i));
+				local.updateFingers(i, iThFinger);
 
-			try
-			{
-				local.updateFingers(i, ithfinger);
-			}
-			catch (Exception e)
-			{
-				e.printStackTrace();
-			}
-
-			try
-			{
 				Thread.sleep(500);
 			}
-			catch (InterruptedException e)
+			catch (Exception e)
 			{
 				e.printStackTrace();
 			}
-		}
 	}
 
-	public void toDie()
-	{
-		alive = false;
-	}
 
 }
