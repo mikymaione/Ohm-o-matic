@@ -15,6 +15,7 @@ public class Query
 	private static InetSocketAddress localAddress;
 	private static Helper helper;
 
+	
 	public static void main(String[] args) throws Exception
 	{
 		helper = new Helper();

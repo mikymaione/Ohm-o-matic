@@ -542,12 +542,12 @@ public class Node
 	public void stopAllThreads()
 	{
 		if (listener != null)
-			listener.toDie();
+			listener.die();
 		if (fix_fingers != null)
 			fix_fingers.die();
 		if (stabilize != null)
-			stabilize.toDie();
+			stabilize.die();
 		if (ask_predecessor != null)
-			ask_predecessor.toDie();
+			ask_predecessor.die();
 	}
 }

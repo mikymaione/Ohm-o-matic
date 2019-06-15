@@ -24,11 +24,16 @@ public class Listener extends Thread
 	private final int port;
 
 
-	public Listener(Node n)
+	public Listener(Node _local)
 	{
-		var localAddress = n.getAddress();
+		var localAddress = _local.getAddress();
 		port = localAddress.getPort();
-		local = n;
+		local = _local;
+	}
+
+	public void die()
+	{
+		gRPC_listner.shutdown();
 	}
 
 	@Override
@@ -316,11 +321,6 @@ public class Listener extends Thread
 		{
 			throw new RuntimeException("Cannot talk.\nServer port: " + local.getAddress().getPort() + "; Talker port: " + port, e);
 		}
-	}
-
-	public void toDie()
-	{
-		gRPC_listner.shutdown();
 	}
 
 

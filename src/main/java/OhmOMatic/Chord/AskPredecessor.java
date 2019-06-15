@@ -14,12 +14,16 @@ public class AskPredecessor extends Thread
 {
 
 	private Node local;
-	private boolean alive;
+	private boolean alive = true;
 
 	public AskPredecessor(Node _local)
 	{
 		local = _local;
-		alive = true;
+	}
+
+	public void die()
+	{
+		alive = false;
 	}
 
 	@Override
@@ -57,11 +61,6 @@ public class AskPredecessor extends Thread
 				e.printStackTrace();
 			}
 		}
-	}
-
-	public void toDie()
-	{
-		alive = false;
 	}
 
 

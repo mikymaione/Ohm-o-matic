@@ -12,14 +12,18 @@ public class Stabilize extends Thread
 {
 
 	private Node local;
-	private boolean alive;
+	private boolean alive = true;
 
 	public Stabilize(Node _local)
 	{
 		local = _local;
-		alive = true;
 	}
 
+	public void die()
+	{
+		alive = false;
+	}
+	
 	@Override
 	public void run()
 	{
@@ -108,12 +112,6 @@ public class Stabilize extends Thread
 				e.printStackTrace();
 			}
 		}
-
-	}
-
-	public void toDie()
-	{
-		alive = false;
 	}
 
 
