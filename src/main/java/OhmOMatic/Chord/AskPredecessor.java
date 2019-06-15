@@ -1,5 +1,7 @@
 package OhmOMatic.Chord;
 
+import OhmOMatic.ProtoBuffer.Common;
+
 import java.net.InetSocketAddress;
 
 /**
@@ -33,7 +35,9 @@ public class AskPredecessor extends Thread
 
 				try
 				{
-					response = Helper.sendRequest(predecessor, Richiesta.KEEP);
+					var r = Helper.<Common.standardRes>sendRequest(predecessor, Richiesta.KEEP);
+
+					response = r.getMsg();
 				}
 				catch (Exception e)
 				{

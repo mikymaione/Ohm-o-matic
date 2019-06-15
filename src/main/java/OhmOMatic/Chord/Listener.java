@@ -40,87 +40,134 @@ public class Listener extends Thread
 					.forPort(port)
 					.addService(new HomeServiceGrpc.HomeServiceImplBase()
 					{
-						private void CSR(StreamObserver<Common.standardRes> responseObserver, boolean ok, String _error, String msg)
+						@Override
+						public void cLOSEST(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 						{
-							var res = Common.standardRes.newBuilder()
-									.setOk(ok)
-									.setErrore(_error)
-									.setMsg(msg)
+							Common.standardRes sr;
+							var cr = Home.casa.newBuilder()
+									.build();
+
+							try
+							{
+								var result = local.closest_preceding_finger(request.getID());
+								var _ip = result.getAddress().getHostAddress();
+								var _port = result.getPort();
+								var ret = "MYCLOSEST_" + _ip + ":" + _port;
+
+								sr = Common.standardRes.newBuilder()
+										.setOk(true)
+										.setMsg(ret)
+										.build();
+
+								cr = Home.casa.newBuilder()
+										.setIP(_ip)
+										.setPort(_port)
+										.build();
+							}
+							catch (Exception e)
+							{
+								sr = Common.standardRes.newBuilder()
+										.setOk(true)
+										.setErrore(e.getMessage())
+										.build();
+							}
+
+							var res = Home.casaRes.newBuilder()
+									.setStandardRes(sr)
+									.setCasa(cr)
 									.build();
 
 							responseObserver.onNext(res);
 							responseObserver.onCompleted();
 						}
 
-						private void CSR(StreamObserver<Common.standardRes> responseObserver, String msg)
-						{
-							CSR(responseObserver, true, "", msg);
-						}
-
-						private void CSRE(StreamObserver<Common.standardRes> responseObserver, String _error)
-						{
-							CSR(responseObserver, true, _error, "");
-						}
-
 						@Override
-						public void cLOSEST(Home.casa request, StreamObserver<Common.standardRes> responseObserver)
+						public void fINDSUCC(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 						{
-							try
-							{
-								var result = local.closest_preceding_finger(request.getID());
-								var ip = result.getAddress().getHostAddress();
-								var port = result.getPort();
-								var ret = "MYCLOSEST_" + ip + ":" + port;
+							Common.standardRes sr;
+							var cr = Home.casa.newBuilder()
+									.build();
 
-								CSR(responseObserver, ret);
-							}
-							catch (Exception e)
-							{
-								CSRE(responseObserver, e.getMessage());
-							}
-						}
-
-						@Override
-						public void fINDSUCC(Home.casa request, StreamObserver<Common.standardRes> responseObserver)
-						{
 							try
 							{
 								var result = local.find_successor(request.getID());
-								var ip4 = result.getAddress().getHostAddress();
-								var port4 = result.getPort();
-								var ret = "FOUNDSUCC_" + ip4 + ":" + port4;
+								var _ip = result.getAddress().getHostAddress();
+								var _port = result.getPort();
+								var ret = "FOUNDSUCC_" + _ip + ":" + _port;
 
-								CSR(responseObserver, ret);
+								sr = Common.standardRes.newBuilder()
+										.setOk(true)
+										.setMsg(ret)
+										.build();
+
+								cr = Home.casa.newBuilder()
+										.setIP(_ip)
+										.setPort(_port)
+										.build();
 							}
 							catch (Exception e)
 							{
-								CSRE(responseObserver, e.getMessage());
+								sr = Common.standardRes.newBuilder()
+										.setOk(true)
+										.setErrore(e.getMessage())
+										.build();
 							}
+
+							var res = Home.casaRes.newBuilder()
+									.setStandardRes(sr)
+									.setCasa(cr)
+									.build();
+
+							responseObserver.onNext(res);
+							responseObserver.onCompleted();
 						}
 
 						@Override
-						public void iAMPRE(Home.casa request, StreamObserver<Common.standardRes> responseObserver)
+						public void iAMPRE(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 						{
+							Common.standardRes sr;
+							var cr = Home.casa.newBuilder()
+									.build();
+
 							try
 							{
 								var param = request.getIP() + ":" + request.getPort();
 								var new_pre = Helper.createSocketAddress(param);
 								local.notified(new_pre);
-
 								var ret = "NOTIFIED";
 
-								CSR(responseObserver, ret);
+								sr = Common.standardRes.newBuilder()
+										.setOk(true)
+										.setMsg(ret)
+										.build();
 							}
 							catch (Exception e)
 							{
-								CSRE(responseObserver, e.getMessage());
+								sr = Common.standardRes.newBuilder()
+										.setOk(true)
+										.setErrore(e.getMessage())
+										.build();
 							}
+
+							var res = Home.casaRes.newBuilder()
+									.setStandardRes(sr)
+									.setCasa(cr)
+									.build();
+
+							responseObserver.onNext(res);
+							responseObserver.onCompleted();
 						}
 
 						@Override
 						public void kEEP(Home.casa request, StreamObserver<Common.standardRes> responseObserver)
 						{
-							CSR(responseObserver, "ALIVE");
+							var res = Common.standardRes.newBuilder()
+									.setOk(true)
+									.setMsg("ALIVE")
+									.build();
+
+							responseObserver.onNext(res);
+							responseObserver.onCompleted();
 						}
 
 						@Override
@@ -130,8 +177,12 @@ public class Listener extends Thread
 						}
 
 						@Override
-						public void yOURPRE(Home.casa request, StreamObserver<Common.standardRes> responseObserver)
+						public void yOURPRE(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 						{
+							Common.standardRes sr;
+							var cr = Home.casa.newBuilder()
+									.build();
+
 							try
 							{
 								var ret = "";
@@ -139,27 +190,50 @@ public class Listener extends Thread
 
 								if (result != null)
 								{
-									var ip3 = result.getAddress().getHostAddress();
-									var port3 = result.getPort();
+									var _ip = result.getAddress().getHostAddress();
+									var _port = result.getPort();
 
-									ret = "MYPRE_" + ip3 + ":" + port3;
+									ret = "MYPRE_" + _ip + ":" + _port;
+
+									cr = Home.casa.newBuilder()
+											.setIP(_ip)
+											.setPort(_port)
+											.build();
 								}
 								else
 								{
 									ret = "NOTHING";
 								}
 
-								CSR(responseObserver, ret);
+								sr = Common.standardRes.newBuilder()
+										.setOk(true)
+										.setMsg(ret)
+										.build();
 							}
 							catch (Exception e)
 							{
-								CSRE(responseObserver, e.getMessage());
+								sr = Common.standardRes.newBuilder()
+										.setOk(true)
+										.setErrore(e.getMessage())
+										.build();
 							}
+
+							var res = Home.casaRes.newBuilder()
+									.setStandardRes(sr)
+									.setCasa(cr)
+									.build();
+
+							responseObserver.onNext(res);
+							responseObserver.onCompleted();
 						}
 
 						@Override
-						public void yOURSUCC(Home.casa request, StreamObserver<Common.standardRes> responseObserver)
+						public void yOURSUCC(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 						{
+							Common.standardRes sr;
+							var cr = Home.casa.newBuilder()
+									.build();
+
 							try
 							{
 								var ret = "";
@@ -167,21 +241,40 @@ public class Listener extends Thread
 
 								if (result != null)
 								{
-									String ip2 = result.getAddress().getHostAddress();
-									int port2 = result.getPort();
-									ret = "MYSUCC_" + ip2 + ":" + port2;
+									var _ip = result.getAddress().getHostAddress();
+									var _port = result.getPort();
+									ret = "MYSUCC_" + _ip + ":" + _port;
+
+									cr = Home.casa.newBuilder()
+											.setIP(_ip)
+											.setPort(_port)
+											.build();
 								}
 								else
 								{
 									ret = "NOTHING";
 								}
 
-								CSR(responseObserver, ret);
+								sr = Common.standardRes.newBuilder()
+										.setOk(true)
+										.setMsg(ret)
+										.build();
 							}
 							catch (Exception e)
 							{
-								CSRE(responseObserver, e.getMessage());
+								sr = Common.standardRes.newBuilder()
+										.setOk(true)
+										.setErrore(e.getMessage())
+										.build();
 							}
+
+							var res = Home.casaRes.newBuilder()
+									.setStandardRes(sr)
+									.setCasa(cr)
+									.build();
+
+							responseObserver.onNext(res);
+							responseObserver.onCompleted();
 						}
 
 

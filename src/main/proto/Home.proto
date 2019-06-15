@@ -16,11 +16,11 @@ service HomeService {
     rpc esciDalCondominio (casa) returns (standardRes);
 
     rpc requestAddress (casa) returns (standardRes);
-    rpc FINDSUCC_ (casa) returns (standardRes);
-    rpc CLOSEST_ (casa) returns (standardRes);
-    rpc IAMPRE_ (casa) returns (standardRes);
-    rpc YOURPRE (casa) returns (standardRes);
-    rpc YOURSUCC (casa) returns (standardRes);
+    rpc FINDSUCC_ (casa) returns (casaRes);
+    rpc CLOSEST_ (casa) returns (casaRes);
+    rpc IAMPRE_ (casa) returns (casaRes);
+    rpc YOURPRE (casa) returns (casaRes);
+    rpc YOURSUCC (casa) returns (casaRes);
     rpc KEEP (casa) returns (standardRes);
 }
 

@@ -1,5 +1,7 @@
 package OhmOMatic.Chord;
 
+import OhmOMatic.ProtoBuffer.Home;
+
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 
@@ -62,12 +64,14 @@ public class Node
 		// (contact will never be null)
 		if (contact != null && !contact.equals(localAddress))
 		{
-			InetSocketAddress successor = Helper.requestAddress(contact, Richiesta.FINDSUCC_, localId, "");
+			var successor = Helper.requestAddress(contact, Richiesta.FINDSUCC_, localId, "");
+
 			if (successor == null)
 			{
 				System.out.println("\nCannot find node you are trying to contact. Please exit.\n");
 				return false;
 			}
+
 			updateIthFinger(1, successor);
 		}
 
@@ -89,9 +93,15 @@ public class Node
 	public String notify(InetSocketAddress successor) throws Exception
 	{
 		if (successor != null && !successor.equals(localAddress))
-			return Helper.sendRequest(successor, Richiesta.IAMPRE_, -1, localAddress.getAddress().toString() + ":" + localAddress.getPort());
+		{
+			var v = Helper.<Home.casaRes>sendRequest(successor, Richiesta.IAMPRE_, -1, localAddress.getAddress().toString() + ":" + localAddress.getPort());
+
+			return v.getStandardRes().getMsg();
+		}
 		else
+		{
 			return null;
+		}
 	}
 
 	/**

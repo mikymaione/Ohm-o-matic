@@ -226,18 +226,26 @@ public class Helper
 			return null;
 
 		// send request to server
-		var request = Helper.<String>sendRequest(server, req, localID, indirizzo);
+		var request = Helper.<Home.casaRes>sendRequest(server, req, localID, indirizzo);
 
 		// if response is null, return null
 		if (request == null)
+		{
 			return null;
 			// or server cannot find anything, return server itself
-		else if (request.startsWith("NOTHING"))
+		}
+		else if (request.getStandardRes().getMsg().equals("NOTHING"))
+		{
 			return server;
 			// server find something,
 			// using response to create, might fail then and return null
+		}
 		else
-			return Helper.createSocketAddress(request.split("_")[1]);
+		{
+			var c = request.getCasa();
+
+			return Helper.createSocketAddress(c.getIP() + ":" + c.getPort());
+		}
 	}
 
 	private static HomeServiceGrpc.HomeServiceBlockingStub getStub(InetSocketAddress destination)
@@ -289,8 +297,33 @@ public class Helper
 
 			case FINDSUCC_:
 				var R3 = stub.fINDSUCC(c);
-				gestioneErroreRequest(R3);
+				gestioneErroreRequest(R3.getStandardRes());
 				return (A) R3;
+
+			case IAMPRE_:
+				var R4 = stub.iAMPRE(c);
+				gestioneErroreRequest(R4.getStandardRes());
+				return (A) R4;
+
+			case KEEP:
+				var R5 = stub.kEEP(c);
+				gestioneErroreRequest(R5);
+				return (A) R5;
+
+			case YOURPRE:
+				var R6 = stub.yOURPRE(c);
+				gestioneErroreRequest(R6.getStandardRes());
+				return (A) R6;
+
+			case YOURSUCC:
+				var R7 = stub.yOURPRE(c);
+				gestioneErroreRequest(R7.getStandardRes());
+				return (A) R7;
+
+			case CLOSEST_:
+				var R8 = stub.yOURPRE(c);
+				gestioneErroreRequest(R8.getStandardRes());
+				return (A) R8;
 
 			default:
 				throw new Exception("Switch " + req + " non implementato");
