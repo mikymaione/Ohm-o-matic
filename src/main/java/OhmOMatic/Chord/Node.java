@@ -38,7 +38,8 @@ public class Node
 
 		// initialize an empty finge table
 		finger = new HashMap<Integer, InetSocketAddress>();
-		for (int i = 1; i <= 32; i++)
+
+		for (var i = 1; i <= Helper.mBit; i++)
 			updateIthFinger(i, null);
 
 		// initialize predecessor
@@ -120,6 +121,7 @@ public class Node
 			long oldpre_id = Helper.hashSocketAddress(predecessor);
 			long local_relative_id = Helper.computeRelativeId(localId, oldpre_id);
 			long newpre_relative_id = Helper.computeRelativeId(Helper.hashSocketAddress(newpre), oldpre_id);
+
 			if (newpre_relative_id > 0 && newpre_relative_id < local_relative_id)
 				this.setPredecessor(newpre);
 		}
@@ -133,7 +135,6 @@ public class Node
 	 */
 	public InetSocketAddress find_successor(long id) throws Exception
 	{
-
 		// initialize return value as this node's successor (might be null)
 		InetSocketAddress ret = this.getSuccessor();
 
@@ -248,13 +249,13 @@ public class Node
 		long findid_relative = Helper.computeRelativeId(findid, localId);
 
 		// check from last item in finger table
-		for (int i = 32; i > 0; i--)
+		for (var i = Helper.mBit; i > 0; i--)
 		{
 			InetSocketAddress ith_finger = finger.get(i);
+
 			if (ith_finger == null)
-			{
 				continue;
-			}
+
 			long ith_finger_id = Helper.hashSocketAddress(ith_finger);
 			long ith_finger_relative_id = Helper.computeRelativeId(ith_finger_id, localId);
 
@@ -268,14 +269,14 @@ public class Node
 				{
 					return ith_finger;
 				}
-
-				// else, remove its existence from finger table
 				else
 				{
+					// else, remove its existence from finger table
 					updateFingers(-2, ith_finger);
 				}
 			}
 		}
+
 		return localAddress;
 	}
 
@@ -290,7 +291,7 @@ public class Node
 	public synchronized void updateFingers(int i, InetSocketAddress value) throws Exception
 	{
 		// valid index in [1, 32], just update the ith finger
-		if (i > 0 && i <= 32)
+		if (i > 0 && i <= Helper.mBit)
 			updateIthFinger(i, value);
 			// caller wants to delete
 		else if (i == -1)
@@ -330,8 +331,8 @@ public class Node
 			return;
 
 		// find the last existence of successor in the finger table
-		var i = 32;
-		for (i = 32; i > 0; i--)
+		var i = Helper.mBit;
+		for (i = Helper.mBit; i > 0; i--)
 		{
 			InetSocketAddress ithfinger = finger.get(i);
 
@@ -340,7 +341,7 @@ public class Node
 		}
 
 		// delete it, from the last existence to the first one
-		for (int j = i; j >= 1; j--)
+		for (var j = i; j >= 1; j--)
 			updateIthFinger(j, null);
 
 		// if predecessor is successor, delete it
@@ -392,7 +393,7 @@ public class Node
 	 */
 	private void deleteCertainFinger(InetSocketAddress f)
 	{
-		for (var i = 32; i > 0; i--)
+		for (var i = Helper.mBit; i > 0; i--)
 		{
 			InetSocketAddress ithfinger = finger.get(i);
 			if (ithfinger != null && ithfinger.equals(f))
@@ -409,7 +410,7 @@ public class Node
 
 		if (successor == null || successor.equals(localAddress))
 		{
-			for (int i = 2; i <= 32; i++)
+			for (var i = 2; i <= Helper.mBit; i++)
 			{
 				InetSocketAddress ithfinger = finger.get(i);
 
@@ -448,13 +449,11 @@ public class Node
 		predecessor = pre;
 	}
 
-
 	/**
 	 * Getters
 	 *
 	 * @return the variable caller wants
 	 */
-
 	public long getId()
 	{
 		return localId;
@@ -482,7 +481,6 @@ public class Node
 	/**
 	 * Print functions
 	 */
-
 	public void printNeighbors()
 	{
 		System.out.println("\nYou are listening on port " + localAddress.getPort() + "." + "\nYour position is " + Helper.hexIdAndPosition(localAddress) + ".");
@@ -530,7 +528,7 @@ public class Node
 
 		System.out.println("\nFINGER TABLE:\n");
 
-		for (var i = 1; i <= 32; i++)
+		for (var i = 1; i <= Helper.mBit; i++)
 		{
 			long ithstart = Helper.iThStart(Helper.hashSocketAddress(localAddress), i);
 

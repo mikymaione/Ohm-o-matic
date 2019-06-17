@@ -17,6 +17,8 @@ import java.util.HashMap;
 public class Helper
 {
 
+	public static final int mBit = 32;
+
 	private static HashMap<Integer, Long> powerOfTwo = new HashMap<>();
 
 	/**
@@ -27,7 +29,7 @@ public class Helper
 		//initialize power of two table
 		var base = 1L;
 
-		for (var i = 0; i <= 32; i++)
+		for (var i = 0; i <= mBit; i++)
 		{
 			powerOfTwo.put(i, base);
 			base *= 2;
@@ -132,7 +134,7 @@ public class Helper
 		long ret = universal - local;
 
 		if (ret < 0)
-			ret += powerOfTwo.get(32);
+			ret += powerOfTwo.get(Helper.mBit);
 
 		return ret;
 	}
@@ -148,7 +150,7 @@ public class Helper
 	{
 		long hash = hashSocketAddress(addr);
 
-		return (longTo8DigitHex(hash) + " (" + hash * 100 / Helper.getPowerOfTwo(32) + "%)");
+		return (longTo8DigitHex(hash) + " (" + hash * 100 / Helper.getPowerOfTwo(Helper.mBit) + "%)");
 	}
 
 	/**
@@ -179,7 +181,7 @@ public class Helper
 	 */
 	public static long iThStart(long nodeid, int i)
 	{
-		return (nodeid + powerOfTwo.get(i - 1)) % powerOfTwo.get(32);
+		return (nodeid + powerOfTwo.get(i - 1)) % powerOfTwo.get(Helper.mBit);
 	}
 
 	/**
