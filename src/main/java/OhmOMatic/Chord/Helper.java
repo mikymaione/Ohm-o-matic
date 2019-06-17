@@ -307,6 +307,10 @@ public class Helper
 					throw new Exception("Switch " + req + " non implementato");
 			}
 		}
+		catch (io.grpc.StatusRuntimeException sre)
+		{
+			throw sre;
+		}
 	}
 
 	public static HomeServiceGrpc.HomeServiceImplBase getListnerServer(Node local)
