@@ -18,7 +18,7 @@ public class Chord
 	private static InetSocketAddress m_contact;
 	private static Helper m_helper;
 
-	
+
 	public static void main(String[] args) throws Exception
 	{
 		m_helper = new Helper();

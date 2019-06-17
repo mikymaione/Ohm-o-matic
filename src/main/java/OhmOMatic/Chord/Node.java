@@ -6,6 +6,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Chord;
 
+import OhmOMatic.ProtoBuffer.Common;
 import OhmOMatic.ProtoBuffer.Home;
 
 import java.net.InetSocketAddress;
@@ -161,14 +162,16 @@ public class Node
 		InetSocketAddress n = this.localAddress;
 		InetSocketAddress n_successor = this.getSuccessor();
 		InetSocketAddress most_recently_alive = this.localAddress;
-		long n_successor_relative_id = 0;
+
+		var n_successor_relative_id = 0L;
+
 		if (n_successor != null)
 			n_successor_relative_id = Helper.computeRelativeId(Helper.hashSocketAddress(n_successor), Helper.hashSocketAddress(n));
+
 		long findid_relative_id = Helper.computeRelativeId(findid, Helper.hashSocketAddress(n));
 
 		while (!(findid_relative_id > 0 && findid_relative_id <= n_successor_relative_id))
 		{
-
 			// temporarily save current node
 			InetSocketAddress pre_n = n;
 
@@ -177,10 +180,10 @@ public class Node
 			{
 				n = this.closest_preceding_finger(findid);
 			}
-
-			// else current node is remote node, sent request to it for its closest
 			else
 			{
+				// else current node is remote node, sent request to it for its closest
+
 				InetSocketAddress result = Helper.requestAddress(n, Richiesta.CLOSEST_, findid, "");
 
 				// if fail to get response, set n to most recently 
@@ -188,25 +191,30 @@ public class Node
 				{
 					n = most_recently_alive;
 					n_successor = Helper.requestAddress(n, Richiesta.YOURSUCC);
+
 					if (n_successor == null)
 					{
 						System.out.println("It's not possible.");
 						return localAddress;
 					}
+
 					continue;
 				}
-
-				// if n's closest is itself, return n
 				else if (result.equals(n))
+				{
+					// if n's closest is itself, return n
 					return result;
-
-					// else n's closest is other node "result"
+				}
 				else
 				{
+					// else n's closest is other node "result"
+
 					// set n as most recently alive
 					most_recently_alive = n;
+
 					// ask "result" for its successor
 					n_successor = Helper.requestAddress(result, Richiesta.YOURSUCC);
+
 					// if we can get its response, then "result" must be our next n
 					if (n_successor != null)
 					{
@@ -253,10 +261,10 @@ public class Node
 			// if its relative id is the closest, check if its alive
 			if (ith_finger_relative_id > 0 && ith_finger_relative_id < findid_relative)
 			{
-				String response = Helper.sendRequest(ith_finger, Richiesta.KEEP);
+				var response = Helper.<Common.standardRes>sendRequest(ith_finger, Richiesta.KEEP);
 
 				//it is alive, return it
-				if (response != null && response.equals("ALIVE"))
+				if (response != null && response.getMsg().equals("ALIVE"))
 				{
 					return ith_finger;
 				}
@@ -322,10 +330,11 @@ public class Node
 			return;
 
 		// find the last existence of successor in the finger table
-		int i = 32;
+		var i = 32;
 		for (i = 32; i > 0; i--)
 		{
 			InetSocketAddress ithfinger = finger.get(i);
+
 			if (ithfinger != null && ithfinger.equals(successor))
 				break;
 		}
@@ -349,9 +358,11 @@ public class Node
 		{
 			InetSocketAddress p = predecessor;
 			InetSocketAddress p_pre = null;
+
 			while (true)
 			{
 				p_pre = Helper.requestAddress(p, Richiesta.YOURPRE);
+
 				if (p_pre == null)
 					break;
 
@@ -362,10 +373,9 @@ public class Node
 				{
 					break;
 				}
-
-				// else, keep asking
 				else
 				{
+					// else, keep asking
 					p = p_pre;
 				}
 			}
@@ -382,7 +392,7 @@ public class Node
 	 */
 	private void deleteCertainFinger(InetSocketAddress f)
 	{
-		for (int i = 32; i > 0; i--)
+		for (var i = 32; i > 0; i--)
 		{
 			InetSocketAddress ithfinger = finger.get(i);
 			if (ithfinger != null && ithfinger.equals(f))
@@ -402,9 +412,10 @@ public class Node
 			for (int i = 2; i <= 32; i++)
 			{
 				InetSocketAddress ithfinger = finger.get(i);
+
 				if (ithfinger != null && !ithfinger.equals(localAddress))
 				{
-					for (int j = i - 1; j >= 1; j--)
+					for (var j = i - 1; j >= 1; j--)
 						updateIthFinger(j, ithfinger);
 
 					break;
@@ -474,8 +485,7 @@ public class Node
 
 	public void printNeighbors()
 	{
-		System.out.println("\nYou are listening on port " + localAddress.getPort() + "."
-				+ "\nYour position is " + Helper.hexIdAndPosition(localAddress) + ".");
+		System.out.println("\nYou are listening on port " + localAddress.getPort() + "." + "\nYour position is " + Helper.hexIdAndPosition(localAddress) + ".");
 		InetSocketAddress successor = finger.get(1);
 
 		// if it cannot find both predecessor and successor
@@ -483,16 +493,14 @@ public class Node
 		{
 			System.out.println("Your predecessor is yourself.");
 			System.out.println("Your successor is yourself.");
-
 		}
-
-		// else, it can find either predecessor or successor
 		else
 		{
+			// else, it can find either predecessor or successor
+
 			if (predecessor != null)
 			{
-				System.out.println("Your predecessor is node " + predecessor.getAddress().toString() + ", "
-						+ "port " + predecessor.getPort() + ", position " + Helper.hexIdAndPosition(predecessor) + ".");
+				System.out.println("Your predecessor is node " + predecessor.getAddress().toString() + ", " + "port " + predecessor.getPort() + ", position " + Helper.hexIdAndPosition(predecessor) + ".");
 			}
 			else
 			{
@@ -501,8 +509,7 @@ public class Node
 
 			if (successor != null)
 			{
-				System.out.println("Your successor is node " + successor.getAddress().toString() + ", "
-						+ "port " + successor.getPort() + ", position " + Helper.hexIdAndPosition(successor) + ".");
+				System.out.println("Your successor is node " + successor.getAddress().toString() + ", " + "port " + successor.getPort() + ", position " + Helper.hexIdAndPosition(successor) + ".");
 			}
 			else
 			{
@@ -515,24 +522,32 @@ public class Node
 	{
 		System.out.println("\n==============================================================");
 		System.out.println("\nLOCAL:\t\t\t\t" + localAddress.toString() + "\t" + Helper.hexIdAndPosition(localAddress));
+
 		if (predecessor != null)
 			System.out.println("\nPREDECESSOR:\t\t\t" + predecessor.toString() + "\t" + Helper.hexIdAndPosition(predecessor));
 		else
 			System.out.println("\nPREDECESSOR:\t\t\tNULL");
+
 		System.out.println("\nFINGER TABLE:\n");
-		for (int i = 1; i <= 32; i++)
+
+		for (var i = 1; i <= 32; i++)
 		{
 			long ithstart = Helper.iThStart(Helper.hashSocketAddress(localAddress), i);
+
 			InetSocketAddress f = finger.get(i);
+
 			StringBuilder sb = new StringBuilder();
+
 			sb.append(i + "\t" + Helper.longTo8DigitHex(ithstart) + "\t\t");
+
 			if (f != null)
 				sb.append(f.toString() + "\t" + Helper.hexIdAndPosition(f));
-
 			else
 				sb.append("NULL");
+
 			System.out.println(sb.toString());
 		}
+
 		System.out.println("\n==============================================================\n");
 	}
 
@@ -550,4 +565,6 @@ public class Node
 		if (ask_predecessor != null)
 			ask_predecessor.die();
 	}
+
+
 }

@@ -8,8 +8,6 @@ package OhmOMatic.Chord;
 
 import OhmOMatic.ProtoBuffer.Common;
 import OhmOMatic.ProtoBuffer.Home;
-import OhmOMatic.ProtoBuffer.HomeServiceGrpc;
-import io.grpc.ManagedChannelBuilder;
 
 import java.net.InetSocketAddress;
 import java.security.MessageDigest;
@@ -240,16 +238,6 @@ public class Helper
 		}
 	}
 
-	private static HomeServiceGrpc.HomeServiceBlockingStub getStub(InetSocketAddress destination)
-	{
-		var gRPC_channel = ManagedChannelBuilder
-				.forAddress(destination.getAddress().getHostAddress(), destination.getPort())
-				.usePlaintext()
-				.build();
-
-		return HomeServiceGrpc.newBlockingStub(gRPC_channel);
-	}
-
 	private static void gestioneErroreRequest(Common.standardRes R) throws Exception
 	{
 		if (R == null)
@@ -266,59 +254,62 @@ public class Helper
 
 	public static <A> A sendRequest(InetSocketAddress destination, Richiesta req, long localID, String indirizzo) throws Exception
 	{
-		var stub = getStub(destination);
-
-		var c = Home.casa.newBuilder()
-				.setIP(destination.getAddress().getHostAddress())
-				.setPort(destination.getPort())
-				.setID(localID)
-				.build();
-
-		switch (req)
+		try (var hfs = new HomeFastStub())
 		{
-			case join:
-				var Res = stub.join(c);
-				var R1 = Res.getStandardRes();
-				gestioneErroreRequest(R1);
-				return (A) Res.getCasa();
+			var stub = hfs.getStub(destination);
 
-			case esciDalCondominio:
-				var R2 = stub.esciDalCondominio(c);
-				gestioneErroreRequest(R2);
-				return (A) R2;
+			var c = Home.casa.newBuilder()
+					.setIP(destination.getAddress().getHostAddress())
+					.setPort(destination.getPort())
+					.setID(localID)
+					.build();
 
-			case FINDSUCC_:
-				var R3 = stub.fINDSUCC(c);
-				gestioneErroreRequest(R3.getStandardRes());
-				return (A) R3;
+			switch (req)
+			{
+				case join:
+					var Res = stub.join(c);
+					var R1 = Res.getStandardRes();
+					gestioneErroreRequest(R1);
+					return (A) Res.getCasa();
 
-			case IAMPRE_:
-				var R4 = stub.iAMPRE(c);
-				gestioneErroreRequest(R4.getStandardRes());
-				return (A) R4;
+				case esciDalCondominio:
+					var R2 = stub.esciDalCondominio(c);
+					gestioneErroreRequest(R2);
+					return (A) R2;
 
-			case KEEP:
-				var R5 = stub.kEEP(c);
-				gestioneErroreRequest(R5);
-				return (A) R5;
+				case FINDSUCC_:
+					var R3 = stub.fINDSUCC(c);
+					gestioneErroreRequest(R3.getStandardRes());
+					return (A) R3;
 
-			case YOURPRE:
-				var R6 = stub.yOURPRE(c);
-				gestioneErroreRequest(R6.getStandardRes());
-				return (A) R6;
+				case IAMPRE_:
+					var R4 = stub.iAMPRE(c);
+					gestioneErroreRequest(R4.getStandardRes());
+					return (A) R4;
 
-			case YOURSUCC:
-				var R7 = stub.yOURPRE(c);
-				gestioneErroreRequest(R7.getStandardRes());
-				return (A) R7;
+				case KEEP:
+					var R5 = stub.kEEP(c);
+					gestioneErroreRequest(R5);
+					return (A) R5;
 
-			case CLOSEST_:
-				var R8 = stub.yOURPRE(c);
-				gestioneErroreRequest(R8.getStandardRes());
-				return (A) R8;
+				case YOURPRE:
+					var R6 = stub.yOURPRE(c);
+					gestioneErroreRequest(R6.getStandardRes());
+					return (A) R6;
 
-			default:
-				throw new Exception("Switch " + req + " non implementato");
+				case YOURSUCC:
+					var R7 = stub.yOURPRE(c);
+					gestioneErroreRequest(R7.getStandardRes());
+					return (A) R7;
+
+				case CLOSEST_:
+					var R8 = stub.yOURPRE(c);
+					gestioneErroreRequest(R8.getStandardRes());
+					return (A) R8;
+
+				default:
+					throw new Exception("Switch " + req + " non implementato");
+			}
 		}
 	}
 

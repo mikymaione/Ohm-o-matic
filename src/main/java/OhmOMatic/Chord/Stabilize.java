@@ -23,7 +23,7 @@ public class Stabilize extends Thread
 	{
 		alive = false;
 	}
-	
+
 	@Override
 	public void run()
 	{

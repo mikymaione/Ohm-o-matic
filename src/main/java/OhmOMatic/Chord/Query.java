@@ -6,6 +6,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Chord;
 
+import OhmOMatic.ProtoBuffer.Common;
+
 import java.net.InetSocketAddress;
 import java.util.Scanner;
 
@@ -15,7 +17,7 @@ public class Query
 	private static InetSocketAddress localAddress;
 	private static Helper helper;
 
-	
+
 	public static void main(String[] args) throws Exception
 	{
 		helper = new Helper();
@@ -34,10 +36,10 @@ public class Query
 
 			// successfully constructed socket address of the node we are 
 			// trying to contact, check if it's alive
-			var response = Helper.<String>sendRequest(localAddress, Richiesta.KEEP);
+			var response = Helper.<Common.standardRes>sendRequest(localAddress, Richiesta.KEEP);
 
 			// if it's dead, exit
-			if (response == null || !response.equals("ALIVE"))
+			if (response == null || !response.getMsg().equals("ALIVE"))
 			{
 				System.out.println("\nCannot find node you are trying to contact. Now exit.\n");
 				System.exit(0);
