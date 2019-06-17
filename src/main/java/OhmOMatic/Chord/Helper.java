@@ -19,21 +19,24 @@ public class Helper
 
 	public static final int mBit = 32;
 
-	private static HashMap<Integer, Long> powerOfTwo = new HashMap<>();
+	private static HashMap<Integer, Long> _powerOfTwo = new HashMap<>();
 
-	/**
-	 * Constructor
-	 */
-	public Helper()
+
+	public static long getPowerOfTwo(int k)
 	{
-		//initialize power of two table
-		var base = 1L;
-
-		for (var i = 0; i <= mBit; i++)
+		if (_powerOfTwo.size() == 0)
 		{
-			powerOfTwo.put(i, base);
-			base *= 2;
+			//initialize power of two table
+			var base = 1L;
+
+			for (var i = 0; i <= mBit; i++)
+			{
+				_powerOfTwo.put(i, base);
+				base *= 2;
+			}
 		}
+
+		return _powerOfTwo.get(k);
 	}
 
 	/**
@@ -134,7 +137,7 @@ public class Helper
 		long ret = universal - local;
 
 		if (ret < 0)
-			ret += powerOfTwo.get(Helper.mBit);
+			ret += getPowerOfTwo(Helper.mBit);
 
 		return ret;
 	}
@@ -181,18 +184,7 @@ public class Helper
 	 */
 	public static long iThStart(long nodeid, int i)
 	{
-		return (nodeid + powerOfTwo.get(i - 1)) % powerOfTwo.get(Helper.mBit);
-	}
-
-	/**
-	 * Get power of 2
-	 *
-	 * @param k
-	 * @return 2^k
-	 */
-	public static long getPowerOfTwo(int k)
-	{
-		return powerOfTwo.get(k);
+		return (nodeid + getPowerOfTwo(i - 1)) % getPowerOfTwo(Helper.mBit);
 	}
 
 	/**

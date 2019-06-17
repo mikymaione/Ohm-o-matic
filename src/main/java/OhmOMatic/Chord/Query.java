@@ -14,19 +14,13 @@ import java.util.Scanner;
 public class Query
 {
 
-	private static InetSocketAddress localAddress;
-	private static Helper helper;
-
-
 	public static void main(String[] args) throws Exception
 	{
-		helper = new Helper();
-
 		// valid args
 		if (args.length == 2)
 		{
 			// try to parse socket address from args, if fail, exit
-			localAddress = new InetSocketAddress(args[0], Integer.parseInt(args[1]));
+			var localAddress = new InetSocketAddress(args[0], Integer.parseInt(args[1]));
 
 			if (localAddress == null)
 			{
@@ -102,36 +96,37 @@ public class Query
 			}
 
 			// begin to take user input
-			var userinput = new Scanner(System.in);
-
-			while (true)
+			try (var userinput = new Scanner(System.in))
 			{
-				System.out.println("\nPlease enter your search key (or type \"quit\" to leave): ");
-				var command = userinput.nextLine();
-
-				// quit
-				if (command.startsWith("quit"))
+				while (true)
 				{
-					System.exit(0);
-				}
-				else if (command.length() > 0)
-				{
-					// search
+					System.out.println("\nPlease enter your search key (or type \"quit\" to leave): ");
+					var command = userinput.nextLine();
 
-					long hash = Helper.hashString(command);
-					System.out.println("\nHash value is " + Long.toHexString(hash));
-					InetSocketAddress result = Helper.requestAddress(localAddress, Richiesta.FINDSUCC_, hash, "");
-
-					// if fail to send request, local node is disconnected, exit
-					if (result == null)
+					// quit
+					if (command.startsWith("quit"))
 					{
-						System.out.println("The node your are contacting is disconnected. Now exit.");
-						System.exit(0);
+						break;
 					}
+					else if (command.length() > 0)
+					{
+						// search
+						long hash = Helper.hashString(command);
+						System.out.println("\nHash value is " + Long.toHexString(hash));
 
-					// print out response
-					System.out.println("\nResponse from node " + localAddress.getAddress().toString() + ", port " + localAddress.getPort() + ", position " + Helper.hexIdAndPosition(localAddress) + ":");
-					System.out.println("Node " + result.getAddress().toString() + ", port " + result.getPort() + ", position " + Helper.hexIdAndPosition(result));
+						InetSocketAddress result = Helper.requestAddress(localAddress, Richiesta.FINDSUCC_, hash, "");
+
+						// if fail to send request, local node is disconnected, exit
+						if (result == null)
+						{
+							System.out.println("The node your are contacting is disconnected. Now exit.");
+							break;
+						}
+
+						// print out response
+						System.out.println("\nResponse from node " + localAddress.getAddress().toString() + ", port " + localAddress.getPort() + ", position " + Helper.hexIdAndPosition(localAddress) + ":");
+						System.out.println("Node " + result.getAddress().toString() + ", port " + result.getPort() + ", position " + Helper.hexIdAndPosition(result));
+					}
 				}
 			}
 		}

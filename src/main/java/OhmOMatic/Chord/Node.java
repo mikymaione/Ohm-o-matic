@@ -12,7 +12,7 @@ import OhmOMatic.ProtoBuffer.Home;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 
-public class Node
+public class Node implements AutoCloseable
 {
 
 	private final long localId;
@@ -548,10 +548,8 @@ public class Node
 		System.out.println("\n==============================================================\n");
 	}
 
-	/**
-	 * Stop this node's all threads.
-	 */
-	public void stopAllThreads()
+	@Override
+	public void close() throws Exception
 	{
 		if (listener != null)
 			listener.die();
