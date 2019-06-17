@@ -80,41 +80,44 @@ public class Query
 					System.out.println("The node your are contacting is disconnected. Now exit.");
 					System.exit(0);
 				}
+
 				if (pred_addr.equals(localAddress))
 					pred = true;
 				else
 					pred = false;
+
 				if (succ_addr.equals(localAddress))
 					succ = true;
 				else
 					succ = false;
+
 				try
 				{
 					Thread.sleep(500);
 				}
 				catch (InterruptedException e)
 				{
+					//
 				}
-
 			}
 
 			// begin to take user input
-			Scanner userinput = new Scanner(System.in);
+			var userinput = new Scanner(System.in);
+
 			while (true)
 			{
 				System.out.println("\nPlease enter your search key (or type \"quit\" to leave): ");
-				String command = null;
-				command = userinput.nextLine();
+				var command = userinput.nextLine();
 
 				// quit
 				if (command.startsWith("quit"))
 				{
 					System.exit(0);
 				}
-
-				// search
 				else if (command.length() > 0)
 				{
+					// search
+
 					long hash = Helper.hashString(command);
 					System.out.println("\nHash value is " + Long.toHexString(hash));
 					InetSocketAddress result = Helper.requestAddress(localAddress, Richiesta.FINDSUCC_, hash, "");
@@ -137,4 +140,6 @@ public class Query
 			System.out.println("\nInvalid input. Now exit.\n");
 		}
 	}
+
+
 }
