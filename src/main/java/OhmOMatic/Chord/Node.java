@@ -15,15 +15,18 @@ import java.util.HashMap;
 public class Node
 {
 
-	private long localId;
-	private InetSocketAddress localAddress;
-	private InetSocketAddress predecessor;
-	private HashMap<Integer, InetSocketAddress> finger;
+	private final long localId;
+	private final InetSocketAddress localAddress;
 
-	private Listener listener;
-	private Stabilize stabilize;
-	private FixFingers fix_fingers;
-	private AskPredecessor ask_predecessor;
+	private InetSocketAddress predecessor;
+
+	// initialize an empty finger table
+	private HashMap<Integer, InetSocketAddress> finger = new HashMap<>();
+
+	private final Listener listener;
+	private final Stabilize stabilize;
+	private final FixFingers fix_fingers;
+	private final AskPredecessor ask_predecessor;
 
 	/**
 	 * Constructor
@@ -32,12 +35,8 @@ public class Node
 	 */
 	public Node(InetSocketAddress address) throws Exception
 	{
-
 		localAddress = address;
 		localId = Helper.hashSocketAddress(localAddress);
-
-		// initialize an empty finge table
-		finger = new HashMap<Integer, InetSocketAddress>();
 
 		for (var i = 1; i <= Helper.mBit; i++)
 			updateIthFinger(i, null);
