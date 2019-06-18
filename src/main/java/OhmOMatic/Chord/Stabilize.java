@@ -6,6 +6,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Chord;
 
+import OhmOMatic.Chord.FN.Helper;
+import OhmOMatic.Chord.FN.NodeLink;
+import OhmOMatic.Chord.FN.Richiesta;
+
 public class Stabilize extends Thread
 {
 

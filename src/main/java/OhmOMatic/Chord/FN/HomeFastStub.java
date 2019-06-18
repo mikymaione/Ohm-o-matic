@@ -1,4 +1,4 @@
-package OhmOMatic.Chord;
+package OhmOMatic.Chord.FN;
 
 import OhmOMatic.ProtoBuffer.HomeServiceGrpc;
 import io.grpc.ManagedChannel;
