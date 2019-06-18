@@ -6,43 +6,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Chord;
 
-import java.util.Random;
-
-public class FixFingers extends Thread
+public class NodeLink
 {
+	public String IP;
+	public int port;
 
-	private Node local;
-	private final Random random = new Random();
-	private boolean alive = true;
-
-
-	public FixFingers(Node node)
+	public NodeLink(String IP, int port)
 	{
-		local = node;
+		this.IP = IP;
+		this.port = port;
 	}
-
-	public void close()
-	{
-		alive = false;
-	}
-
-	@Override
-	public void run()
-	{
-		while (alive)
-			try
-			{
-				var i = random.nextInt(31) + 2;
-				var iThFinger = local.find_successor(Helper.iThStart(local.getId(), i));
-				local.updateFingers(i, iThFinger);
-
-				Thread.sleep(500);
-			}
-			catch (Exception e)
-			{
-				e.printStackTrace();
-			}
-	}
-
 
 }

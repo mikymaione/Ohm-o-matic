@@ -11,7 +11,6 @@ import OhmOMatic.ProtoBuffer.Home;
 import OhmOMatic.ProtoBuffer.HomeServiceGrpc;
 import io.grpc.stub.StreamObserver;
 
-import java.net.InetSocketAddress;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
@@ -28,7 +27,6 @@ public class Helper
 	{
 		if (_powerOfTwo.size() == 0)
 		{
-			//initialize power of two table
 			var base = 1L;
 
 			for (var i = 0; i <= mBit; i++)
@@ -41,25 +39,13 @@ public class Helper
 		return _powerOfTwo.get(k);
 	}
 
-	/**
-	 * Compute a socket address' 32 bit identifier
-	 *
-	 * @param addr: socket address
-	 * @return 32-bit identifier in long type
-	 */
-	public static long hashSocketAddress(InetSocketAddress addr)
+	public static long hashSocketAddress(NodeLink addr)
 	{
 		int i = addr.hashCode();
 
 		return hashHashCode(i);
 	}
 
-	/**
-	 * Compute a string's 32 bit identifier
-	 *
-	 * @param s: string
-	 * @return 32-bit identifier in long type
-	 */
 	public static long hashString(String s)
 	{
 		int i = s.hashCode();
@@ -67,22 +53,14 @@ public class Helper
 		return hashHashCode(i);
 	}
 
-	/**
-	 * Compute a 32 bit integer's identifier
-	 *
-	 * @param i: integer
-	 * @return 32-bit identifier in long type
-	 */
 	private static long hashHashCode(int i)
 	{
-		//32 bit regular hash code -> byte[4]
 		var hashbytes = new byte[4];
 		hashbytes[0] = (byte) (i >> 24);
 		hashbytes[1] = (byte) (i >> 16);
 		hashbytes[2] = (byte) (i >> 8);
 		hashbytes[3] = (byte) (i /*>> 0*/);
 
-		// try to create SHA1 digest
 		MessageDigest md = null;
 		try
 		{
@@ -90,15 +68,9 @@ public class Helper
 		}
 		catch (NoSuchAlgorithmException e)
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
-		// successfully created SHA1 digest
-		// try to convert byte[4] 
-		// -> SHA1 result byte[]
-		// -> compressed result byte[4] 
-		// -> compressed result in long type
 		if (md != null)
 		{
 			md.reset();
@@ -126,14 +98,6 @@ public class Helper
 		return 0;
 	}
 
-	/**
-	 * Normalization, computer universal id's value relative to local id
-	 * (regard local node as 0)
-	 *
-	 * @param universal: original/universal identifier
-	 * @param local:     node's identifier
-	 * @return relative identifier
-	 */
 	public static long computeRelativeId(long universal, long local)
 	{
 		long ret = universal - local;
@@ -144,27 +108,16 @@ public class Helper
 		return ret;
 	}
 
-	/**
-	 * Compute a socket address' SHA-1 hash in hex
-	 * and its approximate position in string
-	 *
-	 * @param addr
-	 * @return
-	 */
-	public static String hexIdAndPosition(InetSocketAddress addr)
+	public static String hexIdAndPosition(NodeLink addr)
 	{
 		long hash = hashSocketAddress(addr);
 
 		return (longTo8DigitHex(hash) + " (" + hash * 100 / Helper.getPowerOfTwo(Helper.mBit) + "%)");
 	}
 
-	/**
-	 * @param l a long type number's 8-digit hex string
-	 * @return
-	 */
 	public static String longTo8DigitHex(long l)
 	{
-		String hex = Long.toHexString(l);
+		var hex = Long.toHexString(l);
 		int lack = 8 - hex.length();
 
 		var sb = new StringBuilder();
@@ -177,60 +130,36 @@ public class Helper
 		return sb.toString();
 	}
 
-	/**
-	 * Return a node's finger[i].start, universal
-	 *
-	 * @param nodeid: node's identifier
-	 * @param i:      finger table index
-	 * @return finger[i].start's identifier
-	 */
 	public static long iThStart(long nodeid, int i)
 	{
 		return (nodeid + getPowerOfTwo(i - 1)) % getPowerOfTwo(Helper.mBit);
 	}
 
-	/**
-	 * Generate requested address by sending request to server
-	 *
-	 * @param server
-	 * @param req:   request
-	 * @return generated socket address,
-	 * might be null if
-	 * (1) invalid input
-	 * (2) response is null (typically cannot send request)
-	 * (3) fail to create address from reponse
-	 */
-	public static InetSocketAddress requestAddress(InetSocketAddress server, Richiesta req) throws Exception
+	public static NodeLink requestAddress(NodeLink server, Richiesta req) throws Exception
 	{
 		return requestAddress(server, req, -1, "");
 	}
 
-	public static InetSocketAddress requestAddress(InetSocketAddress server, Richiesta req, long localID, String indirizzo) throws Exception
+	public static NodeLink requestAddress(NodeLink server, Richiesta req, long localID, String indirizzo) throws Exception
 	{
-		// invalid input, return null
 		if (server == null || req == null)
 			return null;
 
-		// send request to server
 		var request = Helper.<Home.casaRes>sendRequest(server, req, localID, indirizzo);
 
-		// if response is null, return null
 		if (request == null)
 		{
 			return null;
-			// or server cannot find anything, return server itself
 		}
 		else if (request.getStandardRes().getMsg().equals("NOTHING"))
 		{
 			return server;
-			// server find something,
-			// using response to create, might fail then and return null
 		}
 		else
 		{
 			var c = request.getCasa();
 
-			return new InetSocketAddress(c.getIP(), c.getPort());
+			return new NodeLink(c.getIP(), c.getPort());
 		}
 	}
 
@@ -243,35 +172,30 @@ public class Helper
 			throw new Exception(R.getErrore());
 	}
 
-	public static <A> A sendRequest(InetSocketAddress destination, Richiesta req) throws Exception
+	public static <A> A sendRequest(NodeLink destination, Richiesta req) throws Exception
 	{
 		return sendRequest(destination, req, -1, "");
 	}
 
-	public static <A> A sendRequest(InetSocketAddress destination, Richiesta req, long localID, String indirizzo) throws Exception
+	public static <A> A sendRequest(NodeLink destination, Richiesta req, long localID, String indirizzo) throws Exception
 	{
 		try (var hfs = new HomeFastStub())
 		{
 			var stub = hfs.getStub(destination);
 
 			var c = Home.casa.newBuilder()
-					.setIP(destination.getAddress().getHostAddress())
-					.setPort(destination.getPort())
+					.setIP(destination.IP)
+					.setPort(destination.port)
 					.setID(localID)
 					.build();
 
 			switch (req)
 			{
 				case join:
-					var Res = stub.join(c);
-					var R1 = Res.getStandardRes();
-					gestioneErroreRequest(R1);
-					return (A) Res.getCasa();
+					throw new UnsupportedOperationException();
 
 				case esciDalCondominio:
-					var R2 = stub.esciDalCondominio(c);
-					gestioneErroreRequest(R2);
-					return (A) R2;
+					throw new UnsupportedOperationException();
 
 				case FINDSUCC_:
 					var R3 = stub.fINDSUCC(c);
@@ -327,8 +251,8 @@ public class Helper
 				try
 				{
 					var result = local.closest_preceding_finger(request.getID());
-					var _ip = result.getAddress().getHostAddress();
-					var _port = result.getPort();
+					var _ip = result.IP;
+					var _port = result.port;
 					var ret = "MYCLOSEST_" + _ip + ":" + _port;
 
 					sr = Common.standardRes.newBuilder()
@@ -368,8 +292,8 @@ public class Helper
 				try
 				{
 					var result = local.find_successor(request.getID());
-					var _ip = result.getAddress().getHostAddress();
-					var _port = result.getPort();
+					var _ip = result.IP;
+					var _port = result.port;
 					var ret = "FOUNDSUCC_" + _ip + ":" + _port;
 
 					sr = Common.standardRes.newBuilder()
@@ -408,7 +332,7 @@ public class Helper
 
 				try
 				{
-					var new_pre = new InetSocketAddress(request.getIP(), request.getPort());
+					var new_pre = new NodeLink(request.getIP(), request.getPort());
 
 					local.notified(new_pre);
 
@@ -468,8 +392,8 @@ public class Helper
 
 					if (result != null)
 					{
-						var _ip = result.getAddress().getHostAddress();
-						var _port = result.getPort();
+						var _ip = result.IP;
+						var _port = result.port;
 
 						ret = "MYPRE_" + _ip + ":" + _port;
 
@@ -519,8 +443,8 @@ public class Helper
 
 					if (result != null)
 					{
-						var _ip = result.getAddress().getHostAddress();
-						var _port = result.getPort();
+						var _ip = result.IP;
+						var _port = result.port;
 						ret = "MYSUCC_" + _ip + ":" + _port;
 
 						cr = Home.casa.newBuilder()
@@ -559,31 +483,13 @@ public class Helper
 			@Override
 			public void join(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
-				var res = Home.casaRes.newBuilder()
-						.setStandardRes(
-								Common.standardRes.newBuilder()
-										.setOk(true)
-										.build()
-						)
-						.setCasa(
-								Home.casa.newBuilder()
-										.build()
-						)
-						.build();
-
-				responseObserver.onNext(res);
-				responseObserver.onCompleted();
+				throw new UnsupportedOperationException();
 			}
 
 			@Override
 			public void esciDalCondominio(Home.casa request, StreamObserver<Common.standardRes> responseObserver)
 			{
-				var res = Common.standardRes.newBuilder()
-						.setOk(true)
-						.build();
-
-				responseObserver.onNext(res);
-				responseObserver.onCompleted();
+				throw new UnsupportedOperationException();
 			}
 		};
 	}

@@ -9,31 +9,25 @@ package OhmOMatic.Chord;
 import OhmOMatic.ProtoBuffer.Common;
 import OhmOMatic.ProtoBuffer.Home;
 
-import java.net.InetSocketAddress;
 import java.util.HashMap;
 
 public class Node implements AutoCloseable
 {
 
 	private final long localId;
-	private final InetSocketAddress localAddress;
+	private final NodeLink localAddress;
 
-	private InetSocketAddress predecessor;
+	private NodeLink predecessor;
 
-	// initialize an empty finger table
-	private HashMap<Integer, InetSocketAddress> finger = new HashMap<>();
+	private HashMap<Integer, NodeLink> finger = new HashMap<>();
 
 	private final Listener listener;
 	private final Stabilize stabilize;
 	private final FixFingers fix_fingers;
 	private final AskPredecessor ask_predecessor;
 
-	/**
-	 * Constructor
-	 *
-	 * @param address: this node's local address
-	 */
-	public Node(InetSocketAddress address) throws Exception
+
+	public Node(NodeLink address) throws Exception
 	{
 		localAddress = address;
 		localId = Helper.hashSocketAddress(localAddress);
@@ -41,27 +35,16 @@ public class Node implements AutoCloseable
 		for (var i = 1; i <= Helper.mBit; i++)
 			updateIthFinger(i, null);
 
-		// initialize predecessor
 		predecessor = null;
 
-		// initialize threads
 		listener = new Listener(this);
 		stabilize = new Stabilize(this);
 		fix_fingers = new FixFingers(this);
 		ask_predecessor = new AskPredecessor(this);
 	}
 
-	/**
-	 * Create or join a ring
-	 *
-	 * @param contact
-	 * @return true if successfully create a ring
-	 * or join a ring via contact
-	 */
-	public boolean join(InetSocketAddress contact) throws Exception
+	public boolean join(NodeLink contact) throws Exception
 	{
-		// if contact is other node (join ring), try to contact that node
-		// (contact will never be null)
 		if (contact != null && !contact.equals(localAddress))
 		{
 			var successor = Helper.requestAddress(contact, Richiesta.FINDSUCC_, localId, "");
@@ -75,7 +58,6 @@ public class Node implements AutoCloseable
 			updateIthFinger(1, successor);
 		}
 
-		// start all threads	
 		listener.start();
 		stabilize.start();
 		fix_fingers.start();
@@ -84,17 +66,11 @@ public class Node implements AutoCloseable
 		return true;
 	}
 
-	/**
-	 * Notify successor that this node should be its predecessor
-	 *
-	 * @param successor
-	 * @return successor's response
-	 */
-	public String notify(InetSocketAddress successor) throws Exception
+	public String notify(NodeLink successor) throws Exception
 	{
 		if (successor != null && !successor.equals(localAddress))
 		{
-			var v = Helper.<Home.casaRes>sendRequest(successor, Richiesta.IAMPRE_, -1, localAddress.getAddress().toString() + ":" + localAddress.getPort());
+			var v = Helper.<Home.casaRes>sendRequest(successor, Richiesta.IAMPRE_, -1, localAddress.IP + ":" + localAddress.port);
 
 			return v.getStandardRes().getMsg();
 		}
@@ -104,12 +80,7 @@ public class Node implements AutoCloseable
 		}
 	}
 
-	/**
-	 * Being notified by another node, set it as my predecessor if it is.
-	 *
-	 * @param newpre
-	 */
-	public void notified(InetSocketAddress newpre)
+	public void notified(NodeLink newpre)
 	{
 		if (predecessor == null || predecessor.equals(localAddress))
 		{
@@ -126,42 +97,25 @@ public class Node implements AutoCloseable
 		}
 	}
 
-	/**
-	 * Ask current node to find id's successor.
-	 *
-	 * @param id
-	 * @return id's successor's socket address
-	 */
-	public InetSocketAddress find_successor(long id) throws Exception
+	public NodeLink find_successor(long id) throws Exception
 	{
-		// initialize return value as this node's successor (might be null)
-		InetSocketAddress ret = this.getSuccessor();
+		NodeLink ret = this.getSuccessor();
+		NodeLink pre = find_predecessor(id);
 
-		// find predecessor
-		InetSocketAddress pre = find_predecessor(id);
-
-		// if other node found, ask it for its successor
 		if (!pre.equals(localAddress))
 			ret = Helper.requestAddress(pre, Richiesta.YOURSUCC);
 
-		// if ret is still null, set it as local node, return
 		if (ret == null)
 			ret = localAddress;
 
 		return ret;
 	}
 
-	/**
-	 * Ask current node to find id's predecessor
-	 *
-	 * @param findid
-	 * @return id's successor's socket address
-	 */
-	private InetSocketAddress find_predecessor(long findid) throws Exception
+	private NodeLink find_predecessor(long findid) throws Exception
 	{
-		InetSocketAddress n = this.localAddress;
-		InetSocketAddress n_successor = this.getSuccessor();
-		InetSocketAddress most_recently_alive = this.localAddress;
+		NodeLink n = this.localAddress;
+		NodeLink n_successor = this.getSuccessor();
+		NodeLink most_recently_alive = this.localAddress;
 
 		var n_successor_relative_id = 0L;
 
@@ -172,21 +126,16 @@ public class Node implements AutoCloseable
 
 		while (!(findid_relative_id > 0 && findid_relative_id <= n_successor_relative_id))
 		{
-			// temporarily save current node
-			InetSocketAddress pre_n = n;
+			NodeLink pre_n = n;
 
-			// if current node is local node, find my closest
 			if (n.equals(this.localAddress))
 			{
 				n = this.closest_preceding_finger(findid);
 			}
 			else
 			{
-				// else current node is remote node, sent request to it for its closest
+				NodeLink result = Helper.requestAddress(n, Richiesta.CLOSEST_, findid, "");
 
-				InetSocketAddress result = Helper.requestAddress(n, Richiesta.CLOSEST_, findid, "");
-
-				// if fail to get response, set n to most recently 
 				if (result == null)
 				{
 					n = most_recently_alive;
@@ -202,55 +151,37 @@ public class Node implements AutoCloseable
 				}
 				else if (result.equals(n))
 				{
-					// if n's closest is itself, return n
 					return result;
 				}
 				else
 				{
-					// else n's closest is other node "result"
-
-					// set n as most recently alive
 					most_recently_alive = n;
 
-					// ask "result" for its successor
 					n_successor = Helper.requestAddress(result, Richiesta.YOURSUCC);
 
-					// if we can get its response, then "result" must be our next n
 					if (n_successor != null)
-					{
 						n = result;
-					}
-					// else n sticks, ask n's successor
 					else
-					{
 						n_successor = Helper.requestAddress(n, Richiesta.YOURSUCC);
-					}
 				}
 
-				// compute relative ids for while loop judgement
 				n_successor_relative_id = Helper.computeRelativeId(Helper.hashSocketAddress(n_successor), Helper.hashSocketAddress(n));
 				findid_relative_id = Helper.computeRelativeId(findid, Helper.hashSocketAddress(n));
 			}
+
 			if (pre_n.equals(n))
 				break;
 		}
 		return n;
 	}
 
-	/**
-	 * Return closest finger preceding node.
-	 *
-	 * @param findid
-	 * @return closest finger preceding node's socket address
-	 */
-	public InetSocketAddress closest_preceding_finger(long findid) throws Exception
+	public NodeLink closest_preceding_finger(long findid) throws Exception
 	{
 		long findid_relative = Helper.computeRelativeId(findid, localId);
 
-		// check from last item in finger table
 		for (var i = Helper.mBit; i > 0; i--)
 		{
-			InetSocketAddress ith_finger = finger.get(i);
+			NodeLink ith_finger = finger.get(i);
 
 			if (ith_finger == null)
 				continue;
@@ -258,106 +189,69 @@ public class Node implements AutoCloseable
 			long ith_finger_id = Helper.hashSocketAddress(ith_finger);
 			long ith_finger_relative_id = Helper.computeRelativeId(ith_finger_id, localId);
 
-			// if its relative id is the closest, check if its alive
 			if (ith_finger_relative_id > 0 && ith_finger_relative_id < findid_relative)
 			{
 				var response = Helper.<Common.standardRes>sendRequest(ith_finger, Richiesta.KEEP);
 
-				//it is alive, return it
 				if (response != null && response.getMsg().equals("ALIVE"))
-				{
 					return ith_finger;
-				}
 				else
-				{
-					// else, remove its existence from finger table
 					updateFingers(-2, ith_finger);
-				}
 			}
 		}
 
 		return localAddress;
 	}
 
-	/**
-	 * Update the finger table based on parameters.
-	 * Synchronize, all threads trying to modify
-	 * finger table only through this method.
-	 *
-	 * @param i:    index or command code
-	 * @param value
-	 */
-	public synchronized void updateFingers(int i, InetSocketAddress value) throws Exception
+	public synchronized void updateFingers(int i, NodeLink value) throws Exception
 	{
-		// valid index in [1, 32], just update the ith finger
 		if (i > 0 && i <= Helper.mBit)
 			updateIthFinger(i, value);
-			// caller wants to delete
 		else if (i == -1)
 			deleteSuccessor();
-			// caller wants to delete a finger in table
 		else if (i == -2)
 			deleteCertainFinger(value);
-			// caller wants to fill successor
 		else if (i == -3)
 			fillSuccessor();
 	}
 
-	/**
-	 * Update ith finger in finger table using new value
-	 *
-	 * @param i:    index
-	 * @param value
-	 */
-	private void updateIthFinger(int i, InetSocketAddress value) throws Exception
+	private void updateIthFinger(int i, NodeLink value) throws Exception
 	{
 		finger.put(i, value);
 
-		// if the updated one is successor, notify the new successor
 		if (i == 1 && value != null && !value.equals(localAddress))
 			notify(value);
 	}
 
-	/**
-	 * Delete successor and all following fingers equal to successor
-	 */
 	private void deleteSuccessor() throws Exception
 	{
-		InetSocketAddress successor = getSuccessor();
+		NodeLink successor = getSuccessor();
 
-		//nothing to delete, just return
 		if (successor == null)
 			return;
 
-		// find the last existence of successor in the finger table
 		var i = Helper.mBit;
 		for (i = Helper.mBit; i > 0; i--)
 		{
-			InetSocketAddress ithfinger = finger.get(i);
+			NodeLink ithfinger = finger.get(i);
 
 			if (ithfinger != null && ithfinger.equals(successor))
 				break;
 		}
 
-		// delete it, from the last existence to the first one
 		for (var j = i; j >= 1; j--)
 			updateIthFinger(j, null);
 
-		// if predecessor is successor, delete it
 		if (predecessor != null && predecessor.equals(successor))
 			setPredecessor(null);
 
-		// try to fill successor
 		fillSuccessor();
 		successor = getSuccessor();
 
-		// if successor is still null or local node, 
-		// and the predecessor is another node, keep asking 
-		// it's predecessor until find local node's new successor
 		if ((successor == null || successor.equals(successor)) && predecessor != null && !predecessor.equals(localAddress))
 		{
-			InetSocketAddress p = predecessor;
-			InetSocketAddress p_pre = null;
+			NodeLink p = predecessor;
+			NodeLink p_pre = null;
 
 			while (true)
 			{
@@ -366,52 +260,34 @@ public class Node implements AutoCloseable
 				if (p_pre == null)
 					break;
 
-				// if p's predecessor is node is just deleted, 
-				// or itself (nothing found in p), or local address,
-				// p is current node's new successor, break
 				if (p_pre.equals(p) || p_pre.equals(localAddress) || p_pre.equals(successor))
-				{
 					break;
-				}
 				else
-				{
-					// else, keep asking
 					p = p_pre;
-				}
 			}
 
-			// update successor
 			updateIthFinger(1, p);
 		}
 	}
 
-	/**
-	 * Delete a node from the finger table, here "delete" means deleting all existence of this node
-	 *
-	 * @param f
-	 */
-	private void deleteCertainFinger(InetSocketAddress f)
+	private void deleteCertainFinger(NodeLink f)
 	{
 		for (var i = Helper.mBit; i > 0; i--)
 		{
-			InetSocketAddress ithfinger = finger.get(i);
+			NodeLink ithfinger = finger.get(i);
 			if (ithfinger != null && ithfinger.equals(f))
 				finger.put(i, null);
 		}
 	}
 
-	/**
-	 * Try to fill successor with candidates in finger table or even predecessor
-	 */
 	private void fillSuccessor() throws Exception
 	{
-		InetSocketAddress successor = this.getSuccessor();
+		NodeLink successor = this.getSuccessor();
 
 		if (successor == null || successor.equals(localAddress))
-		{
 			for (var i = 2; i <= Helper.mBit; i++)
 			{
-				InetSocketAddress ithfinger = finger.get(i);
+				NodeLink ithfinger = finger.get(i);
 
 				if (ithfinger != null && !ithfinger.equals(localAddress))
 				{
@@ -421,7 +297,6 @@ public class Node implements AutoCloseable
 					break;
 				}
 			}
-		}
 
 		successor = getSuccessor();
 
@@ -429,63 +304,44 @@ public class Node implements AutoCloseable
 			updateIthFinger(1, predecessor);
 	}
 
-
-	/**
-	 * Clear predecessor.
-	 */
 	public void clearPredecessor()
 	{
 		setPredecessor(null);
 	}
 
-	/**
-	 * Set predecessor using a new value.
-	 *
-	 * @param pre
-	 */
-	private synchronized void setPredecessor(InetSocketAddress pre)
+	private synchronized void setPredecessor(NodeLink pre)
 	{
 		predecessor = pre;
 	}
 
-	/**
-	 * Getters
-	 *
-	 * @return the variable caller wants
-	 */
 	public long getId()
 	{
 		return localId;
 	}
 
-	public InetSocketAddress getAddress()
+	public NodeLink getAddress()
 	{
 		return localAddress;
 	}
 
-	public InetSocketAddress getPredecessor()
+	public NodeLink getPredecessor()
 	{
 		return predecessor;
 	}
 
-	public InetSocketAddress getSuccessor()
+	public NodeLink getSuccessor()
 	{
 		if (finger != null && finger.size() > 0)
-		{
 			return finger.get(1);
-		}
+
 		return null;
 	}
 
-	/**
-	 * Print functions
-	 */
 	public void printNeighbors()
 	{
-		System.out.println("\nYou are listening on port " + localAddress.getPort() + "." + "\nYour position is " + Helper.hexIdAndPosition(localAddress) + ".");
-		InetSocketAddress successor = finger.get(1);
+		System.out.println("\nYou are listening on port " + localAddress.port + "." + "\nYour position is " + Helper.hexIdAndPosition(localAddress) + ".");
+		NodeLink successor = finger.get(1);
 
-		// if it cannot find both predecessor and successor
 		if ((predecessor == null || predecessor.equals(localAddress)) && (successor == null || successor.equals(localAddress)))
 		{
 			System.out.println("Your predecessor is yourself.");
@@ -493,25 +349,15 @@ public class Node implements AutoCloseable
 		}
 		else
 		{
-			// else, it can find either predecessor or successor
-
 			if (predecessor != null)
-			{
-				System.out.println("Your predecessor is node " + predecessor.getAddress().toString() + ", " + "port " + predecessor.getPort() + ", position " + Helper.hexIdAndPosition(predecessor) + ".");
-			}
+				System.out.println("Your predecessor is node " + predecessor.IP + ", " + "port " + predecessor.port + ", position " + Helper.hexIdAndPosition(predecessor) + ".");
 			else
-			{
 				System.out.println("Your predecessor is updating.");
-			}
 
 			if (successor != null)
-			{
-				System.out.println("Your successor is node " + successor.getAddress().toString() + ", " + "port " + successor.getPort() + ", position " + Helper.hexIdAndPosition(successor) + ".");
-			}
+				System.out.println("Your successor is node " + successor.IP + ", " + "port " + successor.port + ", position " + Helper.hexIdAndPosition(successor) + ".");
 			else
-			{
 				System.out.println("Your successor is updating.");
-			}
 		}
 	}
 
@@ -531,7 +377,7 @@ public class Node implements AutoCloseable
 		{
 			long ithstart = Helper.iThStart(Helper.hashSocketAddress(localAddress), i);
 
-			InetSocketAddress f = finger.get(i);
+			NodeLink f = finger.get(i);
 
 			StringBuilder sb = new StringBuilder();
 
@@ -549,16 +395,19 @@ public class Node implements AutoCloseable
 	}
 
 	@Override
-	public void close() throws Exception
+	public void close()
 	{
 		if (listener != null)
-			listener.die();
+			listener.close();
+
 		if (fix_fingers != null)
-			fix_fingers.die();
+			fix_fingers.close();
+
 		if (stabilize != null)
-			stabilize.die();
+			stabilize.close();
+
 		if (ask_predecessor != null)
-			ask_predecessor.die();
+			ask_predecessor.close();
 	}
 
 

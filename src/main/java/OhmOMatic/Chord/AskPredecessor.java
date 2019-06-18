@@ -8,8 +8,6 @@ package OhmOMatic.Chord;
 
 import OhmOMatic.ProtoBuffer.Common;
 
-import java.net.InetSocketAddress;
-
 public class AskPredecessor extends Thread
 {
 
@@ -21,7 +19,7 @@ public class AskPredecessor extends Thread
 		local = _local;
 	}
 
-	public void die()
+	public void close()
 	{
 		alive = false;
 	}
@@ -31,7 +29,7 @@ public class AskPredecessor extends Thread
 	{
 		while (alive)
 		{
-			InetSocketAddress predecessor = local.getPredecessor();
+			NodeLink predecessor = local.getPredecessor();
 
 			if (predecessor != null)
 			{

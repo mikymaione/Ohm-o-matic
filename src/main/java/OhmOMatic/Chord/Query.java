@@ -8,7 +8,6 @@ package OhmOMatic.Chord;
 
 import OhmOMatic.ProtoBuffer.Common;
 
-import java.net.InetSocketAddress;
 import java.util.Scanner;
 
 public class Query
@@ -20,7 +19,7 @@ public class Query
 		if (args.length == 2)
 		{
 			// try to parse socket address from args, if fail, exit
-			var localAddress = new InetSocketAddress(args[0], Integer.parseInt(args[1]));
+			var localAddress = new NodeLink(args[0], Integer.parseInt(args[1]));
 
 			if (localAddress == null)
 			{
@@ -40,14 +39,14 @@ public class Query
 			}
 
 			// it's alive, print connection info
-			System.out.println("Connection to node " + localAddress.getAddress().toString() + ", port " + localAddress.getPort() + ", position " + Helper.hexIdAndPosition(localAddress) + ".");
+			System.out.println("Connection to node " + localAddress.IP + ", port " + localAddress.port + ", position " + Helper.hexIdAndPosition(localAddress) + ".");
 
 			// check if system is stable
 			var pred = false;
 			var succ = false;
 
-			InetSocketAddress pred_addr = Helper.requestAddress(localAddress, Richiesta.YOURPRE);
-			InetSocketAddress succ_addr = Helper.requestAddress(localAddress, Richiesta.YOURSUCC);
+			NodeLink pred_addr = Helper.requestAddress(localAddress, Richiesta.YOURPRE);
+			NodeLink succ_addr = Helper.requestAddress(localAddress, Richiesta.YOURSUCC);
 
 			if (pred_addr == null || succ_addr == null)
 			{
@@ -114,7 +113,7 @@ public class Query
 						long hash = Helper.hashString(command);
 						System.out.println("\nHash value is " + Long.toHexString(hash));
 
-						InetSocketAddress result = Helper.requestAddress(localAddress, Richiesta.FINDSUCC_, hash, "");
+						NodeLink result = Helper.requestAddress(localAddress, Richiesta.FINDSUCC_, hash, "");
 
 						// if fail to send request, local node is disconnected, exit
 						if (result == null)
@@ -124,8 +123,8 @@ public class Query
 						}
 
 						// print out response
-						System.out.println("\nResponse from node " + localAddress.getAddress().toString() + ", port " + localAddress.getPort() + ", position " + Helper.hexIdAndPosition(localAddress) + ":");
-						System.out.println("Node " + result.getAddress().toString() + ", port " + result.getPort() + ", position " + Helper.hexIdAndPosition(result));
+						System.out.println("\nResponse from node " + localAddress.IP + ", port " + localAddress.port + ", position " + Helper.hexIdAndPosition(localAddress) + ":");
+						System.out.println("Node " + result.IP + ", port " + result.port + ", position " + Helper.hexIdAndPosition(result));
 					}
 				}
 			}

@@ -6,8 +6,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Chord;
 
-import java.net.InetSocketAddress;
-
 public class Stabilize extends Thread
 {
 
@@ -19,7 +17,7 @@ public class Stabilize extends Thread
 		local = _local;
 	}
 
-	public void die()
+	public void close()
 	{
 		alive = false;
 	}
@@ -29,7 +27,7 @@ public class Stabilize extends Thread
 	{
 		while (alive)
 		{
-			InetSocketAddress successor = local.getSuccessor();
+			NodeLink successor = local.getSuccessor();
 
 			if (successor == null || successor.equals(local.getAddress()))
 				try
@@ -45,9 +43,7 @@ public class Stabilize extends Thread
 
 			if (successor != null && !successor.equals(local.getAddress()))
 			{
-
-				// try to get my successor's predecessor
-				InetSocketAddress x = null;
+				NodeLink x = null;
 
 				try
 				{
@@ -58,7 +54,6 @@ public class Stabilize extends Thread
 					e.printStackTrace();
 				}
 
-				// if bad connection with successor! delete successor
 				if (x == null)
 				{
 					try
@@ -70,7 +65,6 @@ public class Stabilize extends Thread
 						e.printStackTrace();
 					}
 				}
-				// else if successor's predecessor is not itself
 				else if (!x.equals(successor))
 				{
 					long local_id = Helper.hashSocketAddress(local.getAddress());
@@ -78,7 +72,6 @@ public class Stabilize extends Thread
 					long x_relative_id = Helper.computeRelativeId(Helper.hashSocketAddress(x), local_id);
 
 					if (x_relative_id > 0 && x_relative_id < successor_relative_id)
-					{
 						try
 						{
 							local.updateFingers(1, x);
@@ -87,9 +80,7 @@ public class Stabilize extends Thread
 						{
 							e.printStackTrace();
 						}
-					}
 				}
-				// successor's predecessor is successor itself, then notify successor
 				else
 				{
 					try

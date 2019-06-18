@@ -4,17 +4,15 @@ import OhmOMatic.ProtoBuffer.HomeServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 
-import java.net.InetSocketAddress;
-
 public class HomeFastStub implements AutoCloseable
 {
 
 	private ManagedChannel chan;
 
-	public HomeServiceGrpc.HomeServiceBlockingStub getStub(InetSocketAddress destination) throws Exception
+	public HomeServiceGrpc.HomeServiceBlockingStub getStub(NodeLink destination) throws Exception
 	{
-		var ip = destination.getAddress().getHostAddress();
-		var port = destination.getPort();
+		var ip = destination.IP;
+		var port = destination.port;
 
 		chan = ManagedChannelBuilder
 				.forAddress(ip, port)
