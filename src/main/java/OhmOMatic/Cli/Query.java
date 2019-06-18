@@ -6,9 +6,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Cli;
 
-import OhmOMatic.Chord.FN.gRPCCommander;
 import OhmOMatic.Chord.FN.NodeLink;
 import OhmOMatic.Chord.FN.Richiesta;
+import OhmOMatic.Chord.FN.gRPCCommander;
 import OhmOMatic.ProtoBuffer.Common;
 
 import java.util.Scanner;
@@ -35,7 +35,7 @@ public class Query
 			var response = gRPCCommander.<Common.standardRes>sendRequest(localAddress, Richiesta.Ping);
 
 			// if it's dead, exit
-			if (response == null || !response.getMsg().equals("ALIVE"))
+			if (!response.getOk())
 			{
 				System.out.println("\nCannot find node you are trying to contact. Now exit.\n");
 				System.exit(0);
@@ -116,7 +116,7 @@ public class Query
 						long hash = gRPCCommander.hashString(command);
 						System.out.println("\nHash value is " + Long.toHexString(hash));
 
-						NodeLink result = gRPCCommander.requestAddress(localAddress, Richiesta.FindSuccessor, hash, "");
+						NodeLink result = gRPCCommander.requestAddress(localAddress, Richiesta.FindSuccessor, hash, "", -1);
 
 						// if fail to send request, local node is disconnected, exit
 						if (result == null)

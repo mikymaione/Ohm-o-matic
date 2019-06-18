@@ -30,6 +30,9 @@ message casa {
 
     string IP = 2;
     int32 port = 3;
+
+    string Optional_IP = 4;
+    int32 Optional_port = 5;
 }
 
 message casaRes {

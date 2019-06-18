@@ -6,9 +6,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Chord;
 
-import OhmOMatic.Chord.FN.gRPCCommander;
 import OhmOMatic.Chord.FN.NodeLink;
 import OhmOMatic.Chord.FN.Richiesta;
+import OhmOMatic.Chord.FN.gRPCCommander;
 import OhmOMatic.ProtoBuffer.Common;
 import OhmOMatic.ProtoBuffer.Home;
 
@@ -33,7 +33,7 @@ public class Node implements AutoCloseable
 	public Node(NodeLink address) throws Exception
 	{
 		localNode = address;
-		localId = gRPCCommander.hashNodeLink(localNode);
+		localId = gRPCCommander.hashNodeLink(address);
 
 		for (var i = 1; i <= gRPCCommander.mBit; i++)
 			updateIthFinger(i, null);
@@ -52,7 +52,7 @@ public class Node implements AutoCloseable
 	{
 		if (s != null && !s.equals(localNode))
 		{
-			var successor = gRPCCommander.requestAddress(s, Richiesta.FindSuccessor, localId, "");
+			var successor = gRPCCommander.requestAddress(s, Richiesta.FindSuccessor, localId, "", -1);
 
 			if (successor == null)
 				throw new Exception("Nodo " + s + " non trovato!");
@@ -69,17 +69,17 @@ public class Node implements AutoCloseable
 	}
 
 	//s thinks it might be our predecessor
-	public String notify(NodeLink s) throws Exception
+	public boolean notify(NodeLink s) throws Exception
 	{
 		if (s != null && !s.equals(localNode))
 		{
-			var v = gRPCCommander.<Home.casaRes>sendRequest(s, Richiesta.ImPredecessor, -1, localNode.IP + ":" + localNode.port);
+			var v = gRPCCommander.<Home.casaRes>sendRequest(s, Richiesta.ImPredecessor, -1, localNode.IP, localNode.port);
 
-			return v.getStandardRes().getMsg();
+			return v.getStandardRes().getOk();
 		}
 		else
 		{
-			return null;
+			return false;
 		}
 	}
 
@@ -141,7 +141,7 @@ public class Node implements AutoCloseable
 			}
 			else
 			{
-				NodeLink result = gRPCCommander.requestAddress(n, Richiesta.ClosestPrecedingFinger, findid, "");
+				NodeLink result = gRPCCommander.requestAddress(n, Richiesta.ClosestPrecedingFinger, findid, "", -1);
 
 				if (result == null)
 				{
@@ -199,7 +199,7 @@ public class Node implements AutoCloseable
 			{
 				var response = gRPCCommander.<Common.standardRes>sendRequest(ith_finger, Richiesta.Ping);
 
-				if (response != null && response.getMsg().equals("ALIVE"))
+				if (response != null && response.getOk())
 					return ith_finger;
 				else
 					update_finger_table(ith_finger, -2);

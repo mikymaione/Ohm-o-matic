@@ -6,9 +6,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Chord;
 
-import OhmOMatic.Chord.FN.gRPCCommander;
 import OhmOMatic.Chord.FN.NodeLink;
 import OhmOMatic.Chord.FN.Richiesta;
+import OhmOMatic.Chord.FN.gRPCCommander;
 
 public class Stabilize extends Thread
 {

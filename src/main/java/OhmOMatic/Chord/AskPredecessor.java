@@ -6,9 +6,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Chord;
 
-import OhmOMatic.Chord.FN.gRPCCommander;
 import OhmOMatic.Chord.FN.NodeLink;
 import OhmOMatic.Chord.FN.Richiesta;
+import OhmOMatic.Chord.FN.gRPCCommander;
 import OhmOMatic.ProtoBuffer.Common;
 
 public class AskPredecessor extends Thread
@@ -50,9 +50,7 @@ public class AskPredecessor extends Thread
 			{
 				var r = gRPCCommander.<Common.standardRes>sendRequest(predecessor, Richiesta.Ping);
 
-				var response = r.getMsg();
-
-				if (response == null || !response.equals("ALIVE"))
+				if (!r.getOk())
 					local.clearPredecessor();
 			}
 

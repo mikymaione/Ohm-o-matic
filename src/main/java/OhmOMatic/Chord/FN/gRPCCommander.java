@@ -138,27 +138,27 @@ public class gRPCCommander
 
 	public static NodeLink requestAddress(NodeLink server, Richiesta req) throws Exception
 	{
-		return requestAddress(server, req, -1, "");
+		return requestAddress(server, req, -1, "", -1);
 	}
 
-	public static NodeLink requestAddress(NodeLink server, Richiesta req, long localID, String indirizzo) throws Exception
+	public static NodeLink requestAddress(NodeLink server, Richiesta req, long localID, String IP, int port) throws Exception
 	{
 		if (server == null || req == null)
 			return null;
 
-		var request = gRPCCommander.<Home.casaRes>sendRequest(server, req, localID, indirizzo);
+		var response = gRPCCommander.<Home.casaRes>sendRequest(server, req, localID, IP, port);
 
-		if (request == null)
+		if (response == null)
 		{
 			return null;
 		}
-		else if (request.getStandardRes().getMsg().equals("NOTHING"))
+		else if (!response.getStandardRes().getOk())
 		{
 			return server;
 		}
 		else
 		{
-			var c = request.getCasa();
+			var c = response.getCasa();
 
 			return new NodeLink(c.getIP(), c.getPort());
 		}
@@ -173,22 +173,27 @@ public class gRPCCommander
 			throw new Exception(R.getErrore());
 	}
 
-	public static <A> A sendRequest(NodeLink destination, Richiesta req) throws Exception
+	public static <A> A sendRequest(NodeLink server, Richiesta req) throws Exception
 	{
-		return sendRequest(destination, req, -1, "");
+		return sendRequest(server, req, -1, "", -1);
 	}
 
-	public static <A> A sendRequest(NodeLink destination, Richiesta req, long localID, String indirizzo) throws Exception
+	public static <A> A sendRequest(NodeLink server, Richiesta req, long localID, String IP, int port) throws Exception
 	{
 		try (var hfs = new HomeFastStub())
 		{
-			var stub = hfs.getStub(destination);
+			var stub = hfs.getStub(server);
 
 			var c = Home.casa.newBuilder()
-					.setIP(destination.IP)
-					.setPort(destination.port)
+					.setIP(server.IP)
+					.setPort(server.port)
 					.setID(localID)
+					.setOptionalIP(IP)
+					.setOptionalPort(port)
 					.build();
+
+			Home.casaRes CR;
+			Common.standardRes R;
 
 			switch (req)
 			{
@@ -198,39 +203,39 @@ public class gRPCCommander
 				case esciDalCondominio:
 					throw new UnsupportedOperationException();
 
-				case FindSuccessor:
-					var R3 = stub.fINDSUCC(c);
-					gestioneErroreRequest(R3.getStandardRes());
-					return (A) R3;
-
-				case ImPredecessor:
-					var R4 = stub.iAMPRE(c);
-					gestioneErroreRequest(R4.getStandardRes());
-					return (A) R4;
-
 				case Ping:
-					var R5 = stub.kEEP(c);
-					gestioneErroreRequest(R5);
-					return (A) R5;
-
-				case Predecessor:
-					var R6 = stub.yOURPRE(c);
-					gestioneErroreRequest(R6.getStandardRes());
-					return (A) R6;
-
-				case Successor:
-					var R7 = stub.yOURPRE(c);
-					gestioneErroreRequest(R7.getStandardRes());
-					return (A) R7;
+					R = stub.kEEP(c);
+					gestioneErroreRequest(R);
+					return (A) R;
 
 				case ClosestPrecedingFinger:
-					var R8 = stub.yOURPRE(c);
-					gestioneErroreRequest(R8.getStandardRes());
-					return (A) R8;
+					CR = stub.cLOSEST(c);
+					break;
+
+				case FindSuccessor:
+					CR = stub.fINDSUCC(c);
+					break;
+
+				case ImPredecessor:
+					CR = stub.iAMPRE(c);
+					break;
+
+				case Predecessor:
+					CR = stub.yOURPRE(c);
+					break;
+
+				case Successor:
+					CR = stub.yOURSUCC(c);
+					break;
 
 				default:
 					throw new Exception("Switch " + req + " non implementato");
 			}
+
+			R = CR.getStandardRes();
+			gestioneErroreRequest(R);
+
+			return (A) CR;
 		}
 		catch (io.grpc.StatusRuntimeException sre)
 		{
@@ -254,11 +259,9 @@ public class gRPCCommander
 					var result = local.closest_preceding_finger(request.getID());
 					var _ip = result.IP;
 					var _port = result.port;
-					var ret = "MYCLOSEST_" + _ip + ":" + _port;
 
 					sr = Common.standardRes.newBuilder()
 							.setOk(true)
-							.setMsg(ret)
 							.build();
 
 					cr = Home.casa.newBuilder()
@@ -269,7 +272,7 @@ public class gRPCCommander
 				catch (Exception e)
 				{
 					sr = Common.standardRes.newBuilder()
-							.setOk(true)
+							.setOk(false)
 							.setErrore(e.getMessage())
 							.build();
 				}
@@ -295,11 +298,9 @@ public class gRPCCommander
 					var result = local.find_successor(request.getID());
 					var _ip = result.IP;
 					var _port = result.port;
-					var ret = "FOUNDSUCC_" + _ip + ":" + _port;
 
 					sr = Common.standardRes.newBuilder()
 							.setOk(true)
-							.setMsg(ret)
 							.build();
 
 					cr = Home.casa.newBuilder()
@@ -310,7 +311,7 @@ public class gRPCCommander
 				catch (Exception e)
 				{
 					sr = Common.standardRes.newBuilder()
-							.setOk(true)
+							.setOk(false)
 							.setErrore(e.getMessage())
 							.build();
 				}
@@ -333,21 +334,18 @@ public class gRPCCommander
 
 				try
 				{
-					var new_pre = new NodeLink(request.getIP(), request.getPort());
+					var new_pre = new NodeLink(request.getOptionalIP(), request.getOptionalPort());
 
 					local.notified(new_pre);
 
-					var ret = "NOTIFIED";
-
 					sr = Common.standardRes.newBuilder()
 							.setOk(true)
-							.setMsg(ret)
 							.build();
 				}
 				catch (Exception e)
 				{
 					sr = Common.standardRes.newBuilder()
-							.setOk(true)
+							.setOk(false)
 							.setErrore(e.getMessage())
 							.build();
 				}
@@ -366,7 +364,6 @@ public class gRPCCommander
 			{
 				var res = Common.standardRes.newBuilder()
 						.setOk(true)
-						.setMsg("ALIVE")
 						.build();
 
 				responseObserver.onNext(res);
@@ -388,35 +385,28 @@ public class gRPCCommander
 
 				try
 				{
-					var ret = "";
 					var result = local.getPredecessor();
+					var ok = (result != null);
 
-					if (result != null)
+					if (ok)
 					{
 						var _ip = result.IP;
 						var _port = result.port;
-
-						ret = "MYPRE_" + _ip + ":" + _port;
 
 						cr = Home.casa.newBuilder()
 								.setIP(_ip)
 								.setPort(_port)
 								.build();
 					}
-					else
-					{
-						ret = "NOTHING";
-					}
 
 					sr = Common.standardRes.newBuilder()
-							.setOk(true)
-							.setMsg(ret)
+							.setOk(ok)
 							.build();
 				}
 				catch (Exception e)
 				{
 					sr = Common.standardRes.newBuilder()
-							.setOk(true)
+							.setOk(false)
 							.setErrore(e.getMessage())
 							.build();
 				}
@@ -439,34 +429,28 @@ public class gRPCCommander
 
 				try
 				{
-					var ret = "";
 					var result = local.getSuccessor();
+					var ok = (result != null);
 
-					if (result != null)
+					if (ok)
 					{
 						var _ip = result.IP;
 						var _port = result.port;
-						ret = "MYSUCC_" + _ip + ":" + _port;
 
 						cr = Home.casa.newBuilder()
 								.setIP(_ip)
 								.setPort(_port)
 								.build();
 					}
-					else
-					{
-						ret = "NOTHING";
-					}
 
 					sr = Common.standardRes.newBuilder()
-							.setOk(true)
-							.setMsg(ret)
+							.setOk(ok)
 							.build();
 				}
 				catch (Exception e)
 				{
 					sr = Common.standardRes.newBuilder()
-							.setOk(true)
+							.setOk(false)
 							.setErrore(e.getMessage())
 							.build();
 				}
