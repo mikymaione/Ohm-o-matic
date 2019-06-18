@@ -17,4 +17,11 @@ public class NodeLink
 		this.port = port;
 	}
 
+	@Override
+	public String toString()
+	{
+		return IP + ":" + port;
+	}
+
+
 }

@@ -29,19 +29,26 @@ public class FixFingers extends Thread
 	@Override
 	public void run()
 	{
-		while (alive)
-			try
-			{
-				var i = random.nextInt(31) + 2;
-				var iThFinger = local.find_successor(Helper.iThStart(local.getId(), i));
-				local.updateFingers(i, iThFinger);
+		try
+		{
+			fixFingers();
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
 
-				Thread.sleep(500);
-			}
-			catch (Exception e)
-			{
-				e.printStackTrace();
-			}
+	private void fixFingers() throws Exception
+	{
+		while (alive)
+		{
+			var i = random.nextInt(31) + 2;
+			var iThFinger = local.find_successor(Helper.iThStart(local.getId(), i));
+			local.update_finger_table(iThFinger, i);
+
+			Thread.sleep(500);
+		}
 	}
 
 

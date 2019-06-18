@@ -15,7 +15,7 @@ public class Node implements AutoCloseable
 {
 
 	private final long localId;
-	private final NodeLink localAddress;
+	private final NodeLink localNode;
 
 	private NodeLink predecessor;
 
@@ -29,8 +29,8 @@ public class Node implements AutoCloseable
 
 	public Node(NodeLink address) throws Exception
 	{
-		localAddress = address;
-		localId = Helper.hashSocketAddress(localAddress);
+		localNode = address;
+		localId = Helper.hashSocketAddress(localNode);
 
 		for (var i = 1; i <= Helper.mBit; i++)
 			updateIthFinger(i, null);
@@ -43,17 +43,16 @@ public class Node implements AutoCloseable
 		ask_predecessor = new AskPredecessor(this);
 	}
 
-	public boolean join(NodeLink contact) throws Exception
+	//node this joins the network;
+	//s is an arbitrary node in the network
+	public boolean join(NodeLink s) throws Exception
 	{
-		if (contact != null && !contact.equals(localAddress))
+		if (s != null && !s.equals(localNode))
 		{
-			var successor = Helper.requestAddress(contact, Richiesta.FINDSUCC_, localId, "");
+			var successor = Helper.requestAddress(s, Richiesta.FindSuccessor, localId, "");
 
 			if (successor == null)
-			{
-				System.out.println("\nCannot find node you are trying to contact. Please exit.\n");
-				return false;
-			}
+				throw new Exception("Nodo " + s + " non trovato!");
 
 			updateIthFinger(1, successor);
 		}
@@ -66,11 +65,12 @@ public class Node implements AutoCloseable
 		return true;
 	}
 
-	public String notify(NodeLink successor) throws Exception
+	//s thinks it might be our predecessor
+	public String notify(NodeLink s) throws Exception
 	{
-		if (successor != null && !successor.equals(localAddress))
+		if (s != null && !s.equals(localNode))
 		{
-			var v = Helper.<Home.casaRes>sendRequest(successor, Richiesta.IAMPRE_, -1, localAddress.IP + ":" + localAddress.port);
+			var v = Helper.<Home.casaRes>sendRequest(s, Richiesta.ImPredecessor, -1, localNode.IP + ":" + localNode.port);
 
 			return v.getStandardRes().getMsg();
 		}
@@ -82,7 +82,7 @@ public class Node implements AutoCloseable
 
 	public void notified(NodeLink newpre)
 	{
-		if (predecessor == null || predecessor.equals(localAddress))
+		if (predecessor == null || predecessor.equals(localNode))
 		{
 			this.setPredecessor(newpre);
 		}
@@ -102,25 +102,26 @@ public class Node implements AutoCloseable
 		NodeLink ret = this.getSuccessor();
 		NodeLink pre = find_predecessor(id);
 
-		if (!pre.equals(localAddress))
-			ret = Helper.requestAddress(pre, Richiesta.YOURSUCC);
+		if (!pre.equals(localNode))
+			ret = Helper.requestAddress(pre, Richiesta.Successor);
 
 		if (ret == null)
-			ret = localAddress;
+			ret = localNode;
 
 		return ret;
 	}
 
+	//ask node this to find id's predecessor
 	private NodeLink find_predecessor(long findid) throws Exception
 	{
-		NodeLink n = this.localAddress;
-		NodeLink n_successor = this.getSuccessor();
-		NodeLink most_recently_alive = this.localAddress;
+		NodeLink n = this.localNode;
+		NodeLink s = this.getSuccessor();
+		NodeLink most_recently_alive = this.localNode;
 
 		var n_successor_relative_id = 0L;
 
-		if (n_successor != null)
-			n_successor_relative_id = Helper.computeRelativeId(Helper.hashSocketAddress(n_successor), Helper.hashSocketAddress(n));
+		if (s != null)
+			n_successor_relative_id = Helper.computeRelativeId(Helper.hashSocketAddress(s), Helper.hashSocketAddress(n));
 
 		long findid_relative_id = Helper.computeRelativeId(findid, Helper.hashSocketAddress(n));
 
@@ -128,23 +129,23 @@ public class Node implements AutoCloseable
 		{
 			NodeLink pre_n = n;
 
-			if (n.equals(this.localAddress))
+			if (n.equals(this.localNode))
 			{
 				n = this.closest_preceding_finger(findid);
 			}
 			else
 			{
-				NodeLink result = Helper.requestAddress(n, Richiesta.CLOSEST_, findid, "");
+				NodeLink result = Helper.requestAddress(n, Richiesta.ClosestPrecedingFinger, findid, "");
 
 				if (result == null)
 				{
 					n = most_recently_alive;
-					n_successor = Helper.requestAddress(n, Richiesta.YOURSUCC);
+					s = Helper.requestAddress(n, Richiesta.Successor);
 
-					if (n_successor == null)
+					if (s == null)
 					{
 						System.out.println("It's not possible.");
-						return localAddress;
+						return localNode;
 					}
 
 					continue;
@@ -157,15 +158,15 @@ public class Node implements AutoCloseable
 				{
 					most_recently_alive = n;
 
-					n_successor = Helper.requestAddress(result, Richiesta.YOURSUCC);
+					s = Helper.requestAddress(result, Richiesta.Successor);
 
-					if (n_successor != null)
+					if (s != null)
 						n = result;
 					else
-						n_successor = Helper.requestAddress(n, Richiesta.YOURSUCC);
+						s = Helper.requestAddress(n, Richiesta.Successor);
 				}
 
-				n_successor_relative_id = Helper.computeRelativeId(Helper.hashSocketAddress(n_successor), Helper.hashSocketAddress(n));
+				n_successor_relative_id = Helper.computeRelativeId(Helper.hashSocketAddress(s), Helper.hashSocketAddress(n));
 				findid_relative_id = Helper.computeRelativeId(findid, Helper.hashSocketAddress(n));
 			}
 
@@ -175,6 +176,7 @@ public class Node implements AutoCloseable
 		return n;
 	}
 
+	//return closest finger preceding id
 	public NodeLink closest_preceding_finger(long findid) throws Exception
 	{
 		long findid_relative = Helper.computeRelativeId(findid, localId);
@@ -191,26 +193,27 @@ public class Node implements AutoCloseable
 
 			if (ith_finger_relative_id > 0 && ith_finger_relative_id < findid_relative)
 			{
-				var response = Helper.<Common.standardRes>sendRequest(ith_finger, Richiesta.KEEP);
+				var response = Helper.<Common.standardRes>sendRequest(ith_finger, Richiesta.Ping);
 
 				if (response != null && response.getMsg().equals("ALIVE"))
 					return ith_finger;
 				else
-					updateFingers(-2, ith_finger);
+					update_finger_table(ith_finger, -2);
 			}
 		}
 
-		return localAddress;
+		return localNode;
 	}
 
-	public synchronized void updateFingers(int i, NodeLink value) throws Exception
+	//if s is iTh finger of this, update n's finger table with s
+	public synchronized void update_finger_table(NodeLink s, int i) throws Exception
 	{
 		if (i > 0 && i <= Helper.mBit)
-			updateIthFinger(i, value);
+			updateIthFinger(i, s);
 		else if (i == -1)
 			deleteSuccessor();
 		else if (i == -2)
-			deleteCertainFinger(value);
+			deleteCertainFinger(s);
 		else if (i == -3)
 			fillSuccessor();
 	}
@@ -219,7 +222,7 @@ public class Node implements AutoCloseable
 	{
 		finger.put(i, value);
 
-		if (i == 1 && value != null && !value.equals(localAddress))
+		if (i == 1 && value != null && !value.equals(localNode))
 			notify(value);
 	}
 
@@ -248,19 +251,19 @@ public class Node implements AutoCloseable
 		fillSuccessor();
 		successor = getSuccessor();
 
-		if ((successor == null || successor.equals(successor)) && predecessor != null && !predecessor.equals(localAddress))
+		if ((successor == null || successor.equals(successor)) && predecessor != null && !predecessor.equals(localNode))
 		{
 			NodeLink p = predecessor;
 			NodeLink p_pre = null;
 
 			while (true)
 			{
-				p_pre = Helper.requestAddress(p, Richiesta.YOURPRE);
+				p_pre = Helper.requestAddress(p, Richiesta.Predecessor);
 
 				if (p_pre == null)
 					break;
 
-				if (p_pre.equals(p) || p_pre.equals(localAddress) || p_pre.equals(successor))
+				if (p_pre.equals(p) || p_pre.equals(localNode) || p_pre.equals(successor))
 					break;
 				else
 					p = p_pre;
@@ -284,12 +287,12 @@ public class Node implements AutoCloseable
 	{
 		NodeLink successor = this.getSuccessor();
 
-		if (successor == null || successor.equals(localAddress))
+		if (successor == null || successor.equals(localNode))
 			for (var i = 2; i <= Helper.mBit; i++)
 			{
 				NodeLink ithfinger = finger.get(i);
 
-				if (ithfinger != null && !ithfinger.equals(localAddress))
+				if (ithfinger != null && !ithfinger.equals(localNode))
 				{
 					for (var j = i - 1; j >= 1; j--)
 						updateIthFinger(j, ithfinger);
@@ -300,7 +303,7 @@ public class Node implements AutoCloseable
 
 		successor = getSuccessor();
 
-		if ((successor == null || successor.equals(localAddress)) && predecessor != null && !predecessor.equals(localAddress))
+		if ((successor == null || successor.equals(localNode)) && predecessor != null && !predecessor.equals(localNode))
 			updateIthFinger(1, predecessor);
 	}
 
@@ -321,7 +324,7 @@ public class Node implements AutoCloseable
 
 	public NodeLink getAddress()
 	{
-		return localAddress;
+		return localNode;
 	}
 
 	public NodeLink getPredecessor()
@@ -339,10 +342,10 @@ public class Node implements AutoCloseable
 
 	public void printNeighbors()
 	{
-		System.out.println("\nYou are listening on port " + localAddress.port + "." + "\nYour position is " + Helper.hexIdAndPosition(localAddress) + ".");
+		System.out.println("\nYou are listening on port " + localNode.port + "." + "\nYour position is " + Helper.hexIdAndPosition(localNode) + ".");
 		NodeLink successor = finger.get(1);
 
-		if ((predecessor == null || predecessor.equals(localAddress)) && (successor == null || successor.equals(localAddress)))
+		if ((predecessor == null || predecessor.equals(localNode)) && (successor == null || successor.equals(localNode)))
 		{
 			System.out.println("Your predecessor is yourself.");
 			System.out.println("Your successor is yourself.");
@@ -364,7 +367,7 @@ public class Node implements AutoCloseable
 	public void printDataStructure()
 	{
 		System.out.println("\n==============================================================");
-		System.out.println("\nLOCAL:\t\t\t\t" + localAddress.toString() + "\t" + Helper.hexIdAndPosition(localAddress));
+		System.out.println("\nLOCAL:\t\t\t\t" + localNode.toString() + "\t" + Helper.hexIdAndPosition(localNode));
 
 		if (predecessor != null)
 			System.out.println("\nPREDECESSOR:\t\t\t" + predecessor.toString() + "\t" + Helper.hexIdAndPosition(predecessor));
@@ -375,7 +378,7 @@ public class Node implements AutoCloseable
 
 		for (var i = 1; i <= Helper.mBit; i++)
 		{
-			long ithstart = Helper.iThStart(Helper.hashSocketAddress(localAddress), i);
+			long ithstart = Helper.iThStart(Helper.hashSocketAddress(localNode), i);
 
 			NodeLink f = finger.get(i);
 

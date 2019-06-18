@@ -25,45 +25,36 @@ public class Stabilize extends Thread
 	@Override
 	public void run()
 	{
+		try
+		{
+			stabilize();
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	//periodically verify this's immediatre succesor;
+	//and tell the successor about this
+	private void stabilize() throws Exception
+	{
 		while (alive)
 		{
 			NodeLink successor = local.getSuccessor();
 
 			if (successor == null || successor.equals(local.getAddress()))
-				try
-				{
-					local.updateFingers(-3, null); //fill
-				}
-				catch (Exception e)
-				{
-					e.printStackTrace();
-				}
+				local.update_finger_table(null, -3); //fill
 
 			successor = local.getSuccessor();
 
 			if (successor != null && !successor.equals(local.getAddress()))
 			{
-				NodeLink x = null;
-
-				try
-				{
-					x = Helper.requestAddress(successor, Richiesta.YOURPRE);
-				}
-				catch (Exception e)
-				{
-					e.printStackTrace();
-				}
+				NodeLink x = Helper.requestAddress(successor, Richiesta.Predecessor);
 
 				if (x == null)
 				{
-					try
-					{
-						local.updateFingers(-1, null);
-					}
-					catch (Exception e)
-					{
-						e.printStackTrace();
-					}
+					local.update_finger_table(null, -1);
 				}
 				else if (!x.equals(successor))
 				{
@@ -72,36 +63,15 @@ public class Stabilize extends Thread
 					long x_relative_id = Helper.computeRelativeId(Helper.hashSocketAddress(x), local_id);
 
 					if (x_relative_id > 0 && x_relative_id < successor_relative_id)
-						try
-						{
-							local.updateFingers(1, x);
-						}
-						catch (Exception e)
-						{
-							e.printStackTrace();
-						}
+						local.update_finger_table(x, 1);
 				}
 				else
 				{
-					try
-					{
-						local.notify(successor);
-					}
-					catch (Exception e)
-					{
-						e.printStackTrace();
-					}
+					local.notify(successor);
 				}
 			}
 
-			try
-			{
-				Thread.sleep(60);
-			}
-			catch (InterruptedException e)
-			{
-				e.printStackTrace();
-			}
+			Thread.sleep(60);
 		}
 	}
 

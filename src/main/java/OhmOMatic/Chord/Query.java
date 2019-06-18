@@ -29,7 +29,7 @@ public class Query
 
 			// successfully constructed socket address of the node we are 
 			// trying to contact, check if it's alive
-			var response = Helper.<Common.standardRes>sendRequest(localAddress, Richiesta.KEEP);
+			var response = Helper.<Common.standardRes>sendRequest(localAddress, Richiesta.Ping);
 
 			// if it's dead, exit
 			if (response == null || !response.getMsg().equals("ALIVE"))
@@ -45,8 +45,8 @@ public class Query
 			var pred = false;
 			var succ = false;
 
-			NodeLink pred_addr = Helper.requestAddress(localAddress, Richiesta.YOURPRE);
-			NodeLink succ_addr = Helper.requestAddress(localAddress, Richiesta.YOURSUCC);
+			NodeLink pred_addr = Helper.requestAddress(localAddress, Richiesta.Predecessor);
+			NodeLink succ_addr = Helper.requestAddress(localAddress, Richiesta.Successor);
 
 			if (pred_addr == null || succ_addr == null)
 			{
@@ -65,8 +65,8 @@ public class Query
 			{
 				System.out.println("Waiting for the system to be stable...");
 
-				pred_addr = Helper.requestAddress(localAddress, Richiesta.YOURPRE);
-				succ_addr = Helper.requestAddress(localAddress, Richiesta.YOURSUCC);
+				pred_addr = Helper.requestAddress(localAddress, Richiesta.Predecessor);
+				succ_addr = Helper.requestAddress(localAddress, Richiesta.Successor);
 
 				if (pred_addr == null || succ_addr == null)
 				{
@@ -113,7 +113,7 @@ public class Query
 						long hash = Helper.hashString(command);
 						System.out.println("\nHash value is " + Long.toHexString(hash));
 
-						NodeLink result = Helper.requestAddress(localAddress, Richiesta.FINDSUCC_, hash, "");
+						NodeLink result = Helper.requestAddress(localAddress, Richiesta.FindSuccessor, hash, "");
 
 						// if fail to send request, local node is disconnected, exit
 						if (result == null)

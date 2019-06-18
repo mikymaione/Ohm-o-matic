@@ -27,37 +27,33 @@ public class AskPredecessor extends Thread
 	@Override
 	public void run()
 	{
+		try
+		{
+			askPredecessor();
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	private void askPredecessor() throws Exception
+	{
 		while (alive)
 		{
 			NodeLink predecessor = local.getPredecessor();
 
 			if (predecessor != null)
 			{
-				String response = null;
+				var r = Helper.<Common.standardRes>sendRequest(predecessor, Richiesta.Ping);
 
-				try
-				{
-					var r = Helper.<Common.standardRes>sendRequest(predecessor, Richiesta.KEEP);
-
-					response = r.getMsg();
-				}
-				catch (Exception e)
-				{
-					e.printStackTrace();
-				}
+				var response = r.getMsg();
 
 				if (response == null || !response.equals("ALIVE"))
 					local.clearPredecessor();
 			}
 
-			try
-			{
-				Thread.sleep(500);
-			}
-			catch (InterruptedException e)
-			{
-				e.printStackTrace();
-			}
+			Thread.sleep(500);
 		}
 	}
 

@@ -36,16 +36,21 @@ public class Listener extends Thread
 	{
 		try
 		{
-			gRPC_listner = ServerBuilder
-					.forPort(port)
-					.addService(Helper.getListnerServer(local))
-					.build()
-					.start();
+			listener();
 		}
 		catch (IOException e)
 		{
-			throw new RuntimeException("Cannot talk.\nServer port: " + local.getAddress().port + "; Talker port: " + port, e);
+			throw new RuntimeException("Impossibile mettersi in comunicazione da " + port + " a " + local, e);
 		}
+	}
+
+	private void listener() throws IOException
+	{
+		gRPC_listner = ServerBuilder
+				.forPort(port)
+				.addService(Helper.getListnerServer(local))
+				.build()
+				.start();
 	}
 
 

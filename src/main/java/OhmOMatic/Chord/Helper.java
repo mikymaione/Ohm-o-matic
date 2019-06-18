@@ -197,32 +197,32 @@ public class Helper
 				case esciDalCondominio:
 					throw new UnsupportedOperationException();
 
-				case FINDSUCC_:
+				case FindSuccessor:
 					var R3 = stub.fINDSUCC(c);
 					gestioneErroreRequest(R3.getStandardRes());
 					return (A) R3;
 
-				case IAMPRE_:
+				case ImPredecessor:
 					var R4 = stub.iAMPRE(c);
 					gestioneErroreRequest(R4.getStandardRes());
 					return (A) R4;
 
-				case KEEP:
+				case Ping:
 					var R5 = stub.kEEP(c);
 					gestioneErroreRequest(R5);
 					return (A) R5;
 
-				case YOURPRE:
+				case Predecessor:
 					var R6 = stub.yOURPRE(c);
 					gestioneErroreRequest(R6.getStandardRes());
 					return (A) R6;
 
-				case YOURSUCC:
+				case Successor:
 					var R7 = stub.yOURPRE(c);
 					gestioneErroreRequest(R7.getStandardRes());
 					return (A) R7;
 
-				case CLOSEST_:
+				case ClosestPrecedingFinger:
 					var R8 = stub.yOURPRE(c);
 					gestioneErroreRequest(R8.getStandardRes());
 					return (A) R8;

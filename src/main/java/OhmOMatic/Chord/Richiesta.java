@@ -12,11 +12,11 @@ public enum Richiesta
 	esciDalCondominio,
 	requestAddress,
 
-	FINDSUCC_,
-	CLOSEST_,
-	IAMPRE_,
+	FindSuccessor,
+	ClosestPrecedingFinger,
+	ImPredecessor,
 
-	YOURPRE,
-	YOURSUCC,
-	KEEP
+	Predecessor,
+	Successor,
+	Ping
 }
