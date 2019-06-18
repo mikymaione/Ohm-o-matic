@@ -6,7 +6,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Chord;
 
-import OhmOMatic.Chord.FN.Helper;
+import OhmOMatic.Chord.FN.gRPCCommander;
 
 import java.util.Random;
 
@@ -46,7 +46,7 @@ public class FixFingers extends Thread
 		while (alive)
 		{
 			var i = random.nextInt(31) + 2;
-			var iThFinger = local.find_successor(Helper.iThStart(local.getId(), i));
+			var iThFinger = local.find_successor(gRPCCommander.iThStart(local.getId(), i));
 			local.update_finger_table(iThFinger, i);
 
 			Thread.sleep(500);

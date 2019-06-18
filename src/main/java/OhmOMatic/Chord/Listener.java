@@ -6,7 +6,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Chord;
 
-import OhmOMatic.Chord.FN.Helper;
+import OhmOMatic.Chord.FN.gRPCCommander;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 
@@ -49,7 +49,7 @@ public class Listener extends Thread
 	{
 		gRPC_listner = ServerBuilder
 				.forPort(port)
-				.addService(Helper.getListnerServer(local))
+				.addService(gRPCCommander.getListnerServer(local))
 				.build()
 				.start();
 	}

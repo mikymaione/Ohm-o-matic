@@ -16,7 +16,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 
-public class Helper
+public class gRPCCommander
 {
 
 	public static final int mBit = 32;
@@ -104,7 +104,7 @@ public class Helper
 		long ret = universal - local;
 
 		if (ret < 0)
-			ret += getPowerOfTwo(Helper.mBit);
+			ret += getPowerOfTwo(gRPCCommander.mBit);
 
 		return ret;
 	}
@@ -113,7 +113,7 @@ public class Helper
 	{
 		long hash = hashNodeLink(addr);
 
-		return (longTo8DigitHex(hash) + " (" + hash * 100 / Helper.getPowerOfTwo(Helper.mBit) + "%)");
+		return (longTo8DigitHex(hash) + " (" + hash * 100 / gRPCCommander.getPowerOfTwo(gRPCCommander.mBit) + "%)");
 	}
 
 	public static String longTo8DigitHex(long l)
@@ -133,7 +133,7 @@ public class Helper
 
 	public static long iThStart(long nodeid, int i)
 	{
-		return (nodeid + getPowerOfTwo(i - 1)) % getPowerOfTwo(Helper.mBit);
+		return (nodeid + getPowerOfTwo(i - 1)) % getPowerOfTwo(gRPCCommander.mBit);
 	}
 
 	public static NodeLink requestAddress(NodeLink server, Richiesta req) throws Exception
@@ -146,7 +146,7 @@ public class Helper
 		if (server == null || req == null)
 			return null;
 
-		var request = Helper.<Home.casaRes>sendRequest(server, req, localID, indirizzo);
+		var request = gRPCCommander.<Home.casaRes>sendRequest(server, req, localID, indirizzo);
 
 		if (request == null)
 		{

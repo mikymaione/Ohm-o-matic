@@ -6,7 +6,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Cli;
 
-import OhmOMatic.Chord.FN.Helper;
+import OhmOMatic.Chord.FN.gRPCCommander;
 import OhmOMatic.Chord.FN.NodeLink;
 import OhmOMatic.Chord.FN.Richiesta;
 import OhmOMatic.ProtoBuffer.Common;
@@ -32,7 +32,7 @@ public class Query
 
 			// successfully constructed socket address of the node we are 
 			// trying to contact, check if it's alive
-			var response = Helper.<Common.standardRes>sendRequest(localAddress, Richiesta.Ping);
+			var response = gRPCCommander.<Common.standardRes>sendRequest(localAddress, Richiesta.Ping);
 
 			// if it's dead, exit
 			if (response == null || !response.getMsg().equals("ALIVE"))
@@ -42,14 +42,14 @@ public class Query
 			}
 
 			// it's alive, print connection info
-			System.out.println("Connection to node " + localAddress.IP + ", port " + localAddress.port + ", position " + Helper.hexIdAndPosition(localAddress) + ".");
+			System.out.println("Connection to node " + localAddress.IP + ", port " + localAddress.port + ", position " + gRPCCommander.hexIdAndPosition(localAddress) + ".");
 
 			// check if system is stable
 			var pred = false;
 			var succ = false;
 
-			NodeLink pred_addr = Helper.requestAddress(localAddress, Richiesta.Predecessor);
-			NodeLink succ_addr = Helper.requestAddress(localAddress, Richiesta.Successor);
+			NodeLink pred_addr = gRPCCommander.requestAddress(localAddress, Richiesta.Predecessor);
+			NodeLink succ_addr = gRPCCommander.requestAddress(localAddress, Richiesta.Successor);
 
 			if (pred_addr == null || succ_addr == null)
 			{
@@ -68,8 +68,8 @@ public class Query
 			{
 				System.out.println("Waiting for the system to be stable...");
 
-				pred_addr = Helper.requestAddress(localAddress, Richiesta.Predecessor);
-				succ_addr = Helper.requestAddress(localAddress, Richiesta.Successor);
+				pred_addr = gRPCCommander.requestAddress(localAddress, Richiesta.Predecessor);
+				succ_addr = gRPCCommander.requestAddress(localAddress, Richiesta.Successor);
 
 				if (pred_addr == null || succ_addr == null)
 				{
@@ -113,10 +113,10 @@ public class Query
 					else if (command.length() > 0)
 					{
 						// search
-						long hash = Helper.hashString(command);
+						long hash = gRPCCommander.hashString(command);
 						System.out.println("\nHash value is " + Long.toHexString(hash));
 
-						NodeLink result = Helper.requestAddress(localAddress, Richiesta.FindSuccessor, hash, "");
+						NodeLink result = gRPCCommander.requestAddress(localAddress, Richiesta.FindSuccessor, hash, "");
 
 						// if fail to send request, local node is disconnected, exit
 						if (result == null)
@@ -126,8 +126,8 @@ public class Query
 						}
 
 						// print out response
-						System.out.println("\nResponse from node " + localAddress.IP + ", port " + localAddress.port + ", position " + Helper.hexIdAndPosition(localAddress) + ":");
-						System.out.println("Node " + result.IP + ", port " + result.port + ", position " + Helper.hexIdAndPosition(result));
+						System.out.println("\nResponse from node " + localAddress.IP + ", port " + localAddress.port + ", position " + gRPCCommander.hexIdAndPosition(localAddress) + ":");
+						System.out.println("Node " + result.IP + ", port " + result.port + ", position " + gRPCCommander.hexIdAndPosition(result));
 					}
 				}
 			}

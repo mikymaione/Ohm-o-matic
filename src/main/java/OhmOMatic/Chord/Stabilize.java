@@ -6,7 +6,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Chord;
 
-import OhmOMatic.Chord.FN.Helper;
+import OhmOMatic.Chord.FN.gRPCCommander;
 import OhmOMatic.Chord.FN.NodeLink;
 import OhmOMatic.Chord.FN.Richiesta;
 
@@ -54,7 +54,7 @@ public class Stabilize extends Thread
 
 			if (successor != null && !successor.equals(local.getAddress()))
 			{
-				NodeLink x = Helper.requestAddress(successor, Richiesta.Predecessor);
+				NodeLink x = gRPCCommander.requestAddress(successor, Richiesta.Predecessor);
 
 				if (x == null)
 				{
@@ -62,9 +62,9 @@ public class Stabilize extends Thread
 				}
 				else if (!x.equals(successor))
 				{
-					long local_id = Helper.hashNodeLink(local.getAddress());
-					long successor_relative_id = Helper.computeRelativeId(Helper.hashNodeLink(successor), local_id);
-					long x_relative_id = Helper.computeRelativeId(Helper.hashNodeLink(x), local_id);
+					long local_id = gRPCCommander.hashNodeLink(local.getAddress());
+					long successor_relative_id = gRPCCommander.computeRelativeId(gRPCCommander.hashNodeLink(successor), local_id);
+					long x_relative_id = gRPCCommander.computeRelativeId(gRPCCommander.hashNodeLink(x), local_id);
 
 					if (x_relative_id > 0 && x_relative_id < successor_relative_id)
 						local.update_finger_table(x, 1);

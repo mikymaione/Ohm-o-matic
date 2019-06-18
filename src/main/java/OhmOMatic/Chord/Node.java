@@ -6,7 +6,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Chord;
 
-import OhmOMatic.Chord.FN.Helper;
+import OhmOMatic.Chord.FN.gRPCCommander;
 import OhmOMatic.Chord.FN.NodeLink;
 import OhmOMatic.Chord.FN.Richiesta;
 import OhmOMatic.ProtoBuffer.Common;
@@ -33,9 +33,9 @@ public class Node implements AutoCloseable
 	public Node(NodeLink address) throws Exception
 	{
 		localNode = address;
-		localId = Helper.hashNodeLink(localNode);
+		localId = gRPCCommander.hashNodeLink(localNode);
 
-		for (var i = 1; i <= Helper.mBit; i++)
+		for (var i = 1; i <= gRPCCommander.mBit; i++)
 			updateIthFinger(i, null);
 
 		predecessor = null;
@@ -52,7 +52,7 @@ public class Node implements AutoCloseable
 	{
 		if (s != null && !s.equals(localNode))
 		{
-			var successor = Helper.requestAddress(s, Richiesta.FindSuccessor, localId, "");
+			var successor = gRPCCommander.requestAddress(s, Richiesta.FindSuccessor, localId, "");
 
 			if (successor == null)
 				throw new Exception("Nodo " + s + " non trovato!");
@@ -73,7 +73,7 @@ public class Node implements AutoCloseable
 	{
 		if (s != null && !s.equals(localNode))
 		{
-			var v = Helper.<Home.casaRes>sendRequest(s, Richiesta.ImPredecessor, -1, localNode.IP + ":" + localNode.port);
+			var v = gRPCCommander.<Home.casaRes>sendRequest(s, Richiesta.ImPredecessor, -1, localNode.IP + ":" + localNode.port);
 
 			return v.getStandardRes().getMsg();
 		}
@@ -91,9 +91,9 @@ public class Node implements AutoCloseable
 		}
 		else
 		{
-			long oldpre_id = Helper.hashNodeLink(predecessor);
-			long local_relative_id = Helper.computeRelativeId(localId, oldpre_id);
-			long newpre_relative_id = Helper.computeRelativeId(Helper.hashNodeLink(newpre), oldpre_id);
+			long oldpre_id = gRPCCommander.hashNodeLink(predecessor);
+			long local_relative_id = gRPCCommander.computeRelativeId(localId, oldpre_id);
+			long newpre_relative_id = gRPCCommander.computeRelativeId(gRPCCommander.hashNodeLink(newpre), oldpre_id);
 
 			if (newpre_relative_id > 0 && newpre_relative_id < local_relative_id)
 				this.setPredecessor(newpre);
@@ -111,7 +111,7 @@ public class Node implements AutoCloseable
 		}
 		else
 		{
-			NodeLink n = Helper.requestAddress(pre, Richiesta.Successor);
+			NodeLink n = gRPCCommander.requestAddress(pre, Richiesta.Successor);
 
 			return (n == null ? localNode : n);
 		}
@@ -127,9 +127,9 @@ public class Node implements AutoCloseable
 		long n_successor_relative_id = 0;
 
 		if (s != null)
-			n_successor_relative_id = Helper.computeRelativeId(Helper.hashNodeLink(s), Helper.hashNodeLink(n));
+			n_successor_relative_id = gRPCCommander.computeRelativeId(gRPCCommander.hashNodeLink(s), gRPCCommander.hashNodeLink(n));
 
-		long findid_relative_id = Helper.computeRelativeId(findid, Helper.hashNodeLink(n));
+		long findid_relative_id = gRPCCommander.computeRelativeId(findid, gRPCCommander.hashNodeLink(n));
 
 		while (!(findid_relative_id > 0 && findid_relative_id <= n_successor_relative_id))
 		{
@@ -141,12 +141,12 @@ public class Node implements AutoCloseable
 			}
 			else
 			{
-				NodeLink result = Helper.requestAddress(n, Richiesta.ClosestPrecedingFinger, findid, "");
+				NodeLink result = gRPCCommander.requestAddress(n, Richiesta.ClosestPrecedingFinger, findid, "");
 
 				if (result == null)
 				{
 					n = most_recently_alive;
-					s = Helper.requestAddress(n, Richiesta.Successor);
+					s = gRPCCommander.requestAddress(n, Richiesta.Successor);
 
 					if (s == null)
 						return localNode;
@@ -161,16 +161,16 @@ public class Node implements AutoCloseable
 				{
 					most_recently_alive = n;
 
-					s = Helper.requestAddress(result, Richiesta.Successor);
+					s = gRPCCommander.requestAddress(result, Richiesta.Successor);
 
 					if (s == null)
-						s = Helper.requestAddress(n, Richiesta.Successor);
+						s = gRPCCommander.requestAddress(n, Richiesta.Successor);
 					else
 						n = result;
 				}
 
-				n_successor_relative_id = Helper.computeRelativeId(Helper.hashNodeLink(s), Helper.hashNodeLink(n));
-				findid_relative_id = Helper.computeRelativeId(findid, Helper.hashNodeLink(n));
+				n_successor_relative_id = gRPCCommander.computeRelativeId(gRPCCommander.hashNodeLink(s), gRPCCommander.hashNodeLink(n));
+				findid_relative_id = gRPCCommander.computeRelativeId(findid, gRPCCommander.hashNodeLink(n));
 			}
 
 			if (pre_n.equals(n))
@@ -183,21 +183,21 @@ public class Node implements AutoCloseable
 	//return closest finger preceding id
 	public NodeLink closest_preceding_finger(long findid) throws Exception
 	{
-		long findid_relative = Helper.computeRelativeId(findid, localId);
+		long findid_relative = gRPCCommander.computeRelativeId(findid, localId);
 
-		for (var i = Helper.mBit; i > 0; i--)
+		for (var i = gRPCCommander.mBit; i > 0; i--)
 		{
 			NodeLink ith_finger = finger.get(i);
 
 			if (ith_finger == null)
 				continue;
 
-			long ith_finger_id = Helper.hashNodeLink(ith_finger);
-			long ith_finger_relative_id = Helper.computeRelativeId(ith_finger_id, localId);
+			long ith_finger_id = gRPCCommander.hashNodeLink(ith_finger);
+			long ith_finger_relative_id = gRPCCommander.computeRelativeId(ith_finger_id, localId);
 
 			if (ith_finger_relative_id > 0 && ith_finger_relative_id < findid_relative)
 			{
-				var response = Helper.<Common.standardRes>sendRequest(ith_finger, Richiesta.Ping);
+				var response = gRPCCommander.<Common.standardRes>sendRequest(ith_finger, Richiesta.Ping);
 
 				if (response != null && response.getMsg().equals("ALIVE"))
 					return ith_finger;
@@ -212,7 +212,7 @@ public class Node implements AutoCloseable
 	//if s is iTh finger of this, update n's finger table with s
 	public synchronized void update_finger_table(NodeLink s, int i) throws Exception
 	{
-		if (i > 0 && i <= Helper.mBit)
+		if (i > 0 && i <= gRPCCommander.mBit)
 			updateIthFinger(i, s);
 		else if (i == -1)
 			deleteSuccessor();
@@ -237,8 +237,8 @@ public class Node implements AutoCloseable
 		if (successor == null)
 			return;
 
-		var i = Helper.mBit;
-		for (i = Helper.mBit; i > 0; i--)
+		var i = gRPCCommander.mBit;
+		for (i = gRPCCommander.mBit; i > 0; i--)
 		{
 			NodeLink ithfinger = finger.get(i);
 
@@ -262,7 +262,7 @@ public class Node implements AutoCloseable
 
 			while (true)
 			{
-				p_pre = Helper.requestAddress(p, Richiesta.Predecessor);
+				p_pre = gRPCCommander.requestAddress(p, Richiesta.Predecessor);
 
 				if (p_pre == null)
 					break;
@@ -279,7 +279,7 @@ public class Node implements AutoCloseable
 
 	private void deleteCertainFinger(NodeLink f)
 	{
-		for (var i = Helper.mBit; i > 0; i--)
+		for (var i = gRPCCommander.mBit; i > 0; i--)
 		{
 			NodeLink ithFinger = finger.get(i);
 
@@ -293,7 +293,7 @@ public class Node implements AutoCloseable
 		NodeLink successor = this.getSuccessor();
 
 		if (successor == null || successor.equals(localNode))
-			for (var i = 2; i <= Helper.mBit; i++)
+			for (var i = 2; i <= gRPCCommander.mBit; i++)
 			{
 				NodeLink ithfinger = finger.get(i);
 
@@ -347,7 +347,7 @@ public class Node implements AutoCloseable
 
 	public void printNeighbors()
 	{
-		System.out.println("\nYou are listening on port " + localNode.port + "." + "\nYour position is " + Helper.hexIdAndPosition(localNode) + ".");
+		System.out.println("\nYou are listening on port " + localNode.port + "." + "\nYour position is " + gRPCCommander.hexIdAndPosition(localNode) + ".");
 		NodeLink successor = finger.get(1);
 
 		if ((predecessor == null || predecessor.equals(localNode)) && (successor == null || successor.equals(localNode)))
@@ -358,12 +358,12 @@ public class Node implements AutoCloseable
 		else
 		{
 			if (predecessor != null)
-				System.out.println("Your predecessor is node " + predecessor.IP + ", " + "port " + predecessor.port + ", position " + Helper.hexIdAndPosition(predecessor) + ".");
+				System.out.println("Your predecessor is node " + predecessor.IP + ", " + "port " + predecessor.port + ", position " + gRPCCommander.hexIdAndPosition(predecessor) + ".");
 			else
 				System.out.println("Your predecessor is updating.");
 
 			if (successor != null)
-				System.out.println("Your successor is node " + successor.IP + ", " + "port " + successor.port + ", position " + Helper.hexIdAndPosition(successor) + ".");
+				System.out.println("Your successor is node " + successor.IP + ", " + "port " + successor.port + ", position " + gRPCCommander.hexIdAndPosition(successor) + ".");
 			else
 				System.out.println("Your successor is updating.");
 		}
@@ -372,27 +372,27 @@ public class Node implements AutoCloseable
 	public void printDataStructure()
 	{
 		System.out.println("\n==============================================================");
-		System.out.println("\nLOCAL:\t\t\t\t" + localNode.toString() + "\t" + Helper.hexIdAndPosition(localNode));
+		System.out.println("\nLOCAL:\t\t\t\t" + localNode.toString() + "\t" + gRPCCommander.hexIdAndPosition(localNode));
 
 		if (predecessor != null)
-			System.out.println("\nPREDECESSOR:\t\t\t" + predecessor.toString() + "\t" + Helper.hexIdAndPosition(predecessor));
+			System.out.println("\nPREDECESSOR:\t\t\t" + predecessor.toString() + "\t" + gRPCCommander.hexIdAndPosition(predecessor));
 		else
 			System.out.println("\nPREDECESSOR:\t\t\tNULL");
 
 		System.out.println("\nFINGER TABLE:\n");
 
-		for (var i = 1; i <= Helper.mBit; i++)
+		for (var i = 1; i <= gRPCCommander.mBit; i++)
 		{
-			long ithstart = Helper.iThStart(Helper.hashNodeLink(localNode), i);
+			long ithstart = gRPCCommander.iThStart(gRPCCommander.hashNodeLink(localNode), i);
 
 			NodeLink f = finger.get(i);
 
 			StringBuilder sb = new StringBuilder();
 
-			sb.append(i + "\t" + Helper.longTo8DigitHex(ithstart) + "\t\t");
+			sb.append(i + "\t" + gRPCCommander.longTo8DigitHex(ithstart) + "\t\t");
 
 			if (f != null)
-				sb.append(f.toString() + "\t" + Helper.hexIdAndPosition(f));
+				sb.append(f.toString() + "\t" + gRPCCommander.hexIdAndPosition(f));
 			else
 				sb.append("NULL");
 
