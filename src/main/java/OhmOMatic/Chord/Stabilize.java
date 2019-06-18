@@ -62,9 +62,9 @@ public class Stabilize extends Thread
 				}
 				else if (!x.equals(successor))
 				{
-					long local_id = Helper.hashSocketAddress(local.getAddress());
-					long successor_relative_id = Helper.computeRelativeId(Helper.hashSocketAddress(successor), local_id);
-					long x_relative_id = Helper.computeRelativeId(Helper.hashSocketAddress(x), local_id);
+					long local_id = Helper.hashNodeLink(local.getAddress());
+					long successor_relative_id = Helper.computeRelativeId(Helper.hashNodeLink(successor), local_id);
+					long x_relative_id = Helper.computeRelativeId(Helper.hashNodeLink(x), local_id);
 
 					if (x_relative_id > 0 && x_relative_id < successor_relative_id)
 						local.update_finger_table(x, 1);

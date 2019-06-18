@@ -33,7 +33,7 @@ public class Node implements AutoCloseable
 	public Node(NodeLink address) throws Exception
 	{
 		localNode = address;
-		localId = Helper.hashSocketAddress(localNode);
+		localId = Helper.hashNodeLink(localNode);
 
 		for (var i = 1; i <= Helper.mBit; i++)
 			updateIthFinger(i, null);
@@ -91,42 +91,45 @@ public class Node implements AutoCloseable
 		}
 		else
 		{
-			long oldpre_id = Helper.hashSocketAddress(predecessor);
+			long oldpre_id = Helper.hashNodeLink(predecessor);
 			long local_relative_id = Helper.computeRelativeId(localId, oldpre_id);
-			long newpre_relative_id = Helper.computeRelativeId(Helper.hashSocketAddress(newpre), oldpre_id);
+			long newpre_relative_id = Helper.computeRelativeId(Helper.hashNodeLink(newpre), oldpre_id);
 
 			if (newpre_relative_id > 0 && newpre_relative_id < local_relative_id)
 				this.setPredecessor(newpre);
 		}
 	}
 
+	//ask node this to find id's successor
 	public NodeLink find_successor(long id) throws Exception
 	{
-		NodeLink ret = this.getSuccessor();
 		NodeLink pre = find_predecessor(id);
 
-		if (!pre.equals(localNode))
-			ret = Helper.requestAddress(pre, Richiesta.Successor);
+		if (localNode.equals(pre))
+		{
+			return this.getSuccessor();
+		}
+		else
+		{
+			NodeLink n = Helper.requestAddress(pre, Richiesta.Successor);
 
-		if (ret == null)
-			ret = localNode;
-
-		return ret;
+			return (n == null ? localNode : n);
+		}
 	}
 
 	//ask node this to find id's predecessor
 	private NodeLink find_predecessor(long findid) throws Exception
 	{
-		NodeLink n = this.localNode;
 		NodeLink s = this.getSuccessor();
+		NodeLink n = this.localNode;
 		NodeLink most_recently_alive = this.localNode;
 
-		var n_successor_relative_id = 0L;
+		long n_successor_relative_id = 0;
 
 		if (s != null)
-			n_successor_relative_id = Helper.computeRelativeId(Helper.hashSocketAddress(s), Helper.hashSocketAddress(n));
+			n_successor_relative_id = Helper.computeRelativeId(Helper.hashNodeLink(s), Helper.hashNodeLink(n));
 
-		long findid_relative_id = Helper.computeRelativeId(findid, Helper.hashSocketAddress(n));
+		long findid_relative_id = Helper.computeRelativeId(findid, Helper.hashNodeLink(n));
 
 		while (!(findid_relative_id > 0 && findid_relative_id <= n_successor_relative_id))
 		{
@@ -146,10 +149,7 @@ public class Node implements AutoCloseable
 					s = Helper.requestAddress(n, Richiesta.Successor);
 
 					if (s == null)
-					{
-						System.out.println("It's not possible.");
 						return localNode;
-					}
 
 					continue;
 				}
@@ -163,19 +163,20 @@ public class Node implements AutoCloseable
 
 					s = Helper.requestAddress(result, Richiesta.Successor);
 
-					if (s != null)
-						n = result;
-					else
+					if (s == null)
 						s = Helper.requestAddress(n, Richiesta.Successor);
+					else
+						n = result;
 				}
 
-				n_successor_relative_id = Helper.computeRelativeId(Helper.hashSocketAddress(s), Helper.hashSocketAddress(n));
-				findid_relative_id = Helper.computeRelativeId(findid, Helper.hashSocketAddress(n));
+				n_successor_relative_id = Helper.computeRelativeId(Helper.hashNodeLink(s), Helper.hashNodeLink(n));
+				findid_relative_id = Helper.computeRelativeId(findid, Helper.hashNodeLink(n));
 			}
 
 			if (pre_n.equals(n))
 				break;
 		}
+
 		return n;
 	}
 
@@ -191,7 +192,7 @@ public class Node implements AutoCloseable
 			if (ith_finger == null)
 				continue;
 
-			long ith_finger_id = Helper.hashSocketAddress(ith_finger);
+			long ith_finger_id = Helper.hashNodeLink(ith_finger);
 			long ith_finger_relative_id = Helper.computeRelativeId(ith_finger_id, localId);
 
 			if (ith_finger_relative_id > 0 && ith_finger_relative_id < findid_relative)
@@ -280,8 +281,9 @@ public class Node implements AutoCloseable
 	{
 		for (var i = Helper.mBit; i > 0; i--)
 		{
-			NodeLink ithfinger = finger.get(i);
-			if (ithfinger != null && ithfinger.equals(f))
+			NodeLink ithFinger = finger.get(i);
+
+			if (ithFinger != null && ithFinger.equals(f))
 				finger.put(i, null);
 		}
 	}
@@ -381,7 +383,7 @@ public class Node implements AutoCloseable
 
 		for (var i = 1; i <= Helper.mBit; i++)
 		{
-			long ithstart = Helper.iThStart(Helper.hashSocketAddress(localNode), i);
+			long ithstart = Helper.iThStart(Helper.hashNodeLink(localNode), i);
 
 			NodeLink f = finger.get(i);
 

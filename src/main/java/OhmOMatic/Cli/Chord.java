@@ -6,8 +6,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Cli;
 
-import OhmOMatic.Chord.Node;
 import OhmOMatic.Chord.FN.NodeLink;
+import OhmOMatic.Chord.Node;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

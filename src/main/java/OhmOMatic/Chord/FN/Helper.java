@@ -40,7 +40,7 @@ public class Helper
 		return _powerOfTwo.get(k);
 	}
 
-	public static long hashSocketAddress(NodeLink addr)
+	public static long hashNodeLink(NodeLink addr)
 	{
 		int i = addr.hashCode();
 
@@ -111,7 +111,7 @@ public class Helper
 
 	public static String hexIdAndPosition(NodeLink addr)
 	{
-		long hash = hashSocketAddress(addr);
+		long hash = hashNodeLink(addr);
 
 		return (longTo8DigitHex(hash) + " (" + hash * 100 / Helper.getPowerOfTwo(Helper.mBit) + "%)");
 	}
