@@ -6,7 +6,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Chord.FN;
 
-import OhmOMatic.Chord.Node;
 import OhmOMatic.ProtoBuffer.Common;
 import OhmOMatic.ProtoBuffer.Home;
 import OhmOMatic.ProtoBuffer.HomeServiceGrpc;
@@ -138,15 +137,20 @@ public class gRPCCommander
 
 	public static NodeLink requestAddress(NodeLink server, Richiesta req) throws Exception
 	{
-		return requestAddress(server, req, -1, "", -1);
+		return requestAddress(server, req, -1);
 	}
 
-	public static NodeLink requestAddress(NodeLink server, Richiesta req, long localID, String IP, int port) throws Exception
+	public static NodeLink requestAddress(NodeLink server, Richiesta req, long localID) throws Exception
+	{
+		return requestAddress(server, req, localID, NodeLink.Empty());
+	}
+
+	public static NodeLink requestAddress(NodeLink server, Richiesta req, long localID, NodeLink optional) throws Exception
 	{
 		if (server == null || req == null)
 			return null;
 
-		var response = gRPCCommander.<Home.casaRes>sendRequest(server, req, localID, IP, port);
+		var response = gRPCCommander.<Home.casaRes>sendRequest(server, req, localID, optional);
 
 		if (response == null)
 		{
@@ -175,10 +179,10 @@ public class gRPCCommander
 
 	public static <A> A sendRequest(NodeLink server, Richiesta req) throws Exception
 	{
-		return sendRequest(server, req, -1, "", -1);
+		return sendRequest(server, req, -1, NodeLink.Empty());
 	}
 
-	public static <A> A sendRequest(NodeLink server, Richiesta req, long localID, String IP, int port) throws Exception
+	public static <A> A sendRequest(NodeLink server, Richiesta req, long localID, NodeLink optional) throws Exception
 	{
 		try (var hfs = new HomeFastStub())
 		{
@@ -188,8 +192,8 @@ public class gRPCCommander
 					.setIP(server.IP)
 					.setPort(server.port)
 					.setID(localID)
-					.setOptionalIP(IP)
-					.setOptionalPort(port)
+					.setOptionalIP(optional.IP)
+					.setOptionalPort(optional.port)
 					.build();
 
 			Home.casaRes CR;
@@ -243,7 +247,7 @@ public class gRPCCommander
 		}
 	}
 
-	public static HomeServiceGrpc.HomeServiceImplBase getListnerServer(Node local)
+	public static HomeServiceGrpc.HomeServiceImplBase getListnerServer(NodeLink local)
 	{
 		return new HomeServiceGrpc.HomeServiceImplBase()
 		{

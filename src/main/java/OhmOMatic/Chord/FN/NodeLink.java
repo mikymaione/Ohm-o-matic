@@ -8,13 +8,22 @@ package OhmOMatic.Chord.FN;
 
 public class NodeLink
 {
+	public final long key;
+
 	public String IP;
 	public int port;
 
 	public NodeLink(String IP, int port)
 	{
+		this.key = gRPCCommander.hashNodeLink(this);
+
 		this.IP = IP;
 		this.port = port;
+	}
+
+	public static NodeLink Empty()
+	{
+		return new NodeLink("", -1);
 	}
 
 	@Override

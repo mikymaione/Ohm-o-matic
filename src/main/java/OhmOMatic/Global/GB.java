@@ -12,6 +12,7 @@ import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Random;
 import java.util.TimerTask;
 
@@ -20,6 +21,24 @@ public final class GB
 
 	private static Random random = new Random();
 
+	private static HashMap<Integer, Long> _powerOfTwo = new HashMap<>();
+
+
+	public static long getPowerOfTwo(int k, char mBit)
+	{
+		if (_powerOfTwo.size() == 0)
+		{
+			var base = 1L;
+
+			for (var i = 0; i <= mBit; i++)
+			{
+				_powerOfTwo.put(i, base);
+				base *= 2;
+			}
+		}
+
+		return _powerOfTwo.get(k);
+	}
 
 	public static void clearScreen()
 	{
