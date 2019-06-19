@@ -48,7 +48,7 @@ public class Stabilize extends Thread
 			NodeLink successor = local.getSuccessor();
 
 			if (successor == null || successor.equals(local.getAddress()))
-				local.update_finger_table(null, -3); //fill
+				local.update_finger_table(null, -3);
 
 			successor = local.getSuccessor();
 

@@ -33,7 +33,7 @@ public class Node implements AutoCloseable
 	public Node(NodeLink address) throws Exception
 	{
 		localNode = address;
-		localId = gRPCCommander.hashNodeLink(address);
+		localId = gRPCCommander.hashNodeLink(localNode);
 
 		for (var i = 1; i <= gRPCCommander.mBit; i++)
 			updateIthFinger(i, null);
@@ -103,25 +103,23 @@ public class Node implements AutoCloseable
 	//ask node this to find id's successor
 	public NodeLink find_successor(long id) throws Exception
 	{
+		NodeLink ret = this.getSuccessor();
 		NodeLink pre = find_predecessor(id);
 
-		if (localNode.equals(pre))
-		{
-			return this.getSuccessor();
-		}
-		else
-		{
-			NodeLink n = gRPCCommander.requestAddress(pre, Richiesta.Successor);
+		if (!pre.equals(localNode))
+			ret = gRPCCommander.requestAddress(pre, Richiesta.Successor);
 
-			return (n == null ? localNode : n);
-		}
+		if (ret == null)
+			ret = localNode;
+
+		return ret;
 	}
 
 	//ask node this to find id's predecessor
 	private NodeLink find_predecessor(long findid) throws Exception
 	{
-		NodeLink s = this.getSuccessor();
 		NodeLink n = this.localNode;
+		NodeLink s = this.getSuccessor();
 		NodeLink most_recently_alive = this.localNode;
 
 		long n_successor_relative_id = 0;
