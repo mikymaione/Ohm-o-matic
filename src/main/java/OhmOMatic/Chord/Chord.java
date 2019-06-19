@@ -19,48 +19,52 @@ import java.util.TimerTask;
 public class Chord
 {
 	private final char mBit = 32;
-	private char next;
 
 	private final Timer timersChord;
 
 	private final NodeLink localNode;
-	private NodeLink successor, predecessor;
-	private final NodeLink[] finger = new NodeLink[mBit];
+	private NodeLink predecessor;
+	private final Finger[] finger = new Finger[mBit];
 
 
 	public Chord(NodeLink address)
 	{
 		localNode = address;
-		successor = address;
 		predecessor = null;
 
 		timersChord = new Timer();
 	}
 
-	// ask node n to find the successor of id
-	public NodeLink find_successor(long id)
+	private NodeLink getSuccessor()
 	{
-		//Yes, that should be a closing square bracket to match the opening parenthesis.
-		//It is a half closed interval.
-		if (id > localNode.key && id <= successor.key)
-		{
-			return successor;
-		}
-		else
-		{
-			// forward the query around the circle
-			var n0 = closest_preceding_node(id);
-
-			return n0.find_successor(id);
-		}
+		return finger[0];
 	}
 
-	// search the local table for the highest predecessor of id
-	private NodeLink closest_preceding_node(long id)
+	// ask node to find	id's getSuccessor
+	public NodeLink find_successor(long id)
+	{
+		var n_ = find_predecessor(id);
+
+		return n_.successor;
+	}
+
+	// ask node to find	id's predecessor
+	private NodeLink find_predecessor(long id)
+	{
+		var n_ = localNode;
+
+		while (!(id > n_.key && id < n_.successor.key))
+			n_ = n_.closest_preceding_finger(id);
+
+		return n_;
+	}
+
+	// return closest finger preceding id
+	private NodeLink closest_preceding_finger(long id)
 	{
 		for (var i = mBit; i > 0; i--)
-			if (finger[i].key > localNode.key && finger[i].key < id)
-				return finger[i];
+			if (finger[i].node.key > localNode.key && finger[i].node.key < id)
+				return finger[i].node;
 
 		return localNode;
 	}
@@ -110,20 +114,65 @@ public class Chord
 		}, new Date(), 500);
 	}
 
-	// join a Chord ring containing node n'.
-	public void join(NodeLink n) throws Exception
+	// node localNode joins the network;
+	// n_ is an arbitrary node in the network
+	public void join(NodeLink n_) throws Exception
 	{
 		predecessor = null;
-		successor = gRPCCommander.requestAddress(n, Richiesta.FindSuccessor, localNode.key);
-
-		startStabilizingRoutines();
+		setSuccessor(n_.find_successor(localNode));
 	}
 
-	// called periodically. n asks the successor
+	private void setSuccessor(NodeLink n)
+	{
+		finger[0] = new Finger(n);
+	}
+
+	// initialize finger table of local node;
+	// n_ is an arbitrary node already in the network
+	private void init_finger_table(NodeLink n_)
+	{
+		finger[0].node = n_.find_successor(finger[0].start);
+		predecessor = getSuccessor().predecessor;
+		getSuccessor().predecessor = localNode;
+
+		for (var i = 0; i < mBit - 1; i++)
+			if (finger[i + 1].start >= localNode.key && finger[i + 1].start < finger[i].node.key)
+				finger[i + 1].node = finger[i].node;
+			else
+				finger[i + 1].node = n_.find_successor(finger[i + 1].start);
+	}
+
+	// update all nodes whose finger
+	// tables should refer to localNode
+	private void update_others()
+	{
+		for (int i = 0; i < mBit; i++)
+		{
+			//find last node p whose iTh finger might be localNode
+			var p = find_predecessor(localNode.key - GB.getPowerOfTwo(i - 1, mBit));
+			p.update_finger_table(localNode, i);
+		}
+	}
+
+	// if s is iTh finger of localNode, update localNode's finger table with s
+	private void update_finger_table(NodeLink s, int i)
+	{
+		if (s.key >= localNode.key && s < finger[i].node.key)
+		{
+			finger[i].node = s;
+
+			var p = predecessor; //get first node preceding localNode
+			p.update_finger_table(s, i);
+		}
+	}
+
+	// called periodically. localNode asks the getSuccessor
 	// about its predecessor, verifies if n's immediate
-	// successor is consistent, and tells the successor about n
+	// getSuccessor is consistent, and tells the getSuccessor about n
 	private void stabilize() throws Exception
 	{
+		var successor = getSuccessor();
+
 		var x = gRPCCommander.requestAddress(successor, Richiesta.Predecessor);
 
 		if (x.key > localNode.key && x.key < successor.key)
@@ -132,25 +181,19 @@ public class Chord
 		successor.notify(localNode);
 	}
 
-	// n thinks it might be our predecessor.
-	private void notify(NodeLink n)
+	// n_ thinks it might be our predecessor.
+	private void notify(NodeLink n_)
 	{
-		if (predecessor == null || (n.key > predecessor.key && n.key < localNode.key))
-			predecessor = n;
+		if (predecessor == null || (n_.key > predecessor.key && n_.key < localNode.key))
+			predecessor = n_;
 	}
 
-	// called periodically. refreshes finger table entries.
-	// next stores the index of the finger to fix
+	// called periodically refreshes finger table entries.
 	private void fix_fingers()
 	{
-		next++;
-
-		if (next > mBit)
-			next = 1;
-
-		var e = GB.getPowerOfTwo(next - 1, mBit);
-
-		finger[next] = find_successor(e);
+		var i = GB.randomInt(0, mBit - 1);
+		
+		finger[i].node = find_successor(Finger.start(localNode, i, mBit));
 	}
 
 	// called periodically. checks whether predecessor has failed.
