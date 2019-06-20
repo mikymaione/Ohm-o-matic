@@ -6,8 +6,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Chord;
 
+import OhmOMatic.Chord.FN.HomeFastStub;
 import OhmOMatic.Chord.FN.NodeLink;
+import OhmOMatic.Chord.FN.Richiesta;
 import OhmOMatic.Global.GB;
+import OhmOMatic.ProtoBuffer.Common;
+import OhmOMatic.ProtoBuffer.Home;
 
 import java.util.Date;
 import java.util.Timer;
@@ -23,6 +27,97 @@ public class Chord
 	private NodeLink predecessor;
 	private final FingerTable fingerTable = new FingerTable(mBit);
 
+
+	private void gestioneErroreRequest(Common.standardRes R) throws Exception
+	{
+		if (R == null)
+			throw new Exception("Errore richiesta!");
+
+		if (!R.getOk())
+			throw new Exception(R.getErrore());
+	}
+
+	private NodeLink gRPC_A(NodeLink server, Richiesta req) throws Exception
+	{
+		Home.casaRes response = gRPC_E(server, req);
+
+		if (response == null)
+		{
+			return null;
+		}
+		else if (!response.getStandardRes().getOk())
+		{
+			return server;
+		}
+		else
+		{
+			var c = response.getCasa();
+
+			return new NodeLink(c.getIP(), c.getPort());
+		}
+	}
+
+	private <A> A gRPC_E(NodeLink server, Richiesta req) throws Exception
+	{
+		try (var hfs = new HomeFastStub())
+		{
+			var stub = hfs.getStub(server);
+
+			var c = Home.casa.newBuilder()
+					.setIP(server.IP)
+					.setPort(server.port)
+					.build();
+
+			Home.casaRes CR;
+			Common.standardRes R;
+
+			switch (req)
+			{
+				case join:
+					throw new UnsupportedOperationException();
+
+				case esciDalCondominio:
+					throw new UnsupportedOperationException();
+
+				case Ping:
+					R = stub.kEEP(c);
+					gestioneErroreRequest(R);
+					return (A) R;
+
+				case ClosestPrecedingFinger:
+					CR = stub.cLOSEST(c);
+					break;
+
+				case FindSuccessor:
+					CR = stub.fINDSUCC(c);
+					break;
+
+				case ImPredecessor:
+					CR = stub.iAMPRE(c);
+					break;
+
+				case Predecessor:
+					CR = stub.yOURPRE(c);
+					break;
+
+				case Successor:
+					CR = stub.yOURSUCC(c);
+					break;
+
+				default:
+					throw new Exception("Switch " + req + " non implementato");
+			}
+
+			R = CR.getStandardRes();
+			gestioneErroreRequest(R);
+
+			return (A) CR;
+		}
+		catch (Exception e)
+		{
+			throw e;
+		}
+	}
 
 	public Chord(NodeLink address)
 	{
