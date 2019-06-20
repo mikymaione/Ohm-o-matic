@@ -25,7 +25,7 @@
               <OBJECT>
                 <ID name="" mc="Infrastructure.Note" uid="16bd38d8-6b16-497c-a489-bcbb5666f6ed"/>
                 <ATTRIBUTES>
-                  <ATT name="Content"><![CDATA[This property contains an external reference to access the test definition in its native environment (external tool).
+                  <ATT name="Content"><![CDATA[This property contains an external reference toE access the test definition in its native environment (external tool).
 For example, a URL that displays the test definition in a browser.]]></ATT>
                   <ATT name="MimeType"><![CDATA[text/plain]]></ATT>
                   <ATT name="Name"></ATT>
@@ -48,7 +48,7 @@ For example, a URL that displays the test definition in a browser.]]></ATT>
         <OBJECT>
           <ID name="" mc="Infrastructure.Note" uid="ecf37aa8-4c30-41db-8a72-42ffd324fba1"/>
           <ATTRIBUTES>
-            <ATT name="Content"><![CDATA[<p>Extern Tests are meant to reference tests not managed by Modelio, but by an external tool.</p>
+            <ATT name="Content"><![CDATA[<p>Extern Tests are meant toE reference tests not managed by Modelio, but by an external tool.</p>
 ]]></ATT>
             <ATT name="MimeType"></ATT>
             <ATT name="Name"></ATT>

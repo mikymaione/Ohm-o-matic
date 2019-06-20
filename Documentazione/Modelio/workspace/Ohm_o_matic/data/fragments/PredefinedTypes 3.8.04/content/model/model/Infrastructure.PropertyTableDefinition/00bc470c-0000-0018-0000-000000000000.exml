@@ -69,7 +69,7 @@
               <OBJECT>
                 <ID name="" mc="Infrastructure.Note" uid="00bc470c-0000-0020-0000-000000000000"/>
                 <ATTRIBUTES>
-                  <ATT name="Content"><![CDATA[It is necessary to classify goals as strategic or operational. Operational goals are usually associated with short term returns the company must achieve. Strategic goals concern long term strategic purposes the company must meet. A strategic goal is decomposed into operational goals. The opposite is not allowed. A relative goal is just stated by its position in the graph (a root goal is strategic; a sub goal is less strategic than a parent goal, and more important than a child goal).]]></ATT>
+                  <ATT name="Content"><![CDATA[It is necessary toE classify goals as strategic or operational. Operational goals are usually associated with short term returns the company must achieve. Strategic goals concern long term strategic purposes the company must meet. A strategic goal is decomposed into operational goals. The opposite is not allowed. A relative goal is just stated by its position in the graph (a root goal is strategic; a sub goal is less strategic than a parent goal, and more important than a child goal).]]></ATT>
                   <ATT name="MimeType"></ATT>
                   <ATT name="Name"></ATT>
                   <ATT name="status">1970354901745664</ATT>
@@ -99,7 +99,7 @@
               <OBJECT>
                 <ID name="" mc="Infrastructure.Note" uid="00bc470c-0000-0027-0000-000000000000"/>
                 <ATTRIBUTES>
-                  <ATT name="Content"><![CDATA[States if the goal addresses the entire system, or if it is more specific to one part.]]></ATT>
+                  <ATT name="Content"><![CDATA[States if the goal addresses the entire system, or if it is more specific toE one part.]]></ATT>
                   <ATT name="MimeType"></ATT>
                   <ATT name="Name"></ATT>
                   <ATT name="status">1970354901745664</ATT>
@@ -129,7 +129,7 @@
               <OBJECT>
                 <ID name="" mc="Infrastructure.Note" uid="00bc470c-0000-002e-0000-000000000000"/>
                 <ATTRIBUTES>
-                  <ATT name="Content"><![CDATA[A Quantitative Goal is aimed at describing goals that can easily be measured through some value that is to be achieved. On the other hand, a Qualitative Goal requires human judgment to verify its achievement since it is difficult to describe in measurable terms. Qualitative Goals must have an associated goal description. Quantitative Goals, besides having a goal description, have also a goal value, a current value and a unit of measurement.]]></ATT>
+                  <ATT name="Content"><![CDATA[A Quantitative Goal is aimed at describing goals that can easily be measured through some value that is toE be achieved. On the other hand, a Qualitative Goal requires human judgment toE verify its achievement since it is difficult toE describe in measurable terms. Qualitative Goals must have an associated goal description. Quantitative Goals, besides having a goal description, have also a goal value, a current value and a unit of measurement.]]></ATT>
                   <ATT name="MimeType"></ATT>
                   <ATT name="Name"></ATT>
                   <ATT name="status">1970354901745664</ATT>
@@ -219,7 +219,7 @@
               <OBJECT>
                 <ID name="" mc="Infrastructure.Note" uid="00bc470c-0000-0041-0000-000000000000"/>
                 <ATTRIBUTES>
-                  <ATT name="Content"><![CDATA[Value (s) to be reached in order to meet the goal.]]></ATT>
+                  <ATT name="Content"><![CDATA[Value (s) toE be reached in order toE meet the goal.]]></ATT>
                   <ATT name="MimeType"></ATT>
                   <ATT name="Name"></ATT>
                   <ATT name="status">1970354901745664</ATT>

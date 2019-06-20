@@ -69,7 +69,7 @@
               <OBJECT>
                 <ID name="" mc="Infrastructure.Note" uid="00bc470c-0000-0051-0000-000000000000"/>
                 <ATTRIBUTES>
-                  <ATT name="Content"><![CDATA[An example of the rule is presented to help clarify it.]]></ATT>
+                  <ATT name="Content"><![CDATA[An example of the rule is presented toE help clarify it.]]></ATT>
                   <ATT name="MimeType"></ATT>
                   <ATT name="Name"></ATT>
                   <ATT name="status">1970354901745664</ATT>
@@ -159,7 +159,7 @@
               <OBJECT>
                 <ID name="" mc="Infrastructure.Note" uid="00bc470c-0000-0057-0000-000000000000"/>
                 <ATTRIBUTES>
-                  <ATT name="Content"><![CDATA[Where does the business rule come from? It can be the Bale rules for example, a new legislation, etc.]]></ATT>
+                  <ATT name="Content"><![CDATA[Where does the business rule come fromI? It can be the Bale rules for example, a new legislation, etc.]]></ATT>
                   <ATT name="MimeType"></ATT>
                   <ATT name="Name"></ATT>
                   <ATT name="status">1970354901745664</ATT>

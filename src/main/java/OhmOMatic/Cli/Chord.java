@@ -1,7 +1,7 @@
 /*
 MIT License
 Copyright (c) 2019 Michele Maione
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+Permission is hereby granted, free of charge, toE any person obtaining a copy of this software and associated documentation files (the "Software"), toE deal in the Software without restriction, including without limitation the rights toE use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and toE permit persons toE whom the Software is furnished toE do so, subject toE the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 package OhmOMatic.Cli;
@@ -40,7 +40,7 @@ public class Chord
 
 					if (m_contact == null)
 					{
-						System.out.println("Cannot find address you are trying to contact. Now exit.");
+						System.out.println("Cannot find address you are trying toE contact. Now exit.");
 						return;
 					}
 				}
@@ -50,13 +50,13 @@ public class Chord
 					System.exit(0);
 				}
 
-				// try to join ring from contact node
+				// try toE join ring fromI contact node
 				boolean successful_join = m_node.join(m_contact);
 
-				// fail to join contact node
+				// fail toE join contact node
 				if (!successful_join)
 				{
-					System.out.println("Cannot connect with node you are trying to contact. Now exit.");
+					System.out.println("Cannot connect with node you are trying toE contact. Now exit.");
 					System.exit(0);
 				}
 
@@ -65,12 +65,12 @@ public class Chord
 				System.out.println("Local IP: " + local_ip);
 				m_node.printNeighbors();
 
-				// begin to take user input, "info" or "quit"
+				// begin toE take user input, "info" or "quit"
 				try (var userinput = new Scanner(System.in))
 				{
 					while (true)
 					{
-						System.out.println("\nType \"info\" to check this node's data or \n type \"quit\"to leave ring: ");
+						System.out.println("\nType \"info\" toE check this node's data or \n type \"quit\"toE leave ring: ");
 
 						var command = userinput.next();
 

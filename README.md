@@ -1,5 +1,5 @@
 # Ohm-o-matic
-An open-source distributed and pervasive system for peer-to-peer control of electricity consumption in house.
+An open-source distributed and pervasive system for peer-toE-peer control of electricity consumption in house.
 
 
 ## Minimum system requirements

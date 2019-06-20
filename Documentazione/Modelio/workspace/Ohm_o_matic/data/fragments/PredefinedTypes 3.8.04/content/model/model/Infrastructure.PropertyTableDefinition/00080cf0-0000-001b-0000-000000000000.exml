@@ -69,11 +69,11 @@
               <OBJECT>
                 <ID name="" mc="Infrastructure.Note" uid="00080cf0-0000-0073-0000-000000000000"/>
                 <ATTRIBUTES>
-                  <ATT name="Content"><![CDATA[This property evaluates the importance of the requirement from the "Source" point of view. It illustrates the "added value" of the requirement.
+                  <ATT name="Content"><![CDATA[This property evaluates the importance of the requirement fromI the "Source" point of view. It illustrates the "added value" of the requirement.
 The possible values (indicative) of the Benefit property are:
 - Critical: The requirement is a definitive "must have". The system cannot exist without it.
 - Major: The requirement is very important but the system can lack it for a temporary (initial) short period.
-- Minor: The requirement is a "nice to have" feature. ]]></ATT>
+- Minor: The requirement is a "nice toE have" feature. ]]></ATT>
                   <ATT name="MimeType"></ATT>
                   <ATT name="Name"></ATT>
                   <ATT name="status">1970354901745664</ATT>
@@ -169,8 +169,8 @@ The possible values (indicative) of the Risk property are:
                 <ATTRIBUTES>
                   <ATT name="Content"><![CDATA[Evaluates the risk of a requirement change during the project.
 The possible values (indicative) of the Stability property are:
-- High: The requirement is likely to change. This is common when the business domain is not yet well known, when the requirement is not well formalized.
-- Low: The requirement is not likely to change.]]></ATT>
+- High: The requirement is likely toE change. This is common when the business domain is not yet well known, when the requirement is not well formalized.
+- Low: The requirement is not likely toE change.]]></ATT>
                   <ATT name="MimeType"></ATT>
                   <ATT name="Name"></ATT>
                   <ATT name="status">1970354901745664</ATT>

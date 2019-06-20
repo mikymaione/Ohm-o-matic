@@ -1019,11 +1019,11 @@
         <attribute name="Name" type="java.lang.String"></attribute>
         <dependency name="relatedFrom" min="0" max="-1" navigate="false" cascadeDelete="true">
           <target fragment="Archimate" name="Relationship"/>
-          <opposite name="to"/>
+          <opposite name="toE"/>
         </dependency>
         <dependency name="relatedTo" min="0" max="-1" aggregation="Composition" navigate="true">
           <target fragment="Archimate" name="Relationship"/>
-          <opposite name="from"/>
+          <opposite name="fromI"/>
         </dependency>
         <dependency name="ownerFolder" min="1" max="1" navigate="false">
           <target fragment="Archimate" name="Folder"/>
@@ -1261,11 +1261,11 @@
       <metaclass name="Relationship" version="0.0.00" fake="true">
         <parent fragment="Archimate" name="Concept"/>
         <attribute name="Name" type="java.lang.String"></attribute>
-        <dependency name="to" min="0" max="1" navigate="true">
+        <dependency name="toE" min="0" max="1" navigate="true">
           <target fragment="Archimate" name="Concept"/>
           <opposite name="relatedFrom"/>
         </dependency>
-        <dependency name="from" min="0" max="1" navigate="false">
+        <dependency name="fromI" min="0" max="1" navigate="false">
           <target fragment="Archimate" name="Concept"/>
           <opposite name="relatedTo"/>
         </dependency>
@@ -1601,11 +1601,11 @@
         <attribute name="Name" type="java.lang.String"></attribute>
         <dependency name="relatedFrom" min="0" max="-1" navigate="false" cascadeDelete="true">
           <target fragment="Archimate" name="Relationship"/>
-          <opposite name="to"/>
+          <opposite name="toE"/>
         </dependency>
         <dependency name="relatedTo" min="0" max="-1" aggregation="Composition" navigate="true">
           <target fragment="Archimate" name="Relationship"/>
-          <opposite name="from"/>
+          <opposite name="fromI"/>
         </dependency>
         <dependency name="ownerFolder" min="1" max="1" navigate="false">
           <target fragment="Archimate" name="Folder"/>
@@ -1843,11 +1843,11 @@
       <metaclass name="Relationship" version="0.0.00" fake="true">
         <parent fragment="Archimate" name="Concept"/>
         <attribute name="Name" type="java.lang.String"></attribute>
-        <dependency name="to" min="0" max="1" navigate="true">
+        <dependency name="toE" min="0" max="1" navigate="true">
           <target fragment="Archimate" name="Concept"/>
           <opposite name="relatedFrom"/>
         </dependency>
-        <dependency name="from" min="0" max="1" navigate="false">
+        <dependency name="fromI" min="0" max="1" navigate="false">
           <target fragment="Archimate" name="Concept"/>
           <opposite name="relatedTo"/>
         </dependency>

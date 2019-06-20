@@ -404,10 +404,10 @@
         <parent fragment="Archimate" name="DependencyRelationship"/>
         <attribute name="Mode" type="java.lang.Enum" enumType="org.modelio.archimate.metamodel.relationships.dependency.AccessMode"></attribute>
         <sources>
-          <dep name="from"/>
+          <dep name="fromI"/>
         </sources>
         <targets>
-          <dep name="to"/>
+          <dep name="toE"/>
         </targets>
       </link_metaclass>
       <metaclass name="ActiveStructureElement" version="0.0.00" abstract="true">
@@ -416,10 +416,10 @@
       <link_metaclass name="Aggregation" version="0.0.00">
         <parent fragment="Archimate" name="StructuralRelationship"/>
         <sources>
-          <dep name="from"/>
+          <dep name="fromI"/>
         </sources>
         <targets>
-          <dep name="to"/>
+          <dep name="toE"/>
         </targets>
       </link_metaclass>
       <metaclass name="AndJunction" version="0.0.00">
@@ -493,19 +493,19 @@
       <link_metaclass name="Assignment" version="0.0.00">
         <parent fragment="Archimate" name="StructuralRelationship"/>
         <sources>
-          <dep name="from"/>
+          <dep name="fromI"/>
         </sources>
         <targets>
-          <dep name="to"/>
+          <dep name="toE"/>
         </targets>
       </link_metaclass>
       <link_metaclass name="Association" version="0.0.00">
         <parent fragment="Archimate" name="OtherRelationship"/>
         <sources>
-          <dep name="from"/>
+          <dep name="fromI"/>
         </sources>
         <targets>
-          <dep name="to"/>
+          <dep name="toE"/>
         </targets>
       </link_metaclass>
       <metaclass name="BehaviorElement" version="0.0.00" abstract="true">
@@ -573,21 +573,21 @@
       <link_metaclass name="Composition" version="0.0.00">
         <parent fragment="Archimate" name="StructuralRelationship"/>
         <sources>
-          <dep name="from"/>
+          <dep name="fromI"/>
         </sources>
         <targets>
-          <dep name="to"/>
+          <dep name="toE"/>
         </targets>
       </link_metaclass>
       <metaclass name="Concept" version="0.0.00" abstract="true">
         <parent fragment="Archimate" name="ArchimateAbstractElement"/>
         <dependency name="relatedFrom" min="0" max="-1" navigate="false" cascadeDelete="true">
           <target fragment="Archimate" name="Relationship"/>
-          <opposite name="to"/>
+          <opposite name="toE"/>
         </dependency>
         <dependency name="relatedTo" min="0" max="-1" aggregation="Composition" navigate="true">
           <target fragment="Archimate" name="Relationship"/>
-          <opposite name="from"/>
+          <opposite name="fromI"/>
         </dependency>
         <dependency name="ownerFolder" min="1" max="1" navigate="false">
           <target fragment="Archimate" name="Folder"/>
@@ -612,10 +612,10 @@
       <link_metaclass name="DependencyRelationship" version="0.0.00" abstract="true">
         <parent fragment="Archimate" name="Relationship"/>
         <sources>
-          <dep name="from"/>
+          <dep name="fromI"/>
         </sources>
         <targets>
-          <dep name="to"/>
+          <dep name="toE"/>
         </targets>
       </link_metaclass>
       <metaclass name="Device" version="0.0.00" cmsNode="true">
@@ -630,10 +630,10 @@
       <link_metaclass name="DynamicRelationship" version="0.0.00" abstract="true">
         <parent fragment="Archimate" name="Relationship"/>
         <sources>
-          <dep name="from"/>
+          <dep name="fromI"/>
         </sources>
         <targets>
-          <dep name="to"/>
+          <dep name="toE"/>
         </targets>
       </link_metaclass>
       <metaclass name="Element" version="0.0.00" abstract="true">
@@ -658,10 +658,10 @@
       <link_metaclass name="Flow" version="0.0.00">
         <parent fragment="Archimate" name="DynamicRelationship"/>
         <sources>
-          <dep name="from"/>
+          <dep name="fromI"/>
         </sources>
         <targets>
-          <dep name="to"/>
+          <dep name="toE"/>
         </targets>
       </link_metaclass>
       <metaclass name="Folder" version="0.0.00" abstract="true" cmsNode="true">
@@ -703,10 +703,10 @@
         <parent fragment="Archimate" name="DependencyRelationship"/>
         <attribute name="Strength" type="java.lang.String"></attribute>
         <sources>
-          <dep name="from"/>
+          <dep name="fromI"/>
         </sources>
         <targets>
-          <dep name="to"/>
+          <dep name="toE"/>
         </targets>
       </link_metaclass>
       <metaclass name="InternalActiveStructureElement" version="0.0.00" abstract="true">
@@ -770,10 +770,10 @@
       <link_metaclass name="OtherRelationship" version="0.0.00" abstract="true">
         <parent fragment="Archimate" name="Relationship"/>
         <sources>
-          <dep name="from"/>
+          <dep name="fromI"/>
         </sources>
         <targets>
-          <dep name="to"/>
+          <dep name="toE"/>
         </targets>
       </link_metaclass>
       <metaclass name="Outcome" version="0.0.00" cmsNode="true">
@@ -808,27 +808,27 @@
       <link_metaclass name="Realization" version="0.0.00">
         <parent fragment="Archimate" name="StructuralRelationship"/>
         <sources>
-          <dep name="from"/>
+          <dep name="fromI"/>
         </sources>
         <targets>
-          <dep name="to"/>
+          <dep name="toE"/>
         </targets>
       </link_metaclass>
       <link_metaclass name="Relationship" version="0.0.00" abstract="true">
         <parent fragment="Archimate" name="Concept"/>
-        <dependency name="to" min="0" max="1" navigate="true">
+        <dependency name="toE" min="0" max="1" navigate="true">
           <target fragment="Archimate" name="Concept"/>
           <opposite name="relatedFrom"/>
         </dependency>
-        <dependency name="from" min="0" max="1" navigate="false">
+        <dependency name="fromI" min="0" max="1" navigate="false">
           <target fragment="Archimate" name="Concept"/>
           <opposite name="relatedTo"/>
         </dependency>
         <sources>
-          <dep name="from"/>
+          <dep name="fromI"/>
         </sources>
         <targets>
-          <dep name="to"/>
+          <dep name="toE"/>
         </targets>
       </link_metaclass>
       <metaclass name="RelationshipConnector" version="0.0.00" abstract="true">
@@ -847,19 +847,19 @@
       <link_metaclass name="Serving" version="0.0.00">
         <parent fragment="Archimate" name="DependencyRelationship"/>
         <sources>
-          <dep name="from"/>
+          <dep name="fromI"/>
         </sources>
         <targets>
-          <dep name="to"/>
+          <dep name="toE"/>
         </targets>
       </link_metaclass>
       <link_metaclass name="Specialization" version="0.0.00">
         <parent fragment="Archimate" name="OtherRelationship"/>
         <sources>
-          <dep name="from"/>
+          <dep name="fromI"/>
         </sources>
         <targets>
-          <dep name="to"/>
+          <dep name="toE"/>
         </targets>
       </link_metaclass>
       <metaclass name="Stakeholder" version="0.0.00" cmsNode="true">
@@ -879,10 +879,10 @@
       <link_metaclass name="StructuralRelationship" version="0.0.00" abstract="true">
         <parent fragment="Archimate" name="Relationship"/>
         <sources>
-          <dep name="from"/>
+          <dep name="fromI"/>
         </sources>
         <targets>
-          <dep name="to"/>
+          <dep name="toE"/>
         </targets>
       </link_metaclass>
       <metaclass name="StructureElement" version="0.0.00" abstract="true">
@@ -932,10 +932,10 @@
       <link_metaclass name="Triggering" version="0.0.00">
         <parent fragment="Archimate" name="DynamicRelationship"/>
         <sources>
-          <dep name="from"/>
+          <dep name="fromI"/>
         </sources>
         <targets>
-          <dep name="to"/>
+          <dep name="toE"/>
         </targets>
       </link_metaclass>
       <metaclass name="Value" version="0.0.00" cmsNode="true">

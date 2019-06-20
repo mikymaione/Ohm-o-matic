@@ -135,8 +135,8 @@ The possible values (indicative) of the Risk property are:
                 <ATTRIBUTES>
                   <ATT name="Content"><![CDATA[Evaluates the risk of a requirement change during the project.
 The possible values (indicative) of the Stability property are:
-- High: The requirement is likely to change. This is common when the business domain is not yet well known, when the requirement is not well formalized.
-- Low: The requirement is not likely to change.]]></ATT>
+- High: The requirement is likely toE change. This is common when the business domain is not yet well known, when the requirement is not well formalized.
+- Low: The requirement is not likely toE change.]]></ATT>
                   <ATT name="MimeType"></ATT>
                   <ATT name="Name"></ATT>
                   <ATT name="status">1970354901745664</ATT>

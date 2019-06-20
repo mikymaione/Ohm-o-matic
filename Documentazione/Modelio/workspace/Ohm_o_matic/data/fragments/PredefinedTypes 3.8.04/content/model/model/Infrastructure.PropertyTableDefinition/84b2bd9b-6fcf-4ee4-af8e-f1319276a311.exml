@@ -56,7 +56,7 @@ The typical presentation of this property is a bulleted list, but the structure 
               <OBJECT>
                 <ID name="" mc="Infrastructure.Note" uid="7f59ea84-54da-4604-ba83-f733df9faaa6"/>
                 <ATTRIBUTES>
-                  <ATT name="Content"><![CDATA[Expected results and the controls to be made.
+                  <ATT name="Content"><![CDATA[Expected results and the controls toE be made.
 Structure and presentation of this property are the user's responsibility.]]></ATT>
                   <ATT name="MimeType"><![CDATA[text/plain]]></ATT>
                   <ATT name="Name"></ATT>
@@ -117,7 +117,7 @@ Structure and presentation of this property are the user's responsibility.]]></A
               <OBJECT>
                 <ID name="" mc="Infrastructure.Note" uid="763d2fcb-8476-4211-879d-d0e1668de5f9"/>
                 <ATTRIBUTES>
-                  <ATT name="Content"><![CDATA[This enumerated property is used to sort tests in accordance with their nature: integration tests, validation tests, regression tests.]]></ATT>
+                  <ATT name="Content"><![CDATA[This enumerated property is used toE sort tests in accordance with their nature: integration tests, validation tests, regression tests.]]></ATT>
                   <ATT name="MimeType"><![CDATA[text/plain]]></ATT>
                   <ATT name="Name"></ATT>
                   <ATT name="status">1970354901745664</ATT>
@@ -147,9 +147,9 @@ Structure and presentation of this property are the user's responsibility.]]></A
               <OBJECT>
                 <ID name="" mc="Infrastructure.Note" uid="600eb2f4-e2e9-4757-b287-51c10120307c"/>
                 <ATTRIBUTES>
-                  <ATT name="Content"><![CDATA[This enumerated property is used to help manage the tests and test plans by suggesting the following values:
+                  <ATT name="Content"><![CDATA[This enumerated property is used toE help manage the tests and test plans by suggesting the following values:
 - Draft: the test is being written.
-- Ready for review: the test is ready to be reviewed.
+- Ready for review: the test is ready toE be reviewed.
 - To be reworked: the test needs rewriting or adaptation following functional evolutions.
 - Obsolete: the test is no longer relevant.
 - Future: the test is operational but reserved for a future use.
@@ -183,7 +183,7 @@ Structure and presentation of this property are the user's responsibility.]]></A
               <OBJECT>
                 <ID name="" mc="Infrastructure.Note" uid="a3deb568-c368-4dea-9988-4c5033abcb92"/>
                 <ATTRIBUTES>
-                  <ATT name="Content"><![CDATA[This property is used to manage the test versions.]]></ATT>
+                  <ATT name="Content"><![CDATA[This property is used toE manage the test versions.]]></ATT>
                   <ATT name="MimeType"><![CDATA[text/plain]]></ATT>
                   <ATT name="Name"></ATT>
                   <ATT name="status">1970354901745664</ATT>
@@ -213,7 +213,7 @@ Structure and presentation of this property are the user's responsibility.]]></A
               <OBJECT>
                 <ID name="" mc="Infrastructure.Note" uid="6f6fb711-e46d-4478-bae6-7b35f477155f"/>
                 <ATTRIBUTES>
-                  <ATT name="Content"><![CDATA[This property is used to indicate in a descriptive way (text) what conditions are required by the execution of the test.]]></ATT>
+                  <ATT name="Content"><![CDATA[This property is used toE indicate in a descriptive way (text) what conditions are required by the execution of the test.]]></ATT>
                   <ATT name="MimeType"><![CDATA[text/plain]]></ATT>
                   <ATT name="Name"></ATT>
                   <ATT name="status">1970354901745664</ATT>
@@ -243,7 +243,7 @@ Structure and presentation of this property are the user's responsibility.]]></A
               <OBJECT>
                 <ID name="" mc="Infrastructure.Note" uid="0317fa20-a203-48fe-90b9-607d9b89cce4"/>
                 <ATTRIBUTES>
-                  <ATT name="Content"><![CDATA[This duration type field is used to indicate an estimated duration of the setup and execution of the test.]]></ATT>
+                  <ATT name="Content"><![CDATA[This duration type field is used toE indicate an estimated duration of the setup and execution of the test.]]></ATT>
                   <ATT name="MimeType"><![CDATA[text/plain]]></ATT>
                   <ATT name="Name"></ATT>
                   <ATT name="status">1970354901745664</ATT>

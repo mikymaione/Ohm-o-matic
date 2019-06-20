@@ -116,7 +116,7 @@
               <OBJECT>
                 <ID name="" mc="Infrastructure.Note" uid="0db044f1-473d-4842-a2a0-8accae6d89ab"/>
                 <ATTRIBUTES>
-                  <ATT name="Content"><![CDATA[Preventive action initiated or to be initiated in order to reduce the risk. A date for the action can be indicated, as well as the person/team responsible.
+                  <ATT name="Content"><![CDATA[Preventive action initiated or toE be initiated in order toE reduce the risk. A date for the action can be indicated, as well as the person/team responsible.
 Or “postponed action”.
 Or “no action so far”.
 ]]></ATT>

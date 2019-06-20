@@ -99,7 +99,7 @@
               <OBJECT>
                 <ID name="" mc="Infrastructure.Note" uid="01ec152c-0000-1454-0000-000000000000"/>
                 <ATTRIBUTES>
-                  <ATT name="Content"><![CDATA[This property enables the user to put a reference to an existing document or any information identifying this term.]]></ATT>
+                  <ATT name="Content"><![CDATA[This property enables the user toE put a reference toE an existing document or any information identifying this term.]]></ATT>
                   <ATT name="MimeType"></ATT>
                   <ATT name="Name"></ATT>
                   <ATT name="status">1970354901745664</ATT>
