@@ -86,40 +86,7 @@ public class Casa implements MeanListener, AutoCloseable
 	{
 		gRPC_listner = ServerBuilder
 				.forPort(myPort)
-				.addService(new HomeServiceImplBase()
-				{
-					@Override
-					public void join(casa request, StreamObserver<casaRes> responseObserver)
-					{
-						var res = casaRes.newBuilder()
-								.setStandardRes(
-										standardRes.newBuilder()
-												.setOk(true)
-												.build()
-								)
-								.setCasa(
-										casa.newBuilder()
-												.setIP(myAddress)
-												.setPort(myPort)
-												.build()
-								)
-								.build();
-
-						responseObserver.onNext(res);
-						responseObserver.onCompleted();
-					}
-
-					@Override
-					public void esciDalCondominio(casa request, StreamObserver<standardRes> responseObserver)
-					{
-						var res = standardRes.newBuilder()
-								.setOk(true)
-								.build();
-
-						responseObserver.onNext(res);
-						responseObserver.onCompleted();
-					}
-				})
+				//.addService(new HomeServiceImplBase() {})
 				.build()
 				.start();
 	}
@@ -154,16 +121,16 @@ public class Casa implements MeanListener, AutoCloseable
 					.setPort(myPort)
 					.build();
 
-			var Res = stub.join(c);
-			var R = Res.getStandardRes();
+			//var Res = stub.join(c);
+			//var R = Res.getStandardRes();
 
-			if (R.getOk())
+			/*if (R.getOk())
 			{
 				var k = Res.getCasa();
 
 			}
 			else
-				throw new Exception(R.getErrore());
+				throw new Exception(R.getErrore());*/
 		}
 
 		return true;
@@ -178,10 +145,10 @@ public class Casa implements MeanListener, AutoCloseable
 				.setPort(myPort)
 				.build();
 
-		var R = stub.esciDalCondominio(c);
+		/*var R = stub.esciDalCondominio(c);
 
 		if (!R.getOk())
-			throw new Exception(R.getErrore());
+			throw new Exception(R.getErrore());*/
 
 		return true;
 	}

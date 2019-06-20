@@ -12,16 +12,15 @@ import "Common.proto";
 
 
 service HomeService {
-    rpc join (casa) returns (casaRes);
-    rpc esciDalCondominio (casa) returns (standardRes);
+    rpc Notify (casa) returns (casaRes);
 
-    rpc requestAddress (casa) returns (standardRes);
-    rpc FINDSUCC_ (casa) returns (casaRes);
-    rpc CLOSEST_ (casa) returns (casaRes);
-    rpc IAMPRE_ (casa) returns (casaRes);
-    rpc YOURPRE (casa) returns (casaRes);
-    rpc YOURSUCC (casa) returns (casaRes);
-    rpc KEEP (casa) returns (standardRes);
+    rpc UpdateFingerTable (casa) returns (casaRes);
+    rpc SetPredecessor (casa) returns (casaRes);
+
+    rpc FindSuccessor (casa) returns (casaRes);
+    rpc ClosestPrecedingFinger (casa) returns (casaRes);
+    rpc Predecessor (casa) returns (casaRes);
+    rpc Successor (casa) returns (casaRes);
 }
 
 

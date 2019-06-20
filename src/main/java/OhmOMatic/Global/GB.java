@@ -86,6 +86,28 @@ public final class GB
 		}
 	}
 
+	public static long sha1_long(String input)
+	{
+		var digest = sha1(input);
+		var compressed = new byte[4];
+
+		for (var j = 0; j < 4; j++)
+		{
+			var temp = digest[j];
+
+			for (var k = 1; k < 5; k++)
+				temp = (byte) (temp ^ digest[j + k]);
+
+			compressed[j] = temp;
+		}
+
+		long ret = (compressed[0] & 0xFF) << 24 | (compressed[1] & 0xFF) << 16 | (compressed[2] & 0xFF) << 8 | (compressed[3] & 0xFF);
+
+		ret = ret & 0xFFFFFFFFl;
+
+		return ret;
+	}
+
 	public static boolean stringIsBlank(String s)
 	{
 		return (s == null || s.equals("") || s.equals(" "));

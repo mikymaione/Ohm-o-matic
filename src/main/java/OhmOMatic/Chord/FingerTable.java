@@ -7,21 +7,42 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package OhmOMatic.Chord;
 
 import OhmOMatic.Chord.FN.NodeLink;
+import OhmOMatic.Global.GB;
 
 public class FingerTable
 {
 
-	public final char mBit;
-	public final char[] start;
-	public final Interval[] interval;
-	public final NodeLink[] node;
+	private final char mBit;
+	private final NodeLink[] node;
 
 	public FingerTable(char mBit)
 	{
 		this.mBit = mBit;
-		this.start = new char[mBit];
-		this.interval = new Interval[mBit];
 		this.node = new NodeLink[mBit];
+	}
+
+	public NodeLink node(int k)
+	{
+		return node[k];
+	}
+
+	public void setNode(int k, NodeLink n)
+	{
+		node[k] = n;
+	}
+
+	public Interval interval(int k)
+	{
+		return new Interval(start(k), start(k + 1));
+	}
+
+	public long start(int k)
+	{
+		var n = node(k).key;
+		n = n + GB.getPowerOfTwo(k - 1, mBit);
+		n = n % GB.getPowerOfTwo(mBit, mBit);
+
+		return n;
 	}
 
 	public char keys()
