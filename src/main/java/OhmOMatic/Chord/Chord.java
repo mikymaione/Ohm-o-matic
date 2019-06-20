@@ -10,7 +10,10 @@ import OhmOMatic.Chord.FN.NodeLink;
 import OhmOMatic.Chord.FN.Richiesta;
 import OhmOMatic.Chord.FN.gRPCCommander;
 import OhmOMatic.Global.GB;
+import io.grpc.Server;
+import io.grpc.ServerBuilder;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -22,8 +25,10 @@ public class Chord
 	private final Timer timersChord;
 
 	private final NodeLink n;
+	private final Thread threadListener;
 	private NodeLink predecessor;
 	private final FingerTable fingerTable = new FingerTable(mBit);
+	private Server gRPC_listner;
 
 
 	public Chord(NodeLink address)
@@ -32,6 +37,27 @@ public class Chord
 		predecessor = null;
 
 		timersChord = new Timer();
+
+		threadListener = new Thread(() -> listener());
+		threadListener.start();
+	}
+
+	private void listener()
+	{
+		var chord = this;
+
+		try
+		{
+			gRPC_listner = ServerBuilder
+					.forPort(n.port)
+					.addService(gRPCCommander.getListnerServer(chord))
+					.build()
+					.start();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
 	}
 
 	// ask node toE find	id's getSuccessor
@@ -58,7 +84,7 @@ public class Chord
 	}
 
 	// return closest fingerTable preceding id
-	private NodeLink closest_preceding_finger(long id)
+	public NodeLink closest_preceding_finger(long id)
 	{
 		for (var i = mBit; i > 0; i--)
 			if (fingerTable.node(i).key > n.key && fingerTable.node(i).key < id)
@@ -108,7 +134,7 @@ public class Chord
 		startStabilizingRoutines();
 	}
 
-	private NodeLink getSuccessor()
+	public NodeLink getSuccessor()
 	{
 		return fingerTable.node(0);
 	}
@@ -116,6 +142,16 @@ public class Chord
 	private void setSuccessor(NodeLink s)
 	{
 		fingerTable.setNode(0, s);
+	}
+
+	public void setPredecessor(NodeLink p)
+	{
+		predecessor = p;
+	}
+
+	public NodeLink getPredecessor()
+	{
+		return predecessor;
 	}
 
 	// initialize fingerTable table of local node;
@@ -154,7 +190,7 @@ public class Chord
 	}
 
 	// if s is iTh fingerTable of n, update n's fingerTable table with s
-	private void update_finger_table(NodeLink s, int i) throws Exception
+	public void update_finger_table(NodeLink s, int i) throws Exception
 	{
 		if (s.key >= n.key && s.key < fingerTable.node(i).key)
 		{
@@ -182,7 +218,7 @@ public class Chord
 	}
 
 	// n_ thinks it might be our predecessor.
-	private void notify(NodeLink n_)
+	public void notify(NodeLink n_)
 	{
 		if (predecessor == null || (n_.key > predecessor.key && n_.key < n.key))
 			predecessor = n_;

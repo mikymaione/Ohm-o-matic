@@ -37,16 +37,16 @@ public final class CliCasa extends BaseCommandLineApplication
 				//casa.iscriviCasa();
 				System.out.println("Casa iscritta sul server!");
 
-				casa.entraNelCondominio();
+				//casa.entraNelCondominio();
 				System.out.println("Casa nel condominio!");
 
-				casa.avviaSmartMeter();
+				//casa.avviaSmartMeter();
 				System.out.println("Smart meter avviato!");
 
-				casa.fermaSmartMeter();
+				//casa.fermaSmartMeter();
 				System.out.println("Smart meter fermato!");
 
-				casa.esciDalCondominio();
+				//casa.esciDalCondominio();
 				System.out.println("Casa fuori dal condominio!");
 			}
 		}

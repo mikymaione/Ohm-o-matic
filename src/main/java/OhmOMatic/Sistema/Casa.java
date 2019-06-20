@@ -9,11 +9,9 @@ package OhmOMatic.Sistema;
 import OhmOMatic.Global.GB;
 import OhmOMatic.ProtoBuffer.Common.standardRes;
 import OhmOMatic.ProtoBuffer.Home.casa;
-import OhmOMatic.ProtoBuffer.Home.casaRes;
 import OhmOMatic.ProtoBuffer.Home.listaCase;
 import OhmOMatic.ProtoBuffer.HomeServiceGrpc;
 import OhmOMatic.ProtoBuffer.HomeServiceGrpc.HomeServiceBlockingStub;
-import OhmOMatic.ProtoBuffer.HomeServiceGrpc.HomeServiceImplBase;
 import OhmOMatic.Simulation.SmartMeterSimulator;
 import OhmOMatic.Sistema.Base.BufferImpl;
 import OhmOMatic.Sistema.Base.MeanListener;
@@ -21,7 +19,6 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
-import io.grpc.stub.StreamObserver;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -51,11 +48,6 @@ public class Casa implements MeanListener, AutoCloseable
 	private final String serverAddress;
 	private final int serverPort;
 
-
-	private static byte[] toSha1(String ip, int port)
-	{
-		return GB.sha1(ip + ":" + port);
-	}
 
 	public Casa(String indirizzoREST_, String mioIndirizzo_, int miaPorta_, String indirizzoServerPeer_, int portaServerPeer_) throws IOException
 	{
