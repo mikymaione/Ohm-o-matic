@@ -1,6 +1,7 @@
 package OhmOMatic.Chord.FN;
 
 import OhmOMatic.Chord.Chord;
+import OhmOMatic.Global.GB;
 import OhmOMatic.ProtoBuffer.Common;
 import OhmOMatic.ProtoBuffer.Home;
 import OhmOMatic.ProtoBuffer.HomeServiceGrpc;
@@ -263,6 +264,26 @@ public class gRPCCommander
 						local.getSuccessor());
 			}
 		};
+	}
+
+	public static String hexIdAndPosition(char mBit, NodeLink addr)
+	{
+		return (longTo8DigitHex(addr.key) + " (" + addr.key * 100 / GB.getPowerOfTwo(mBit, mBit) + "%)");
+	}
+
+	public static String longTo8DigitHex(long l)
+	{
+		var hex = Long.toHexString(l);
+		int lack = 8 - hex.length();
+
+		var sb = new StringBuilder();
+
+		for (var i = lack; i > 0; i--)
+			sb.append("0");
+
+		sb.append(hex);
+
+		return sb.toString();
 	}
 
 

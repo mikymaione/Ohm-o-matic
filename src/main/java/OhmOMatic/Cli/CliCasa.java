@@ -13,6 +13,8 @@ import OhmOMatic.Sistema.Casa;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import java.util.Scanner;
+
 public final class CliCasa extends BaseCommandLineApplication
 {
 
@@ -37,25 +39,54 @@ public final class CliCasa extends BaseCommandLineApplication
 				System.out.println("Casa avviata!");
 
 				var meLink = new NodeLink(mio_peer_address, mio_peer_port);
-				var chord = new Chord(meLink);
 
-				if (peer_port > -1)
-					chord.join(new NodeLink(peer_address, peer_port));
+				try (var chord = new Chord(meLink))
+				{
+					if (peer_port > -1)
+						chord.join(new NodeLink(peer_address, peer_port));
 
-				//casa.iscriviCasa();
-				System.out.println("Casa iscritta sul server!");
+					//casa.iscriviCasa();
+					System.out.println("Casa iscritta sul server!");
 
-				//casa.entraNelCondominio();
-				System.out.println("Casa nel condominio!");
+					//casa.entraNelCondominio();
+					System.out.println("Casa nel condominio!");
 
-				casa.avviaSmartMeter();
-				System.out.println("Smart meter avviato!");
 
-				//casa.fermaSmartMeter();
-				System.out.println("Smart meter fermato!");
+					// print join info
+					System.out.println("Joining the Chord ring.");
+					System.out.println("Local IP: " + mio_peer_address + ":" + mio_peer_port);
+					chord.printNeighbors();
 
-				//casa.esciDalCondominio();
-				System.out.println("Casa fuori dal condominio!");
+					// begin to take user input, "info" or "quit"
+					var userinput = new Scanner(System.in);
+
+					var Esecuzione = true;
+					while (Esecuzione)
+					{
+						System.out.println("Type \"info\" to check this node's data or \n type \"quit\"to leave ring: ");
+						String command = null;
+						command = userinput.next();
+
+						if (command.startsWith("quit"))
+						{
+							System.out.println("Leaving the ring...");
+							Esecuzione = false;
+						}
+						else if (command.startsWith("info"))
+						{
+							chord.printDataStructure();
+						}
+					}
+
+//					casa.avviaSmartMeter();
+//					System.out.println("Smart meter avviato!");
+//
+//					//casa.fermaSmartMeter();
+//					System.out.println("Smart meter fermato!");
+//
+//					//casa.esciDalCondominio();
+//					System.out.println("Casa fuori dal condominio!");
+				}
 			}
 		}
 		catch (Exception e)

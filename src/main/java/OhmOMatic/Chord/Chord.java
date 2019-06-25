@@ -18,7 +18,7 @@ import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class Chord
+public class Chord implements AutoCloseable
 {
 	private final char mBit = 32;
 
@@ -29,6 +29,7 @@ public class Chord
 	private NodeLink predecessor;
 	private final FingerTable fingerTable;
 	private Server gRPC_listner;
+	private int next = 0;
 
 
 	public Chord(NodeLink address)
@@ -44,6 +45,13 @@ public class Chord
 
 		threadListener = new Thread(() -> listener());
 		threadListener.start();
+	}
+
+	@Override
+	public void close()
+	{
+		timersChord.cancel();
+		threadListener.stop();
 	}
 
 	private void listener()
@@ -215,7 +223,64 @@ public class Chord
 		fingerTable.setNode(next, s);
 	}
 
-	private int next = 0;
+	public void printDataStructure()
+	{
+		System.out.println("\n==============================================================");
+		System.out.println("\nLOCAL:\t\t\t\t" + n.toString() + "\t" + gRPCCommander.hexIdAndPosition(mBit, n));
+
+		if (predecessor != null)
+			System.out.println("\nPREDECESSOR:\t\t\t" + predecessor.toString() + "\t" + gRPCCommander.hexIdAndPosition(mBit, predecessor));
+		else
+			System.out.println("\nPREDECESSOR:\t\t\tNULL");
+
+		System.out.println("\nFINGER TABLE:\n");
+
+		for (var i = 0; i < mBit; i++)
+		{
+			long ithstart = fingerTable.start(n, i, mBit);
+
+			var f = fingerTable.node(i);
+
+			var sb = new StringBuilder();
+
+			sb.append(i + "\t" + gRPCCommander.longTo8DigitHex(ithstart) + "\t\t");
+
+			if (f != null)
+				sb.append(f.toString() + "\t" + gRPCCommander.hexIdAndPosition(mBit, f));
+			else
+				sb.append("NULL");
+
+			System.out.println(sb.toString());
+		}
+
+		System.out.println("\n==============================================================\n");
+	}
+
+	public void printNeighbors()
+	{
+		System.out.println("You are listening on port " + n.port + ".");
+		System.out.println("Your position is " + gRPCCommander.hexIdAndPosition(mBit, n) + ".");
+
+		var successor = getSuccessor();
+
+		if ((predecessor == null || predecessor.equals(n)) && (successor == null || successor.equals(n)))
+		{
+			System.out.println("Your predecessor is yourself.");
+			System.out.println("Your successor is yourself.");
+		}
+		else
+		{
+			if (predecessor != null)
+				System.out.println("Your predecessor is node " + predecessor.IP + ", " + "port " + predecessor.port + ", position " + gRPCCommander.hexIdAndPosition(mBit, predecessor) + ".");
+			else
+				System.out.println("Your predecessor is updating.");
+
+			if (successor != null)
+				System.out.println("Your successor is node " + successor.IP + ", " + "port " + successor.port + ", position " + gRPCCommander.hexIdAndPosition(mBit, successor) + ".");
+			else
+				System.out.println("Your successor is updating.");
+		}
+	}
 
 
 }

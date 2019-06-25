@@ -39,9 +39,14 @@ public class FingerTable
 	public long start(int k)
 	{
 		var z = node(k);
-		
+
+		return start(z, k, mBit);
+	}
+
+	public static long start(NodeLink z, int k, char mBit)
+	{
 		var n = z.key;
-		n = n + GB.getPowerOfTwo(k - 1, mBit);
+		n = n + GB.getPowerOfTwo(k, mBit);
 		n = n % GB.getPowerOfTwo(mBit, mBit);
 
 		return n;
