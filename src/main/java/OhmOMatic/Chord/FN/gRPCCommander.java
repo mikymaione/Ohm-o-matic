@@ -31,7 +31,11 @@ public class gRPCCommander
 		{
 			var response = gRPC_E(server, req, _id);
 
-			if (response.getStandardRes().getOk())
+			if (response.getNullValue())
+			{
+				return null;
+			}
+			else if (response.getStandardRes().getOk())
 			{
 				var c = response.getCasa();
 
@@ -123,7 +127,7 @@ public class gRPCCommander
 	{
 		return new HomeServiceGrpc.HomeServiceImplBase()
 		{
-			private void STD(Home.casa request, StreamObserver<Home.casaRes> responseObserver, Function<NodeLink, NodeLink> fn)
+			private void STD_PRO(Home.casa request, StreamObserver<Home.casaRes> responseObserver, java.util.function.Consumer<NodeLink> pro)
 			{
 				Common.standardRes sr;
 				var cr = Home.casa.newBuilder()
@@ -133,9 +137,47 @@ public class gRPCCommander
 				{
 					var n_ = new NodeLink(request.getOptionalIP(), request.getOptionalPort());
 
-					var R = fn.apply(n_);
+					pro.accept(n_);
 
-					if (R != null)
+					sr = Common.standardRes.newBuilder()
+							.setOk(true)
+							.build();
+				}
+				catch (Exception e)
+				{
+					sr = Common.standardRes.newBuilder()
+							.setOk(false)
+							.setErrore(e.getMessage())
+							.build();
+				}
+
+				var res = Home.casaRes.newBuilder()
+						.setStandardRes(sr)
+						.setCasa(cr)
+						.setNullValue(false)
+						.build();
+
+				responseObserver.onNext(res);
+				responseObserver.onCompleted();
+			}
+
+			private void STD_FUN(Home.casa request, StreamObserver<Home.casaRes> responseObserver, Function<NodeLink, NodeLink> fun)
+			{
+				var NullValue = false;
+
+				Common.standardRes sr;
+				var cr = Home.casa.newBuilder()
+						.build();
+
+				try
+				{
+					var n_ = new NodeLink(request.getOptionalIP(), request.getOptionalPort());
+
+					var R = fun.apply(n_);
+
+					if (R == null)
+						NullValue = true;
+					else
 						cr = Home.casa.newBuilder()
 								.setIP(R.IP)
 								.setPort(R.port)
@@ -156,6 +198,7 @@ public class gRPCCommander
 				var res = Home.casaRes.newBuilder()
 						.setStandardRes(sr)
 						.setCasa(cr)
+						.setNullValue(NullValue)
 						.build();
 
 				responseObserver.onNext(res);
@@ -165,17 +208,14 @@ public class gRPCCommander
 			@Override
 			public void notify(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
-				STD(request, responseObserver, n_ ->
-				{
-					local.notify(n_);
-					return null;
-				});
+				STD_PRO(request, responseObserver, n_ ->
+						local.notify(n_));
 			}
 
 			@Override
 			public void updateFingerTable(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
-				STD(request, responseObserver, n_ ->
+				STD_PRO(request, responseObserver, n_ ->
 				{
 					try
 					{
@@ -185,46 +225,41 @@ public class gRPCCommander
 					{
 						e.printStackTrace();
 					}
-
-					return null;
 				});
 			}
 
 			@Override
 			public void setPredecessor(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
-				STD(request, responseObserver, n_ ->
-				{
-					local.setPredecessor(n_);
-					return null;
-				});
+				STD_PRO(request, responseObserver, n_ ->
+						local.setPredecessor(n_));
 			}
 
 			@Override
 			public void findSuccessor(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
-				STD(request, responseObserver, n_ ->
+				STD_FUN(request, responseObserver, n_ ->
 						local.find_successor(request.getID()));
 			}
 
 			@Override
 			public void closestPrecedingFinger(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
-				STD(request, responseObserver, n_ ->
+				STD_FUN(request, responseObserver, n_ ->
 						local.closest_preceding_finger(request.getID()));
 			}
 
 			@Override
 			public void predecessor(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
-				STD(request, responseObserver, n_ ->
+				STD_FUN(request, responseObserver, n_ ->
 						local.getPredecessor());
 			}
 
 			@Override
 			public void successor(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
-				STD(request, responseObserver, n_ ->
+				STD_FUN(request, responseObserver, n_ ->
 						local.getSuccessor());
 			}
 		};

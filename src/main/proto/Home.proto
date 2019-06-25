@@ -37,6 +37,7 @@ message casa {
 message casaRes {
     standardRes StandardRes = 1;
     casa Casa = 2;
+    bool NullValue = 3;
 }
 
 message listaCase {

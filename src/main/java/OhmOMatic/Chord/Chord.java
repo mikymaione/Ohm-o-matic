@@ -38,6 +38,7 @@ public class Chord
 		fingerTable = new FingerTable(mBit, address);
 
 		predecessor = null;
+		setSuccessor(n);
 
 		timersChord = new Timer();
 
@@ -63,27 +64,22 @@ public class Chord
 		}
 	}
 
-	// ask node toE find	id's getSuccessor
+	// ask node n to find id's getSuccessor
 	public NodeLink find_successor(long id)
 	{
-		var n_ = find_predecessor(id);
+		var s = getSuccessor();
 
-		return gRPCCommander.gRPC_A(n_, Richiesta.Successor);
-		//return n_.successor;
-	}
+		if (!(id > n.key && id <= s.key))
+		{
+			var n_ = closest_preceding_finger(id);
 
-	// ask node n_ to find id's predecessor
-	private NodeLink find_predecessor(long id)
-	{
-		var n_ = n;
+			if (n.equals(n_))
+				s = n;
+			else
+				s = gRPCCommander.gRPC_A(n_, Richiesta.FindSuccessor, id);
+		}
 
-		while (!(id > n_.key && id <= gRPCCommander.gRPC_A(n_, Richiesta.Successor).key))
-			n_ = gRPCCommander.gRPC_A(n_, Richiesta.ClosestPrecedingFinger, id);
-
-		//while (!(id > n_.key && id < n_.successor.key))
-		//	n_ = n_.closest_preceding_finger(id);
-
-		return n_;
+		return s;
 	}
 
 	// return closest fingerTable preceding id
@@ -138,28 +134,11 @@ public class Chord
 	// n_ is an arbitrary node in the network
 	public void join(NodeLink n_) throws Exception
 	{
-		setSuccessor(gRPCCommander.gRPC_A(n_, Richiesta.FindSuccessor, n.key));
+		var s = gRPCCommander.gRPC_A(n_, Richiesta.FindSuccessor, n.key);
+		setSuccessor(s);
 		//successor = n_.find_successor(n);
 
 		startStabilizingRoutines();
-	}
-
-	// node n joins the network;
-	// n_ is an arbitrary node in the network
-	public void join2(NodeLink n_) throws Exception
-	{
-		if (n_ == null)
-		{
-			for (var i = 0; i < mBit; i++)
-				fingerTable.setNode(i, n);
-
-			predecessor = n;
-		}
-		else
-		{
-			init_finger_table(n_);
-			update_others();
-		}
 	}
 
 	public NodeLink getSuccessor()
@@ -182,52 +161,20 @@ public class Chord
 		return predecessor;
 	}
 
-	// initialize fingerTable table of local node;
-	// n_ is an arbitrary node already in the network
-	private void init_finger_table(NodeLink n_) throws Exception
-	{
-		fingerTable.setNode(0, gRPCCommander.gRPC_A(n_, Richiesta.FindSuccessor, fingerTable.start(0)));
-		//fingerTable.node[0] = n_.find_successor(fingerTable.start[0]);
-
-		predecessor = gRPCCommander.gRPC_A(getSuccessor(), Richiesta.Predecessor);
-		//predecessor = getSuccessor().predecessor;
-
-
-		gRPCCommander.gRPC_E(getSuccessor(), Richiesta.SetPredecessor, n);
-		//getSuccessor().predecessor = n;
-
-		for (var i = 0; i < mBit - 1; i++)
-			if (fingerTable.start(i + 1) >= n.key && fingerTable.start(i + 1) < fingerTable.node(i).key)
-				fingerTable.setNode(i + 1, fingerTable.node(i));
-			else
-				//fingerTable.node[i + 1] = n_.find_successor(fingerTable.start[i + 1]);
-				fingerTable.setNode(i + 1, gRPCCommander.gRPC_A(n_, Richiesta.FindSuccessor, fingerTable.start(i + 1)));
-	}
-
-	// update all nodes whose fingerTable
-	// tables should refer toE n
-	private void update_others() throws Exception
-	{
-		for (var i = 0; i < mBit; i++)
-		{
-			//find last node p whose iTh fingerTable might be n
-			var p = find_predecessor(n.key - GB.getPowerOfTwo(i - 1, mBit));
-			gRPCCommander.gRPC_E(p, Richiesta.UpdateFingerTable, i, n);
-			//p.update_finger_table(n, i);
-		}
-	}
-
 	// if s is iTh fingerTable of n, update n's fingerTable table with s
 	public void update_finger_table(NodeLink s, int i) throws Exception
 	{
-		if (s.key >= n.key && s.key < fingerTable.node(i).key)
-		{
-			fingerTable.setNode(i, s);
+		var ith_finger = fingerTable.node(i);
 
-			var p = predecessor; //get first node preceding n
-			gRPCCommander.gRPC_E(p, Richiesta.UpdateFingerTable, i, s);
-			//p.update_finger_table(s, i);
-		}
+		if (ith_finger != null)
+			if (s.key >= n.key && s.key < ith_finger.key)
+			{
+				fingerTable.setNode(i, s);
+
+				var p = predecessor; //get first node preceding n
+				gRPCCommander.gRPC_E(p, Richiesta.UpdateFingerTable, i, s);
+				//p.update_finger_table(s, i);
+			}
 	}
 
 	// called periodically. n asks the getSuccessor
@@ -238,8 +185,9 @@ public class Chord
 		var x = gRPCCommander.gRPC_A(getSuccessor(), Richiesta.Predecessor);
 		//var x = successor.predecessor;
 
-		if (x.key > n.key && x.key < getSuccessor().key)
-			setSuccessor(x);
+		if (x != null)
+			if (x.key > n.key && x.key < getSuccessor().key)
+				setSuccessor(x);
 
 		gRPCCommander.gRPC_E(getSuccessor(), Richiesta.Notify, n);
 		//getSuccessor().notify(n);
@@ -255,9 +203,19 @@ public class Chord
 	// called periodically refreshes fingerTable table entries.
 	private void fix_fingers()
 	{
-		var i = GB.randomInt(0, mBit - 1);
-		fingerTable.setNode(i, find_successor(fingerTable.start(i)));
+		next++;
+
+		if (next > mBit - 1)
+			next = 1;
+
+		var i = GB.getPowerOfTwo(next - 1, mBit);
+		i += n.key;
+
+		var s = find_successor(i);
+		fingerTable.setNode(next, s);
 	}
+
+	private int next = 0;
 
 
 }

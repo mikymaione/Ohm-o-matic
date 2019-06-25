@@ -17,7 +17,7 @@ public class NodeLink
 
 	public NodeLink(String IP, int port)
 	{
-		this.key = GB.sha1_long(toString());
+		this.key = GB.sha1_long(IP + ":" + port);
 
 		this.IP = IP;
 		this.port = port;

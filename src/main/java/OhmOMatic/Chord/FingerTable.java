@@ -38,16 +38,13 @@ public class FingerTable
 
 	public long start(int k)
 	{
-		var n = node(k).key;
+		var z = node(k);
+		
+		var n = z.key;
 		n = n + GB.getPowerOfTwo(k - 1, mBit);
 		n = n % GB.getPowerOfTwo(mBit, mBit);
 
 		return n;
-	}
-
-	public char keys()
-	{
-		return 0;
 	}
 
 
