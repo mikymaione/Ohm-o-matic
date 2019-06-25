@@ -34,8 +34,11 @@ public class Chord
 	public Chord(NodeLink address)
 	{
 		n = address;
+
 		fingerTable = new FingerTable(mBit, address);
-		
+
+		predecessor = null;
+
 		timersChord = new Timer();
 
 		threadListener = new Thread(() -> listener());
@@ -74,7 +77,7 @@ public class Chord
 	{
 		var n_ = n;
 
-		while (!(id > n_.key && id < gRPCCommander.gRPC_A(n_, Richiesta.Successor).key))
+		while (!(id > n_.key && id <= gRPCCommander.gRPC_A(n_, Richiesta.Successor).key))
 			n_ = gRPCCommander.gRPC_A(n_, Richiesta.ClosestPrecedingFinger, id);
 
 		//while (!(id > n_.key && id < n_.successor.key))
@@ -86,9 +89,18 @@ public class Chord
 	// return closest fingerTable preceding id
 	public NodeLink closest_preceding_finger(long id)
 	{
-		for (var i = mBit - 1; i > 0; i--)
-			if (fingerTable.node(i).key > n.key && fingerTable.node(i).key < id)
-				return fingerTable.node(i);
+		for (var x = mBit; x > 0; x--)
+		{
+			var i = x - 1;
+
+			var ith_finger = fingerTable.node(i);
+
+			if (ith_finger == null)
+				continue;
+
+			if (ith_finger.key > n.key && ith_finger.key < id)
+				return ith_finger;
+		}
 
 		return n;
 	}
@@ -126,12 +138,7 @@ public class Chord
 	// n_ is an arbitrary node in the network
 	public void join(NodeLink n_) throws Exception
 	{
-		predecessor = null;
-
-		if (n_ == n)
-			setSuccessor(n);
-		else
-			setSuccessor(gRPCCommander.gRPC_A(n_, Richiesta.FindSuccessor, n.key));
+		setSuccessor(gRPCCommander.gRPC_A(n_, Richiesta.FindSuccessor, n.key));
 		//successor = n_.find_successor(n);
 
 		startStabilizingRoutines();
