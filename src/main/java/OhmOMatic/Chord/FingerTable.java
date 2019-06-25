@@ -31,11 +31,6 @@ public class FingerTable
 		node[k] = n;
 	}
 
-	public Interval interval(int k)
-	{
-		return new Interval(start(k), start(k + 1));
-	}
-
 	public long start(int k)
 	{
 		var z = node(k);

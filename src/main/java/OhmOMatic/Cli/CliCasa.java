@@ -44,6 +44,8 @@ public final class CliCasa extends BaseCommandLineApplication
 				{
 					if (peer_port > -1)
 						chord.join(new NodeLink(peer_address, peer_port));
+					else
+						chord.join(meLink);
 
 					//casa.iscriviCasa();
 					System.out.println("Casa iscritta sul server!");

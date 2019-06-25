@@ -9,7 +9,6 @@ package OhmOMatic.Chord;
 import OhmOMatic.Chord.FN.NodeLink;
 import OhmOMatic.Chord.FN.Richiesta;
 import OhmOMatic.Chord.FN.gRPCCommander;
-import OhmOMatic.Global.GB;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 
@@ -142,10 +141,13 @@ public class Chord implements AutoCloseable
 	// n_ is an arbitrary node in the network
 	public void join(NodeLink n_) throws Exception
 	{
-		var s = gRPCCommander.gRPC_A(n_, Richiesta.FindSuccessor, n.key);
-		setSuccessor(s);
-		//successor = n_.find_successor(n);
-
+		if (!n.equals(n_))
+		{
+			var s = gRPCCommander.gRPC_A(n_, Richiesta.FindSuccessor, n.key);
+			setSuccessor(s);
+			//successor = n_.find_successor(n);
+		}
+		
 		startStabilizingRoutines();
 	}
 
@@ -216,10 +218,9 @@ public class Chord implements AutoCloseable
 		if (next > mBit - 1)
 			next = 1;
 
-		var i = GB.getPowerOfTwo(next - 1, mBit);
-		i += n.key;
-
+		var i = FingerTable.start(n, next - 1, mBit);
 		var s = find_successor(i);
+
 		fingerTable.setNode(next, s);
 	}
 
