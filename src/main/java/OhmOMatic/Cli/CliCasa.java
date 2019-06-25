@@ -7,6 +7,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package OhmOMatic.Cli;
 
 import OhmOMatic.Base.BaseCommandLineApplication;
+import OhmOMatic.Chord.Chord;
+import OhmOMatic.Chord.FN.NodeLink;
 import OhmOMatic.Sistema.Casa;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -34,13 +36,21 @@ public final class CliCasa extends BaseCommandLineApplication
 			{
 				System.out.println("Casa avviata!");
 
+				var meLink = new NodeLink(mio_peer_address, mio_peer_port);
+				var chord = new Chord(meLink);
+
+				if (peer_port > -1)
+					chord.join(new NodeLink(peer_address, peer_port));
+				else
+					chord.join(meLink);
+
 				//casa.iscriviCasa();
 				System.out.println("Casa iscritta sul server!");
 
 				//casa.entraNelCondominio();
 				System.out.println("Casa nel condominio!");
 
-				//casa.avviaSmartMeter();
+				casa.avviaSmartMeter();
 				System.out.println("Smart meter avviato!");
 
 				//casa.fermaSmartMeter();

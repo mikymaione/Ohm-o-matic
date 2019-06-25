@@ -58,8 +58,6 @@ public class Casa implements MeanListener, AutoCloseable
 
 		serverAddress = indirizzoServerPeer_;
 		serverPort = portaServerPeer_;
-
-		start_gRPC_Listening();
 	}
 
 
@@ -74,15 +72,6 @@ public class Casa implements MeanListener, AutoCloseable
 	}
 
 	//region Funzioni P2P
-	private void start_gRPC_Listening() throws IOException
-	{
-		gRPC_listner = ServerBuilder
-				.forPort(myPort)
-				//.addService(new HomeServiceImplBase() {})
-				.build()
-				.start();
-	}
-
 	private HomeServiceBlockingStub getStub()
 	{
 		if (homeServiceBlockingStub == null)

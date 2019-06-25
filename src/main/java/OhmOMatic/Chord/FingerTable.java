@@ -15,7 +15,7 @@ public class FingerTable
 	private final char mBit;
 	private final NodeLink[] node;
 
-	public FingerTable(char mBit)
+	public FingerTable(char mBit, NodeLink me)
 	{
 		this.mBit = mBit;
 		this.node = new NodeLink[mBit];
