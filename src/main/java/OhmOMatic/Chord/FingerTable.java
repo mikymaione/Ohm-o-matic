@@ -21,12 +21,12 @@ public class FingerTable
 		this.node = new NodeLink[mBit];
 	}
 
-	public NodeLink node(int k)
+	public synchronized NodeLink node(int k)
 	{
 		return node[k];
 	}
 
-	public void setNode(int k, NodeLink n)
+	public synchronized void setNode(int k, NodeLink n)
 	{
 		node[k] = n;
 	}
