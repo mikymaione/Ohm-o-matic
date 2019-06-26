@@ -19,7 +19,7 @@ import java.util.TimerTask;
 
 public class Chord implements AutoCloseable
 {
-	private final char mBit = 32;
+	private final char mBit = 160; //sha1
 
 	private final Timer timersChord;
 
@@ -28,14 +28,14 @@ public class Chord implements AutoCloseable
 	private NodeLink predecessor;
 	private final FingerTable fingerTable;
 	private Server gRPC_listner;
-	private int next = 0;
+	private int next = 1;
 
 
 	public Chord(NodeLink address)
 	{
 		n = address;
 
-		fingerTable = new FingerTable(mBit, address);
+		fingerTable = new FingerTable(mBit);
 
 		predecessor = null;
 		setSuccessor(n);
@@ -71,7 +71,7 @@ public class Chord implements AutoCloseable
 		}
 	}
 
-	// ask node n to find id's getSuccessor
+	// ask getNode n to find id's getSuccessor
 	public NodeLink find_successor(long id)
 	{
 		var s = getSuccessor();
@@ -92,11 +92,9 @@ public class Chord implements AutoCloseable
 	// return closest fingerTable preceding id
 	public NodeLink closest_preceding_finger(long id)
 	{
-		for (var x = mBit; x > 0; x--)
+		for (var i = mBit; i > 0; i--)
 		{
-			var i = x - 1;
-
-			var ith_finger = fingerTable.node(i);
+			var ith_finger = fingerTable.getNode(i);
 
 			if (ith_finger == null)
 				continue;
@@ -108,7 +106,7 @@ public class Chord implements AutoCloseable
 		return n;
 	}
 
-	//stabilize the chord ring/circle after node joins and departures
+	//stabilize the chord ring/circle after getNode joins and departures
 	private void startStabilizingRoutines()
 	{
 		timersChord.scheduleAtFixedRate(new TimerTask()
@@ -137,8 +135,8 @@ public class Chord implements AutoCloseable
 		}, new Date(), 500);
 	}
 
-	// node n joins the network;
-	// n_ is an arbitrary node in the network
+	// getNode n joins the network;
+	// n_ is an arbitrary getNode in the network
 	public void join(NodeLink n_) throws Exception
 	{
 		if (!n.equals(n_))
@@ -147,18 +145,18 @@ public class Chord implements AutoCloseable
 			setSuccessor(s);
 			//successor = n_.find_successor(n);
 		}
-		
+
 		startStabilizingRoutines();
 	}
 
 	public NodeLink getSuccessor()
 	{
-		return fingerTable.node(0);
+		return fingerTable.getNode(1);
 	}
 
 	private void setSuccessor(NodeLink s)
 	{
-		fingerTable.setNode(0, s);
+		fingerTable.setNode(1, s);
 	}
 
 	public void setPredecessor(NodeLink p)
@@ -174,15 +172,15 @@ public class Chord implements AutoCloseable
 	// if s is iTh fingerTable of n, update n's fingerTable table with s
 	public void update_finger_table(NodeLink s, int i) throws Exception
 	{
-		var ith_finger = fingerTable.node(i);
+		var ith_finger = fingerTable.getNode(i);
 
 		if (ith_finger != null)
 			if (s.key >= n.key && s.key < ith_finger.key)
 			{
 				fingerTable.setNode(i, s);
 
-				var p = predecessor; //get first node preceding n
-				gRPCCommander.gRPC_E(p, Richiesta.UpdateFingerTable, i, s);
+				//get first getNode preceding n
+				gRPCCommander.gRPC_E(predecessor, Richiesta.UpdateFingerTable, i, s);
 				//p.update_finger_table(s, i);
 			}
 	}
@@ -192,15 +190,18 @@ public class Chord implements AutoCloseable
 	// getSuccessor is consistent, and tells the getSuccessor about n
 	private void stabilize() throws Exception
 	{
-		var x = gRPCCommander.gRPC_A(getSuccessor(), Richiesta.Predecessor);
+		var s = getSuccessor();
+		var x = gRPCCommander.gRPC_A(s, Richiesta.Predecessor);
 		//var x = successor.predecessor;
 
 		if (x != null)
-			if (x.key > n.key && x.key < getSuccessor().key)
+		{
+			if (x.key > n.key && x.key < s.key)
 				setSuccessor(x);
 
-		gRPCCommander.gRPC_E(getSuccessor(), Richiesta.Notify, n);
-		//getSuccessor().notify(n);
+			gRPCCommander.gRPC_E(s, Richiesta.Notify, n);
+			//successor.notify(n);
+		}
 	}
 
 	// n_ thinks it might be our predecessor.
@@ -215,13 +216,16 @@ public class Chord implements AutoCloseable
 	{
 		next++;
 
-		if (next > mBit - 1)
+		if (next > mBit)
 			next = 1;
 
 		var i = FingerTable.start(n, next - 1, mBit);
-		var s = find_successor(i);
+		var iThFinger = find_successor(i);
 
-		fingerTable.setNode(next, s);
+		fingerTable.setNode(next, iThFinger);
+
+		//forse
+		notify(iThFinger);
 	}
 
 	public void printDataStructure()
@@ -236,11 +240,11 @@ public class Chord implements AutoCloseable
 
 		System.out.println("\nFINGER TABLE:\n");
 
-		for (var i = 0; i < mBit; i++)
+		for (var i = 1; i <= mBit; i++)
 		{
 			long ithstart = fingerTable.start(n, i, mBit);
 
-			var f = fingerTable.node(i);
+			var f = fingerTable.getNode(i);
 
 			var sb = new StringBuilder();
 
@@ -272,12 +276,12 @@ public class Chord implements AutoCloseable
 		else
 		{
 			if (predecessor != null)
-				System.out.println("Your predecessor is node " + predecessor.IP + ", " + "port " + predecessor.port + ", position " + gRPCCommander.hexIdAndPosition(mBit, predecessor) + ".");
+				System.out.println("Your predecessor is getNode " + predecessor.IP + ", " + "port " + predecessor.port + ", position " + gRPCCommander.hexIdAndPosition(mBit, predecessor) + ".");
 			else
 				System.out.println("Your predecessor is updating.");
 
 			if (successor != null)
-				System.out.println("Your successor is node " + successor.IP + ", " + "port " + successor.port + ", position " + gRPCCommander.hexIdAndPosition(mBit, successor) + ".");
+				System.out.println("Your successor is getNode " + successor.IP + ", " + "port " + successor.port + ", position " + gRPCCommander.hexIdAndPosition(mBit, successor) + ".");
 			else
 				System.out.println("Your successor is updating.");
 		}

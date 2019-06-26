@@ -9,31 +9,33 @@ package OhmOMatic.Chord;
 import OhmOMatic.Chord.FN.NodeLink;
 import OhmOMatic.Global.GB;
 
+import java.util.HashMap;
+
 public class FingerTable
 {
 
 	private final char mBit;
-	private final NodeLink[] node;
+	private final HashMap<Integer, NodeLink> fingers;
 
-	public FingerTable(char mBit, NodeLink me)
+	public FingerTable(char mBit)
 	{
 		this.mBit = mBit;
-		this.node = new NodeLink[mBit];
+		this.fingers = new HashMap<>(mBit);
 	}
 
-	public synchronized NodeLink node(int k)
+	public synchronized NodeLink getNode(int k)
 	{
-		return node[k];
+		return fingers.get(k);
 	}
 
 	public synchronized void setNode(int k, NodeLink n)
 	{
-		node[k] = n;
+		fingers.put(k, n);
 	}
 
 	public long start(int k)
 	{
-		var z = node(k);
+		var z = getNode(k);
 
 		return start(z, k, mBit);
 	}

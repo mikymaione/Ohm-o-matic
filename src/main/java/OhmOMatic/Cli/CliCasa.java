@@ -65,7 +65,7 @@ public final class CliCasa extends BaseCommandLineApplication
 					var Esecuzione = true;
 					while (Esecuzione)
 					{
-						System.out.println("Type \"info\" to check this node's data or \n type \"quit\"to leave ring: ");
+						System.out.println("Type \"info\" to check this getNode's data or \n type \"quit\"to leave ring: ");
 						String command = null;
 						command = userinput.next();
 
