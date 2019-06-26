@@ -6,8 +6,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Global;
 
-import com.google.protobuf.ByteString;
-
 import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -118,21 +116,24 @@ public final class GB
 		return random.nextInt(a) + da;
 	}
 
-	public static boolean compreso(final ByteString key, final ByteString lower, final ByteString upper)
+	public static boolean gt(final byte[] a, final byte[] b)
 	{
-		var k = key.toByteArray();
-		var l = lower.toByteArray();
-		var u = upper.toByteArray();
-
-		return compreso(k, l, u);
+		return Arrays.compare(a, b) > 0;
 	}
 
-	public static boolean compreso(final byte[] key, final byte[] lower, final byte[] upper)
+	public static boolean ge(final byte[] a, final byte[] b)
 	{
-		if (Arrays.compare(lower, upper) > 0)
-			return Arrays.compare(key, lower) < 0 && Arrays.compare(key, upper) <= 1;
-		else
-			return Arrays.compare(key, lower) < 0 || Arrays.compare(key, upper) <= 1;
+		return Arrays.compare(a, b) >= 0;
+	}
+
+	public static boolean lt(final byte[] a, final byte[] b)
+	{
+		return Arrays.compare(a, b) < 0;
+	}
+
+	public static boolean le(final byte[] a, final byte[] b)
+	{
+		return Arrays.compare(a, b) <= 0;
 	}
 
 	public static byte[] shiftLeft(byte[] byteArray, int shiftBitCount)

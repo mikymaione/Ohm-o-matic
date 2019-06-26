@@ -25,13 +25,14 @@ service HomeService {
 
 
 message casa {
-    int64 ID = 1;
+    bytes ID = 1;
+    int32 idx = 2;
 
-    string IP = 2;
-    int32 port = 3;
+    string IP = 3;
+    int32 port = 4;
 
-    string Optional_IP = 4;
-    int32 Optional_port = 5;
+    string Optional_IP = 5;
+    int32 Optional_port = 6;
 }
 
 message casaRes {

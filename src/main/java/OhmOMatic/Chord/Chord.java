@@ -9,6 +9,7 @@ package OhmOMatic.Chord;
 import OhmOMatic.Chord.FN.NodeLink;
 import OhmOMatic.Chord.FN.Richiesta;
 import OhmOMatic.Chord.FN.gRPCCommander;
+import OhmOMatic.Global.GB;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 
@@ -72,11 +73,12 @@ public class Chord implements AutoCloseable
 	}
 
 	// ask getNode n to find id's getSuccessor
-	public NodeLink find_successor(long id)
+	public NodeLink find_successor(byte[] id)
 	{
 		var s = getSuccessor();
 
-		if (!(id > n.key && id <= s.key))
+		//if (!(id > n.key && id <= s.key))
+		if (!(GB.gt(id, n.key) && GB.le(id, s.key)))
 		{
 			var n_ = closest_preceding_finger(id);
 
@@ -90,7 +92,7 @@ public class Chord implements AutoCloseable
 	}
 
 	// return closest fingerTable preceding id
-	public NodeLink closest_preceding_finger(long id)
+	public NodeLink closest_preceding_finger(byte[] id)
 	{
 		for (var i = mBit; i > 0; i--)
 		{
@@ -99,7 +101,8 @@ public class Chord implements AutoCloseable
 			if (ith_finger == null)
 				continue;
 
-			if (ith_finger.key > n.key && ith_finger.key < id)
+			//if (ith_finger.key > n.key && ith_finger.key < id)
+			if (GB.gt(ith_finger.key, n.key) && GB.lt(ith_finger.key, id))
 				return ith_finger;
 		}
 
@@ -175,12 +178,13 @@ public class Chord implements AutoCloseable
 		var ith_finger = fingerTable.getNode(i);
 
 		if (ith_finger != null)
-			if (s.key >= n.key && s.key < ith_finger.key)
+			//if (s.key >= n.key && s.key < ith_finger.key)
+			if (GB.ge(s.key, n.key) && GB.lt(s.key, ith_finger.key))
 			{
 				fingerTable.setNode(i, s);
 
 				//get first getNode preceding n
-				gRPCCommander.gRPC_E(predecessor, Richiesta.UpdateFingerTable, i, s);
+				gRPCCommander.gRPC_E(predecessor, Richiesta.UpdateFingerTable, null, i, s);
 				//p.update_finger_table(s, i);
 			}
 	}
@@ -196,7 +200,8 @@ public class Chord implements AutoCloseable
 
 		if (x != null)
 		{
-			if (x.key > n.key && x.key < s.key)
+			//if (x.key > n.key && x.key < s.key)
+			if (GB.gt(x.key, n.key) && GB.lt(x.key, s.key))
 				setSuccessor(x);
 
 			gRPCCommander.gRPC_E(s, Richiesta.Notify, n);
@@ -207,7 +212,8 @@ public class Chord implements AutoCloseable
 	// n_ thinks it might be our predecessor.
 	public void notify(NodeLink n_)
 	{
-		if (predecessor == null || (n_.key > predecessor.key && n_.key < n.key))
+		//if (predecessor == null || (n_.key > predecessor.key && n_.key < n.key))
+		if (predecessor == null || (GB.gt(n_.key, predecessor.key) && GB.lt(n_.key, n.key)))
 			predecessor = n_;
 	}
 
@@ -231,10 +237,10 @@ public class Chord implements AutoCloseable
 	public void printDataStructure()
 	{
 		System.out.println("\n==============================================================");
-		System.out.println("\nLOCAL:\t\t\t\t" + n.toString() + "\t" + gRPCCommander.hexIdAndPosition(mBit, n));
+		System.out.println("\nLOCAL:\t\t\t\t" + n.toString() + "\t" + n);
 
 		if (predecessor != null)
-			System.out.println("\nPREDECESSOR:\t\t\t" + predecessor.toString() + "\t" + gRPCCommander.hexIdAndPosition(mBit, predecessor));
+			System.out.println("\nPREDECESSOR:\t\t\t" + predecessor.toString() + "\t" + predecessor);
 		else
 			System.out.println("\nPREDECESSOR:\t\t\tNULL");
 
@@ -248,10 +254,10 @@ public class Chord implements AutoCloseable
 
 			var sb = new StringBuilder();
 
-			sb.append(i + "\t" + gRPCCommander.longTo8DigitHex(ithstart) + "\t\t");
+			sb.append(i + "\t" + ithstart + "\t\t");
 
 			if (f != null)
-				sb.append(f.toString() + "\t" + gRPCCommander.hexIdAndPosition(mBit, f));
+				sb.append(f.toString() + "\t" + f);
 			else
 				sb.append("NULL");
 
@@ -264,7 +270,7 @@ public class Chord implements AutoCloseable
 	public void printNeighbors()
 	{
 		System.out.println("You are listening on port " + n.port + ".");
-		System.out.println("Your position is " + gRPCCommander.hexIdAndPosition(mBit, n) + ".");
+		System.out.println("Your position is " + n + ".");
 
 		var successor = getSuccessor();
 
@@ -276,12 +282,12 @@ public class Chord implements AutoCloseable
 		else
 		{
 			if (predecessor != null)
-				System.out.println("Your predecessor is getNode " + predecessor.IP + ", " + "port " + predecessor.port + ", position " + gRPCCommander.hexIdAndPosition(mBit, predecessor) + ".");
+				System.out.println("Your predecessor is getNode " + predecessor.IP + ", " + "port " + predecessor.port + ", position " + predecessor + ".");
 			else
 				System.out.println("Your predecessor is updating.");
 
 			if (successor != null)
-				System.out.println("Your successor is getNode " + successor.IP + ", " + "port " + successor.port + ", position " + gRPCCommander.hexIdAndPosition(mBit, successor) + ".");
+				System.out.println("Your successor is getNode " + successor.IP + ", " + "port " + successor.port + ", position " + successor + ".");
 			else
 				System.out.println("Your successor is updating.");
 		}

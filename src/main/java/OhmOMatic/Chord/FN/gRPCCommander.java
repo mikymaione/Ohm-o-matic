@@ -1,10 +1,10 @@
 package OhmOMatic.Chord.FN;
 
 import OhmOMatic.Chord.Chord;
-import OhmOMatic.Global.GB;
 import OhmOMatic.ProtoBuffer.Common;
 import OhmOMatic.ProtoBuffer.Home;
 import OhmOMatic.ProtoBuffer.HomeServiceGrpc;
+import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 
 import java.util.function.Function;
@@ -23,10 +23,10 @@ public class gRPCCommander
 
 	public static NodeLink gRPC_A(NodeLink server, Richiesta req)
 	{
-		return gRPC_A(server, req, -1);
+		return gRPC_A(server, req, null);
 	}
 
-	public static NodeLink gRPC_A(NodeLink server, Richiesta req, long _id)
+	public static NodeLink gRPC_A(NodeLink server, Richiesta req, byte[] _id)
 	{
 		try
 		{
@@ -54,26 +54,29 @@ public class gRPCCommander
 		}
 	}
 
-	public static Home.casaRes gRPC_E(NodeLink server, Richiesta req, long _id) throws Exception
+	public static Home.casaRes gRPC_E(NodeLink server, Richiesta req, byte[] _id) throws Exception
 	{
-		return gRPC_E(server, req, _id, NodeLink.Empty());
+		return gRPC_E(server, req, _id, -1, NodeLink.Empty());
 	}
 
 	public static Home.casaRes gRPC_E(NodeLink server, Richiesta req, NodeLink setNode) throws Exception
 	{
-		return gRPC_E(server, req, -1, setNode);
+		return gRPC_E(server, req, null, -1, setNode);
 	}
 
-	public static Home.casaRes gRPC_E(NodeLink server, Richiesta req, long _id, NodeLink setNode) throws Exception
+	public static Home.casaRes gRPC_E(NodeLink server, Richiesta req, byte[] _id, int indice, NodeLink setNode) throws Exception
 	{
 		try (var hfs = new HomeFastStub())
 		{
 			var stub = hfs.getStub(server);
 
 			var c = Home.casa.newBuilder()
+					.setID(ByteString.copyFrom(_id))
+					.setIdx(indice)
 					.setIP(server.IP)
 					.setPort(server.port)
-					.setID(_id)
+					.setOptionalIP(setNode.IP)
+					.setOptionalPort(setNode.port)
 					.build();
 
 			Home.casaRes CR;
@@ -136,7 +139,11 @@ public class gRPCCommander
 
 				try
 				{
-					var n_ = new NodeLink(request.getOptionalIP(), request.getOptionalPort());
+
+					NodeLink n_ = null;
+
+					if (request.getOptionalPort() > 0)
+						n_ = new NodeLink(request.getOptionalIP(), request.getOptionalPort());
 
 					pro.accept(n_);
 
@@ -220,7 +227,7 @@ public class gRPCCommander
 				{
 					try
 					{
-						local.update_finger_table(n_, (int) request.getID());
+						local.update_finger_table(n_, request.getIdx());
 					}
 					catch (Exception e)
 					{
@@ -240,14 +247,14 @@ public class gRPCCommander
 			public void findSuccessor(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
 				STD_FUN(request, responseObserver, n_ ->
-						local.find_successor(request.getID()));
+						local.find_successor(request.getID().toByteArray()));
 			}
 
 			@Override
 			public void closestPrecedingFinger(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
 				STD_FUN(request, responseObserver, n_ ->
-						local.closest_preceding_finger(request.getID()));
+						local.closest_preceding_finger(request.getID().toByteArray()));
 			}
 
 			@Override
@@ -264,26 +271,6 @@ public class gRPCCommander
 						local.getSuccessor());
 			}
 		};
-	}
-
-	public static String hexIdAndPosition(char mBit, NodeLink addr)
-	{
-		return (longTo8DigitHex(addr.key) + " (" + addr.key * 100 / GB.getPowerOfTwo(mBit, mBit) + "%)");
-	}
-
-	public static String longTo8DigitHex(long l)
-	{
-		var hex = Long.toHexString(l);
-		int lack = 8 - hex.length();
-
-		var sb = new StringBuilder();
-
-		for (var i = lack; i > 0; i--)
-			sb.append("0");
-
-		sb.append(hex);
-
-		return sb.toString();
 	}
 
 

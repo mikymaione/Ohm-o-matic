@@ -10,14 +10,14 @@ import OhmOMatic.Global.GB;
 
 public class NodeLink
 {
-	public final long key;
+	public final byte[] key;
 
 	public String IP;
 	public int port;
 
 	public NodeLink(String IP, int port)
 	{
-		this.key = GB.sha1_long(IP + ":" + port);
+		this.key = GB.sha1(IP + ":" + port);
 
 		this.IP = IP;
 		this.port = port;
