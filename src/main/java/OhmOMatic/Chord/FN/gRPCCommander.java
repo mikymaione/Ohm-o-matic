@@ -4,7 +4,6 @@ import OhmOMatic.Chord.Chord;
 import OhmOMatic.ProtoBuffer.Common;
 import OhmOMatic.ProtoBuffer.Home;
 import OhmOMatic.ProtoBuffer.HomeServiceGrpc;
-import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 
 import java.util.function.Function;
@@ -23,10 +22,10 @@ public class gRPCCommander
 
 	public static NodeLink gRPC_A(NodeLink server, Richiesta req)
 	{
-		return gRPC_A(server, req, null);
+		return gRPC_A(server, req, -1);
 	}
 
-	public static NodeLink gRPC_A(NodeLink server, Richiesta req, byte[] _id)
+	public static NodeLink gRPC_A(NodeLink server, Richiesta req, long _id)
 	{
 		try
 		{
@@ -54,24 +53,24 @@ public class gRPCCommander
 		}
 	}
 
-	public static Home.casaRes gRPC_E(NodeLink server, Richiesta req, byte[] _id) throws Exception
+	public static Home.casaRes gRPC_E(NodeLink server, Richiesta req, long _id) throws Exception
 	{
 		return gRPC_E(server, req, _id, -1, NodeLink.Empty());
 	}
 
 	public static Home.casaRes gRPC_E(NodeLink server, Richiesta req, NodeLink setNode) throws Exception
 	{
-		return gRPC_E(server, req, null, -1, setNode);
+		return gRPC_E(server, req, -1, -1, setNode);
 	}
 
-	public static Home.casaRes gRPC_E(NodeLink server, Richiesta req, byte[] _id, int indice, NodeLink setNode) throws Exception
+	public static Home.casaRes gRPC_E(NodeLink server, Richiesta req, long _id, int indice, NodeLink setNode) throws Exception
 	{
 		try (var hfs = new HomeFastStub())
 		{
 			var stub = hfs.getStub(server);
 
 			var c = Home.casa.newBuilder()
-					.setID(ByteString.copyFrom(_id))
+					.setID(_id)
 					.setIdx(indice)
 					.setIP(server.IP)
 					.setPort(server.port)
@@ -247,14 +246,14 @@ public class gRPCCommander
 			public void findSuccessor(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
 				STD_FUN(request, responseObserver, n_ ->
-						local.find_successor(request.getID().toByteArray()));
+						local.find_successor(request.getID()));
 			}
 
 			@Override
 			public void closestPrecedingFinger(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
 				STD_FUN(request, responseObserver, n_ ->
-						local.closest_preceding_finger(request.getID().toByteArray()));
+						local.closest_preceding_finger(request.getID()));
 			}
 
 			@Override

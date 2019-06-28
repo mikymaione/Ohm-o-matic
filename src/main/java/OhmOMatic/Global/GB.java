@@ -7,6 +7,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package OhmOMatic.Global;
 
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -84,26 +85,23 @@ public final class GB
 		}
 	}
 
-	public static long sha1_long(String input)
+	public static long bytesToLong(byte[] bytes, int num_bytes)
 	{
-		var digest = sha1(input);
-		var compressed = new byte[4];
+		var buffer = ByteBuffer.allocate(num_bytes);
 
-		for (var j = 0; j < 4; j++)
-		{
-			var temp = digest[j];
+		buffer.put(bytes);
+		buffer.flip();//need flip
 
-			for (var k = 1; k < 5; k++)
-				temp = (byte) (temp ^ digest[j + k]);
+		return buffer.getLong();
+	}
 
-			compressed[j] = temp;
-		}
+	public static byte[] longToBytes(long x)
+	{
+		var buffer = ByteBuffer.allocate(Long.BYTES);
 
-		long ret = (compressed[0] & 0xFF) << 24 | (compressed[1] & 0xFF) << 16 | (compressed[2] & 0xFF) << 8 | (compressed[3] & 0xFF);
+		buffer.putLong(x);
 
-		ret = ret & 0xFFFFFFFFl;
-
-		return ret;
+		return buffer.array();
 	}
 
 	public static boolean stringIsBlank(String s)
