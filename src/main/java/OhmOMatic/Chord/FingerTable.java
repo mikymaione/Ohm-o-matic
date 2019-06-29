@@ -38,31 +38,26 @@ public class FingerTable
 		var s = start(k);
 
 		for (var e : fingers.values())
-			if (e.key >= s)
+			//if (e.key >= s)
+			if (e.key.compareTo(s) >= 0)
 				return e;
 
 		return null;
 	}
 
-	public Interval interval(int k) throws Exception
-	{
-		var da = start(k);
-		var a = start(k + 1);
-
-		return new Interval(da, a);
-	}
-
-	public long start(int k) throws Exception
+	public double start(int k) throws Exception
 	{
 		if (!(1 <= k && k <= mBit))
 			throw new Exception("k deve essere compreso tra 1 e " + mBit);
 
 		var e = fingers.get(k);
 		var n = e.key;
-		n = n + GB.getPowerOfTwo(k - 1, mBit);
-		n = n % GB.getPowerOfTwo(mBit, mBit);
+		var l = GB.getPowerOfTwo(k - 1, mBit);
+		var r = GB.getPowerOfTwo(mBit, mBit);
 
-		return n;
+		var z = l % r;
+
+		return z;
 	}
 
 

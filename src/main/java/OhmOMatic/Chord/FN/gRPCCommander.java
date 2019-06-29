@@ -22,10 +22,10 @@ public class gRPCCommander
 
 	public static NodeLink gRPC_A(NodeLink server, Richiesta req)
 	{
-		return gRPC_A(server, req, -1);
+		return gRPC_A(server, req, "");
 	}
 
-	public static NodeLink gRPC_A(NodeLink server, Richiesta req, long _id)
+	public static NodeLink gRPC_A(NodeLink server, Richiesta req, String _id)
 	{
 		try
 		{
@@ -53,17 +53,17 @@ public class gRPCCommander
 		}
 	}
 
-	public static Home.casaRes gRPC_E(NodeLink server, Richiesta req, long _id) throws Exception
+	public static Home.casaRes gRPC_E(NodeLink server, Richiesta req, String _id) throws Exception
 	{
 		return gRPC_E(server, req, _id, -1, NodeLink.Empty());
 	}
 
 	public static Home.casaRes gRPC_E(NodeLink server, Richiesta req, NodeLink setNode) throws Exception
 	{
-		return gRPC_E(server, req, -1, -1, setNode);
+		return gRPC_E(server, req, "", -1, setNode);
 	}
 
-	public static Home.casaRes gRPC_E(NodeLink server, Richiesta req, long _id, int indice, NodeLink setNode) throws Exception
+	public static Home.casaRes gRPC_E(NodeLink server, Richiesta req, String _id, int indice, NodeLink setNode) throws Exception
 	{
 		try (var hfs = new HomeFastStub())
 		{
@@ -239,7 +239,7 @@ public class gRPCCommander
 			public void setPredecessor(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
 				STD_PRO(request, responseObserver, n_ ->
-						local.setPredecessor(n_));
+						local.predecessor = n_);
 			}
 
 			@Override
@@ -260,14 +260,14 @@ public class gRPCCommander
 			public void predecessor(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
 				STD_FUN(request, responseObserver, n_ ->
-						local.getPredecessor());
+						local.predecessor);
 			}
 
 			@Override
 			public void successor(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
 				STD_FUN(request, responseObserver, n_ ->
-						local.getSuccessor());
+						local.successor);
 			}
 		};
 	}

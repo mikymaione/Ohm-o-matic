@@ -7,34 +7,26 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package OhmOMatic.Global;
 
 import java.io.*;
-import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Random;
-import java.util.TimerTask;
+import java.util.*;
 
 public final class GB
 {
 
-	private static Random random = new Random();
+	private static Random random = new Random(new Date().getSeconds());
 
-	private static HashMap<Integer, Long> _powerOfTwo = new HashMap<>();
+	private static HashMap<Integer, Double> _powerOfTwo = new HashMap<>();
 
 
-	public static long getPowerOfTwo(int k, char mBit)
+	public static Double getPowerOfTwo(int k, char mBit)
 	{
 		if (_powerOfTwo.size() == 0)
-		{
-			var base = 1L;
-
-			for (var i = 0; i <= mBit; i++)
+			for (var i = -1; i <= mBit; i++)
 			{
-				_powerOfTwo.put(i, base);
-				base *= 2;
+				var e = Math.pow(2, i);
+				_powerOfTwo.put(i, e);
 			}
-		}
 
 		return _powerOfTwo.get(k);
 	}
@@ -69,13 +61,20 @@ public final class GB
 		}
 	}
 
-	public static byte[] sha1(String input)
+	public static String sha1(String input)
 	{
+		var sb = new StringBuffer();
+
 		try
 		{
 			var mDigest = MessageDigest.getInstance("SHA1");
 
-			return mDigest.digest(input.getBytes());
+			byte[] result = mDigest.digest(input.getBytes());
+
+			for (var i = 0; i < result.length; i++)
+				sb.append(Integer.toString((result[i] & 0xff) + 0x100, 16).substring(1));
+
+			return sb.toString();
 		}
 		catch (NoSuchAlgorithmException e)
 		{
@@ -83,25 +82,6 @@ public final class GB
 
 			return null;
 		}
-	}
-
-	public static long bytesToLong(byte[] bytes, int num_bytes)
-	{
-		var buffer = ByteBuffer.allocate(num_bytes);
-
-		buffer.put(bytes);
-		buffer.flip();//need flip
-
-		return buffer.getLong();
-	}
-
-	public static byte[] longToBytes(long x)
-	{
-		var buffer = ByteBuffer.allocate(Long.BYTES);
-
-		buffer.putLong(x);
-
-		return buffer.array();
 	}
 
 	public static boolean stringIsBlank(String s)
