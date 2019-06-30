@@ -110,10 +110,12 @@ public class Chord implements AutoCloseable
 		{
 			var n_ = closest_preceding_finger(id);
 
-//			if (n.equals(n_))
-//				s = n;
-//			else
-			return gRPCCommander.gRPC_A(n_, Richiesta.FindSuccessor, id);
+			if (n.equals(n_))
+				_successor = n;
+			else
+				_successor = gRPCCommander.gRPC_A(n_, Richiesta.FindSuccessor, id);
+
+			return _successor;
 		}
 	}
 
@@ -249,7 +251,7 @@ public class Chord implements AutoCloseable
 		fingerTable.setNode(next, iThFinger);
 
 		//forse
-		notify(iThFinger);
+		//notify(iThFinger);
 	}
 
 	public void printDataStructure()
