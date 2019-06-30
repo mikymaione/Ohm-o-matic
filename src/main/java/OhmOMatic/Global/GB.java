@@ -6,6 +6,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Global;
 
+import OhmOMatic.Chord.FN.NodeLink;
+
 import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -29,6 +31,23 @@ public final class GB
 			}
 
 		return _powerOfTwo.get(k);
+	}
+
+	public static long computeRelativeId(NodeLink universal, long local, char mBit)
+	{
+		var univ = hashSocketAddress(universal);
+
+		return computeRelativeId(univ, local, mBit);
+	}
+
+	public static long computeRelativeId(long universal, long local, char mBit)
+	{
+		long ret = universal - local;
+
+		if (ret < 0)
+			ret += getPowerOfTwo(32, mBit);
+
+		return ret;
 	}
 
 	public static void clearScreen()
@@ -61,27 +80,119 @@ public final class GB
 		}
 	}
 
-	public static String sha1(String input)
+	/**
+	 * Compute a socket address' SHA-1 hash in hex
+	 * and its approximate position in string
+	 *
+	 * @param addr
+	 * @return
+	 */
+	public static String hexIdAndPosition(NodeLink addr, char mBit)
 	{
-		var sb = new StringBuffer();
+		long hash = hashSocketAddress(addr);
 
+		return (longTo8DigitHex(hash) + " (" + hash * 100 / getPowerOfTwo(mBit, mBit) + "%)");
+	}
+
+	/**
+	 * @param l generate a long type number's 8-digit hex string
+	 * @return
+	 */
+	public static String longTo8DigitHex(long l)
+	{
+		var hex = Long.toHexString(l);
+
+		int lack = 8 - hex.length();
+
+		var sb = new StringBuilder();
+
+		for (var i = lack; i > 0; i--)
+			sb.append("0");
+
+		sb.append(hex);
+		
+		return sb.toString();
+	}
+
+	/**
+	 * Return a node's finger[i].start, universal
+	 *
+	 * @param nodeid: node's identifier
+	 * @param i:      finger table index
+	 * @return finger[i].start's identifier
+	 */
+	public static long ithStart(long nodeid, int i, char mBit)
+	{
+		var n = nodeid;
+		var l = getPowerOfTwo(i - 1, mBit);
+		var r = getPowerOfTwo(mBit, mBit);
+
+		Double z = (n + l) % r;
+
+		return z.longValue();
+	}
+
+	public static long hashSocketAddress(NodeLink addr)
+	{
+		int i = addr.hashCode();
+
+		return hashHashCode(i);
+	}
+
+	/**
+	 * Compute a 32 bit integer's identifier
+	 *
+	 * @param i: integer
+	 * @return 32-bit identifier in long type
+	 */
+	private static long hashHashCode(int i)
+	{
+		//32 bit regular hash code -> byte[4]
+		byte[] hashbytes = new byte[4];
+		hashbytes[0] = (byte) (i >> 24);
+		hashbytes[1] = (byte) (i >> 16);
+		hashbytes[2] = (byte) (i >> 8);
+		hashbytes[3] = (byte) (i /*>> 0*/);
+
+		// try to create SHA1 digest
+		MessageDigest md = null;
 		try
 		{
-			var mDigest = MessageDigest.getInstance("SHA1");
-
-			byte[] result = mDigest.digest(input.getBytes());
-
-			for (var i = 0; i < result.length; i++)
-				sb.append(Integer.toString((result[i] & 0xff) + 0x100, 16).substring(1));
-
-			return sb.toString();
+			md = MessageDigest.getInstance("SHA-1");
 		}
 		catch (NoSuchAlgorithmException e)
 		{
+			// TODO Auto-generated catch block
 			e.printStackTrace();
-
-			return null;
 		}
+
+		// successfully created SHA1 digest
+		// try to convert byte[4]
+		// -> SHA1 result byte[]
+		// -> compressed result byte[4]
+		// -> compressed result in long type
+		if (md != null)
+		{
+			md.reset();
+			md.update(hashbytes);
+			byte[] result = md.digest();
+
+			byte[] compressed = new byte[4];
+			for (int j = 0; j < 4; j++)
+			{
+				byte temp = result[j];
+				for (int k = 1; k < 5; k++)
+				{
+					temp = (byte) (temp ^ result[j + k]);
+				}
+				compressed[j] = temp;
+			}
+
+			long ret = (compressed[0] & 0xFF) << 24 | (compressed[1] & 0xFF) << 16 | (compressed[2] & 0xFF) << 8 | (compressed[3] & 0xFF);
+			ret = ret & (long) 0xFFFFFFFFl;
+			return ret;
+		}
+		return 0;
 	}
 
 	public static boolean stringIsBlank(String s)

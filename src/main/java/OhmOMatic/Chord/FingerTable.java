@@ -7,7 +7,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package OhmOMatic.Chord;
 
 import OhmOMatic.Chord.FN.NodeLink;
-import OhmOMatic.Global.GB;
 
 import java.util.HashMap;
 
@@ -15,10 +14,12 @@ public class FingerTable
 {
 
 	private final HashMap<Integer, NodeLink> fingers;
-	private char mBit;
+	private final char mBit;
+	private final long ID;
 
-	public FingerTable(char mBit)
+	public FingerTable(long ID, char mBit)
 	{
+		this.ID = ID;
 		this.mBit = mBit;
 		this.fingers = new HashMap<>(mBit);
 	}
@@ -31,33 +32,6 @@ public class FingerTable
 	public synchronized void setNode(int k, NodeLink n)
 	{
 		fingers.put(k, n);
-	}
-
-	public synchronized NodeLink node(int k) throws Exception
-	{
-		var s = start(k);
-
-		for (var e : fingers.values())
-			//if (e.key >= s)
-			if (e.key.compareTo(s) >= 0)
-				return e;
-
-		return null;
-	}
-
-	public double start(int k) throws Exception
-	{
-		if (!(1 <= k && k <= mBit))
-			throw new Exception("k deve essere compreso tra 1 e " + mBit);
-
-		var e = fingers.get(k);
-		var n = e.key;
-		var l = GB.getPowerOfTwo(k - 1, mBit);
-		var r = GB.getPowerOfTwo(mBit, mBit);
-
-		var z = l % r;
-
-		return z;
 	}
 
 

@@ -6,11 +6,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Chord.FN;
 
-import OhmOMatic.Global.GB;
-
 public class NodeLink
 {
-	public final String key;
 
 	public final String IP;
 	public final int port;
@@ -20,10 +17,6 @@ public class NodeLink
 	{
 		this.IP = IP;
 		this.port = port;
-
-		var s = IP + ":" + port;
-
-		this.key = GB.sha1(s);
 	}
 
 	public static NodeLink Empty()
