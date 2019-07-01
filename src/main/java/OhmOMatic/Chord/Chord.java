@@ -29,16 +29,16 @@ public class Chord implements AutoCloseable
 	private final NodeLink n;
 	private final Thread threadListener;
 	private NodeLink _predecessor;
-	private final HashMap<Integer, NodeLink> fingerTable;
+	private final HashMap<Integer, NodeLink> _fingerTable;
 	private Server gRPC_listner;
-	private int next = 1;
+	private char next = 1;
 
 
 	public Chord(NodeLink address)
 	{
 		n = address;
 
-		fingerTable = new HashMap<>(mBit);
+		_fingerTable = new HashMap<>(mBit);
 		setSuccessor(n);
 
 		timersChord = new Timer();
@@ -52,6 +52,18 @@ public class Chord implements AutoCloseable
 	{
 		timersChord.cancel();
 		threadListener.stop();
+		gRPC_listner.shutdown();
+	}
+
+
+	public NodeLink getSuccessor()
+	{
+		return getFinger(1);
+	}
+
+	public void setSuccessor(NodeLink n_)
+	{
+		setFinger(1, n_);
 	}
 
 	public synchronized NodeLink getPredecessor()
@@ -64,15 +76,16 @@ public class Chord implements AutoCloseable
 		_predecessor = n_;
 	}
 
-	public synchronized NodeLink getSuccessor()
+	public synchronized NodeLink getFinger(int i)
 	{
-		return fingerTable.get(1);
+		return _fingerTable.get(i);
 	}
 
-	public synchronized void setSuccessor(NodeLink n_)
+	public synchronized void setFinger(int i, NodeLink n_)
 	{
-		fingerTable.put(1, n_);
+		_fingerTable.put(i, n_);
 	}
+
 
 	// ask node n to find the successor of id
 	public NodeLink find_successor(long id)
@@ -100,7 +113,7 @@ public class Chord implements AutoCloseable
 	{
 		for (var i = mBit; i > 0; i--)
 		{
-			var ith_finger = fingerTable.get(i);
+			var ith_finger = getFinger(i);
 
 			if (ith_finger == null)
 				continue;
@@ -193,7 +206,7 @@ public class Chord implements AutoCloseable
 		var iThStart = GB.ithStart(n.ID, next, mBit);
 		var iThFinger = find_successor(iThStart);
 
-		fingerTable.put(next, iThFinger);
+		setFinger(next, iThFinger);
 	}
 
 	// called periodically. checks whether predecessor has failed.
@@ -245,7 +258,7 @@ public class Chord implements AutoCloseable
 		{
 			long ithstart = GB.ithStart(n.ID, i, mBit);
 
-			var f = fingerTable.get(i);
+			var f = getFinger(i);
 
 			var sb = new StringBuilder();
 
