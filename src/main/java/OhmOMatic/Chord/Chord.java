@@ -21,7 +21,7 @@ import java.util.Timer;
 
 public class Chord implements AutoCloseable
 {
-	private static final char mBit = 160; //SHA1
+	private static final int mBit = 160; //SHA1
 
 	private final Timer timersChord;
 
@@ -38,6 +38,8 @@ public class Chord implements AutoCloseable
 		n = address;
 
 		_fingerTable = new HashMap<>(mBit);
+
+		setPredecessor(null);
 		setSuccessor(n);
 
 		timersChord = new Timer();
@@ -89,17 +91,20 @@ public class Chord implements AutoCloseable
 	// ask node n to find the successor of id
 	public NodeLink find_successor(final BigInteger id)
 	{
+		var s = getSuccessor();
+
 		//Yes, that should be a closing square bracket to match the opening parenthesis.
 		//It is a half closed interval.
-		//if ((id > n.ID && id <= getSuccessor().ID))
-		if (GB.inclusoR(id, n.ID, getSuccessor().ID))
+
+		//id ∈ (n, successor]
+		if (GB.inclusoR(id, n, s))
 		{
-			return getSuccessor();
+			return s;
 		}
 		else
 		{
 			// forward the query around the circle
-			var n0 = closest_preceding_finger(id);
+			var n0 = closest_preceding_node(id);
 
 			if (n0.equals(n))
 				return n;
@@ -109,18 +114,18 @@ public class Chord implements AutoCloseable
 	}
 
 	// search the local table for the highest predecessor of id
-	public NodeLink closest_preceding_finger(final BigInteger id)
+	private NodeLink closest_preceding_node(final BigInteger id)
 	{
 		for (var i = mBit; i > 0; i--)
 		{
 			var ith_finger = getFinger(i);
 
-			if (ith_finger == null)
-				continue;
-
-			//if (ith_finger.ID > n.ID && ith_finger.ID < id)
-			if (GB.incluso(ith_finger.ID, n.ID, id))
-				return ith_finger;
+			if (ith_finger != null)
+			{
+				//finger[i] ∈ (n, id)
+				if (GB.incluso(ith_finger, n, id))
+					return ith_finger;
+			}
 		}
 
 		return n;
@@ -131,6 +136,8 @@ public class Chord implements AutoCloseable
 	{
 		if (!n.equals(n_))
 		{
+			setPredecessor(null);
+
 			var s = gRPC_Client.gRPC(n_, Richiesta.findSuccessor, n.ID);
 			setSuccessor(s);
 			//successor = n_.find_successor(n);
@@ -152,40 +159,24 @@ public class Chord implements AutoCloseable
 	// getSuccessor is consistent, and tells the getSuccessor about n
 	private void stabilize()
 	{
-		if (n.port == 6666)
-		{
-			var p = getPredecessor();
-			var s = getSuccessor();
-
-			var k = 0;
-		}
-
-		if (n.port == 8888)
-		{
-			var p = getPredecessor();
-			var s = getSuccessor();
-
-			var k = 0;
-		}
-
 		var x = gRPC_Client.gRPC(getSuccessor(), Richiesta.predecessor);
 		//var x = successor.predecessor;
 
 		if (x != null)
-			//if (x.ID > n.ID && x.ID < getSuccessor().ID)
-			if (GB.incluso(x.ID, n.ID, getSuccessor().ID))
+			//x ∈ (n, successor)
+			if (GB.incluso(x, n, getSuccessor()))
 				setSuccessor(x);
 
-		if (!n.equals(getSuccessor()))
-			gRPC_Client.gRPC(getSuccessor(), Richiesta.notify, n);
+		//if (!n.equals(getSuccessor())) //da controllare?
+		gRPC_Client.gRPC(getSuccessor(), Richiesta.notify, n);
 		//successor.notify(n);
 	}
 
 	// n_ thinks it might be our predecessor.
 	public void notify(final NodeLink n_)
 	{
-		//if (getPredecessor() == null || (n_.ID > getPredecessor().ID && n_.ID < n.ID))
-		if (getPredecessor() == null || (GB.incluso(n_.ID, getPredecessor().ID, n.ID)))
+		//predecessor is nil or n_ ∈ (predecessor, n)
+		if (getPredecessor() == null || (GB.incluso(n_, getPredecessor(), n)))
 			setPredecessor(n_);
 	}
 
@@ -198,9 +189,10 @@ public class Chord implements AutoCloseable
 		if (next > mBit)
 			next = 2;
 
+		// n + 2^(next - 1)
 		var i = GB.getPowerOfTwo(next - 1, mBit);
 		i = n.ID.add(i);
-		i = i.mod(GB.getPowerOfTwo(mBit, mBit));
+		i = i.mod(GB.getPowerOfTwo(mBit, mBit)); // da fare?
 
 		var iThFinger = find_successor(i);
 
@@ -210,9 +202,11 @@ public class Chord implements AutoCloseable
 	// called periodically. checks whether predecessor has failed.
 	private void check_predecessor()
 	{
-		if (getPredecessor() != null)
+		var predecessor = getPredecessor();
+
+		if (predecessor != null)
 		{
-			var vivo = gRPC_Client.gRPC(getPredecessor(), Richiesta.ping);
+			var vivo = gRPC_Client.gRPC(predecessor, Richiesta.ping);
 
 			if (vivo == null)
 				setPredecessor(null);

@@ -6,6 +6,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Global;
 
+import OhmOMatic.Chord.FN.NodeLink;
+
 import java.io.*;
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -20,7 +22,7 @@ public final class GB
 	private static HashMap<Integer, BigInteger> _powerOfTwo = new HashMap<>();
 
 
-	public static BigInteger getPowerOfTwo(final int k, final char mBit)
+	public static BigInteger getPowerOfTwo(final int k, final int mBit)
 	{
 		if (_powerOfTwo.size() == 0)
 		{
@@ -43,6 +45,21 @@ public final class GB
 		System.out.flush();
 	}
 
+	public static boolean incluso(NodeLink v, NodeLink da, BigInteger a)
+	{
+		return incluso(v.ID, da.ID, a);
+	}
+
+	public static boolean incluso(NodeLink v, NodeLink da, NodeLink a)
+	{
+		return incluso(v.ID, da.ID, a.ID);
+	}
+
+	public static boolean incluso(BigInteger v, NodeLink da, NodeLink a)
+	{
+		return incluso(v, da.ID, a.ID);
+	}
+
 	public static boolean incluso(BigInteger v, BigInteger da, BigInteger a)
 	{
 		//5.compareTo(3) == 1
@@ -55,6 +72,11 @@ public final class GB
 		var r1 = (v.compareTo(a) > 0 && v.compareTo(da) < 0);
 
 		return r0 || r1;
+	}
+
+	public static boolean inclusoR(BigInteger v, NodeLink da, NodeLink a)
+	{
+		return inclusoR(v, da.ID, a.ID);
 	}
 
 	public static boolean inclusoR(BigInteger v, BigInteger da, BigInteger a)
