@@ -16,5 +16,7 @@ public enum Richiesta
 
 	setPredecessor,
 	predecessor,
-	successor;
+	successor,
+
+	ping;
 }

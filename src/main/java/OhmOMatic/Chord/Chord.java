@@ -33,18 +33,16 @@ public class Chord implements AutoCloseable
 	private Server gRPC_listner;
 	private int next = 1;
 
-	private final long ID;
+	private final long n_ID;
 
 
 	public Chord(NodeLink address)
 	{
 		n = address;
-		ID = GB.hashSocketAddress(address);
+		n_ID = GB.hashSocketAddress(address);
 
 		fingerTable = new HashMap<>(mBit);
-
-		setSuccessor(address);
-		predecessor = null;
+		setSuccessor(n);
 
 		timersChord = new Timer();
 
@@ -97,31 +95,29 @@ public class Chord implements AutoCloseable
 		}
 	}
 
-	// ask getNode n to find id's getSuccessor
+	// ask node n to find the successor of id
 	public NodeLink find_successor(long _id)
 	{
 		var _successor = getSuccessor();
-		var successor_ID = GB.computeRelativeId(_successor, ID, mBit);
-		var id = GB.computeRelativeId(_id, ID, mBit);
+		var successor_ID = GB.computeRelativeId(_successor, n_ID, mBit);
+		var id = GB.computeRelativeId(_id, n_ID, mBit);
 
-		if ((id > ID && id <= successor_ID))
+		//Yes, that should be a closing square bracket to match the opening parenthesis.
+		//It is a half closed interval.
+		if ((id > n_ID && id <= successor_ID))
 		{
 			return _successor;
 		}
 		else
 		{
-			var n_ = closest_preceding_finger(id);
+			// forward the query around the circle
+			var n0 = closest_preceding_finger(id);
 
-			if (n.equals(n_))
-				_successor = n;
-			else
-				_successor = gRPC_Client.gRPC(n_, Richiesta.findSuccessor, id);
-
-			return _successor;
+			return gRPC_Client.gRPC(n0, Richiesta.findSuccessor, id);
 		}
 	}
 
-	// return closest fingerTable preceding id
+	// search the local table for the highest predecessor of id
 	public NodeLink closest_preceding_finger(long _id)
 	{
 		for (var i = mBit; i > 0; i--)
@@ -131,10 +127,10 @@ public class Chord implements AutoCloseable
 			if (ith_finger == null)
 				continue;
 
-			var ith_finger_ID = GB.computeRelativeId(ith_finger, ID, mBit);
-			var id = GB.computeRelativeId(_id, ID, mBit);
+			var ith_finger_ID = GB.computeRelativeId(ith_finger, n_ID, mBit);
+			var id = GB.computeRelativeId(_id, n_ID, mBit);
 
-			if (ith_finger_ID > ID && ith_finger_ID < id)
+			if (ith_finger_ID > n_ID && ith_finger_ID < id)
 				return ith_finger;
 		}
 
@@ -149,14 +145,7 @@ public class Chord implements AutoCloseable
 			@Override
 			public void run()
 			{
-				try
-				{
-					stabilize();
-				}
-				catch (Exception e)
-				{
-					e.printStackTrace();
-				}
+				stabilize();
 			}
 		}, new Date(), 60);
 
@@ -168,15 +157,23 @@ public class Chord implements AutoCloseable
 				fix_fingers();
 			}
 		}, new Date(), 500);
+
+		timersChord.scheduleAtFixedRate(new TimerTask()
+		{
+			@Override
+			public void run()
+			{
+				check_predecessor();
+			}
+		}, new Date(), 500);
 	}
 
-	// getNode n joins the network;
-	// n_ is an arbitrary getNode in the network
-	public void join(NodeLink n_) throws Exception
+	// join a Chord ring containing node n_
+	public void join(NodeLink n_)
 	{
 		if (!n.equals(n_))
 		{
-			var s = gRPC_Client.gRPC(n_, Richiesta.findSuccessor, ID);
+			var s = gRPC_Client.gRPC(n_, Richiesta.findSuccessor, n_ID);
 			setSuccessor(s);
 			//successor = n_.find_successor(n);
 		}
@@ -191,10 +188,10 @@ public class Chord implements AutoCloseable
 
 		if (ith_finger != null)
 		{
-			var s_ID = GB.computeRelativeId(s, ID, mBit);
-			var ith_finger_ID = GB.computeRelativeId(ith_finger, ID, mBit);
+			var s_ID = GB.computeRelativeId(s, n_ID, mBit);
+			var ith_finger_ID = GB.computeRelativeId(ith_finger, n_ID, mBit);
 
-			if (s_ID >= ID && s_ID < ith_finger_ID)
+			if (s_ID >= n_ID && s_ID < ith_finger_ID)
 			{
 				fingerTable.put(i, s);
 
@@ -208,7 +205,7 @@ public class Chord implements AutoCloseable
 	// called periodically. n asks the getSuccessor
 	// about its predecessor, verifies if n's immediate
 	// getSuccessor is consistent, and tells the getSuccessor about n
-	private void stabilize() throws Exception
+	private void stabilize()
 	{
 		var _successor = getSuccessor();
 		var x = gRPC_Client.gRPC(_successor, Richiesta.predecessor);
@@ -216,10 +213,10 @@ public class Chord implements AutoCloseable
 
 		if (x != null)
 		{
-			var x_ID = GB.computeRelativeId(x, ID, mBit);
-			var successor_ID = GB.computeRelativeId(_successor, ID, mBit);
+			var x_ID = GB.computeRelativeId(x, n_ID, mBit);
+			var successor_ID = GB.computeRelativeId(_successor, n_ID, mBit);
 
-			if (x_ID > ID && x_ID < successor_ID)
+			if (x_ID > n_ID && x_ID < successor_ID)
 				setSuccessor(x);
 
 			gRPC_Client.gRPC(_successor, Richiesta.notify, n);
@@ -230,14 +227,15 @@ public class Chord implements AutoCloseable
 	// n_ thinks it might be our predecessor.
 	public void notify(NodeLink n_)
 	{
-		var n__ID = GB.computeRelativeId(n_, ID, mBit);
-		var predecessor_ID = GB.computeRelativeId(predecessor, ID, mBit);
+		var n__ID = GB.computeRelativeId(n_, n_ID, mBit);
+		var predecessor_ID = GB.computeRelativeId(predecessor, n_ID, mBit);
 
-		if (predecessor == null || (n__ID > predecessor_ID && n__ID < ID))
+		if (predecessor == null || (n__ID > predecessor_ID && n__ID < n_ID))
 			predecessor = n_;
 	}
 
-	// called periodically refreshes fingerTable table entries.
+	// called periodically. refreshes finger table entries.
+	// next stores the index of the finger to fix
 	private void fix_fingers()
 	{
 		next++;
@@ -246,7 +244,7 @@ public class Chord implements AutoCloseable
 			next = 1;
 
 		var d = GB.getPowerOfTwo(next - 1, mBit);
-		d += ID;
+		d += n_ID;
 
 		var iThFinger = find_successor(d.longValue());
 
@@ -254,6 +252,15 @@ public class Chord implements AutoCloseable
 
 		//forse
 		//notify(iThFinger);
+	}
+
+	// called periodically. checks whether predecessor has failed.
+	private void check_predecessor()
+	{
+		var vivo = gRPC_Client.gRPC(predecessor, Richiesta.ping);
+
+		if (!predecessor.equals(vivo))
+			predecessor = null;
 	}
 
 	public void printDataStructure()
