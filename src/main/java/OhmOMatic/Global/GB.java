@@ -51,7 +51,10 @@ public final class GB
 
 		//da < v < a
 		//v > da && v < a
-		return (v.compareTo(da) > 0 && v.compareTo(a) < 0);
+		var r0 = (v.compareTo(da) > 0 && v.compareTo(a) < 0);
+		var r1 = (v.compareTo(a) > 0 && v.compareTo(da) < 0);
+
+		return r0 || r1;
 	}
 
 	public static boolean inclusoR(BigInteger v, BigInteger da, BigInteger a)
@@ -62,7 +65,10 @@ public final class GB
 
 		//da < v < a
 		//v > da && v <= a
-		return (v.compareTo(da) > 0 && v.compareTo(a) <= 0);
+		var r0 = (v.compareTo(da) > 0 && v.compareTo(a) <= 0);
+		var r1 = (v.compareTo(a) > 0 && v.compareTo(da) <= 0);
+
+		return r0 || r1;
 	}
 
 	public static byte[] SHA1(String s)

@@ -152,6 +152,22 @@ public class Chord implements AutoCloseable
 	// getSuccessor is consistent, and tells the getSuccessor about n
 	private void stabilize()
 	{
+		if (n.port == 6666)
+		{
+			var p = getPredecessor();
+			var s = getSuccessor();
+
+			var k = 0;
+		}
+
+		if (n.port == 8888)
+		{
+			var p = getPredecessor();
+			var s = getSuccessor();
+
+			var k = 0;
+		}
+
 		var x = gRPC_Client.gRPC(getSuccessor(), Richiesta.predecessor);
 		//var x = successor.predecessor;
 
@@ -180,7 +196,7 @@ public class Chord implements AutoCloseable
 		next++;
 
 		if (next > mBit)
-			next = 1;
+			next = 2;
 
 		var i = GB.getPowerOfTwo(next - 1, mBit);
 		i = n.ID.add(i);
