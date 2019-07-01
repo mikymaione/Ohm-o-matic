@@ -6,8 +6,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Chord.FN;
 
-import OhmOMatic.Global.GB;
-
 import java.math.BigInteger;
 
 public class NodeLink
@@ -19,9 +17,11 @@ public class NodeLink
 
 	public NodeLink(String IP, int port)
 	{
-		var b = GB.SHA1(IP + ":" + port);
-		
-		this.ID = new BigInteger(b);
+		//var b = GB.SHA1(IP + ":" + port);
+		//this.ID = new BigInteger(b);
+
+		this.ID = BigInteger.valueOf(port);
+
 		this.IP = IP;
 		this.port = port;
 	}

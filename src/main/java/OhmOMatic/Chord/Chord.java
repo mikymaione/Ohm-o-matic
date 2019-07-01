@@ -198,7 +198,7 @@ public class Chord implements AutoCloseable
 		{
 			var vivo = gRPC_Client.gRPC(getPredecessor(), Richiesta.ping);
 
-			if (!getPredecessor().equals(vivo))
+			if (vivo == null)
 				setPredecessor(null);
 		}
 	}
