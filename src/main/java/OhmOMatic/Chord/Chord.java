@@ -22,7 +22,7 @@ import java.util.TimerTask;
 
 public class Chord implements AutoCloseable
 {
-	private final char mBit = 32;
+	private static final char mBit = 32;
 
 	private final Timer timersChord;
 
@@ -74,24 +74,6 @@ public class Chord implements AutoCloseable
 		fingerTable.put(1, n_);
 	}
 
-	private void listener()
-	{
-		var chord = this;
-
-		try
-		{
-			gRPC_listner = ServerBuilder
-					.forPort(n.port)
-					.addService(gRPC_Server.getListnerServer(chord))
-					.build()
-					.start();
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-		}
-	}
-
 	// ask node n to find the successor of id
 	public NodeLink find_successor(long id)
 	{
@@ -130,6 +112,19 @@ public class Chord implements AutoCloseable
 		return n;
 	}
 
+	// join a Chord ring containing node n_
+	public void join(NodeLink n_)
+	{
+		if (!n.equals(n_))
+		{
+			var s = gRPC_Client.gRPC(n_, Richiesta.findSuccessor, n.ID);
+			setSuccessor(s);
+			//successor = n_.find_successor(n);
+		}
+
+		startStabilizingRoutines();
+	}
+
 	//stabilize the chord ring/circle after getNode joins and departures
 	private void startStabilizingRoutines()
 	{
@@ -161,34 +156,6 @@ public class Chord implements AutoCloseable
 		}, new Date(), 500);
 	}
 
-	// join a Chord ring containing node n_
-	public void join(NodeLink n_)
-	{
-		if (!n.equals(n_))
-		{
-			var s = gRPC_Client.gRPC(n_, Richiesta.findSuccessor, n.ID);
-			setSuccessor(s);
-			//successor = n_.find_successor(n);
-		}
-
-		startStabilizingRoutines();
-	}
-
-	// if s is iTh fingerTable of n, update n's fingerTable table with s
-	public void update_finger_table(NodeLink s, int i)
-	{
-		var ith_finger = fingerTable.get(i);
-
-		if (ith_finger != null)
-			if (s.ID >= n.ID && s.ID < ith_finger.ID)
-			{
-				fingerTable.put(i, s);
-
-				//get first getNode preceding n
-				gRPC_Client.gRPC(getPredecessor(), Richiesta.updateFingerTable, null, i, s);
-				//p.update_finger_table(s, i);
-			}
-	}
 
 	// called periodically. n asks the getSuccessor
 	// about its predecessor, verifies if n's immediate
@@ -227,9 +194,6 @@ public class Chord implements AutoCloseable
 		var iThFinger = find_successor(iThStart);
 
 		fingerTable.put(next, iThFinger);
-
-		//forse
-		//notify(iThFinger);
 	}
 
 	// called periodically. checks whether predecessor has failed.
@@ -247,6 +211,22 @@ public class Chord implements AutoCloseable
 	public NodeLink ping()
 	{
 		return n;
+	}
+
+	private void listener()
+	{
+		try
+		{
+			gRPC_listner = ServerBuilder
+					.forPort(n.port)
+					.addService(gRPC_Server.getListnerServer(this))
+					.build()
+					.start();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
 	}
 
 	public void printDataStructure()

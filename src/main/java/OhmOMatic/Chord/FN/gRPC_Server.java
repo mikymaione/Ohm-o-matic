@@ -93,31 +93,17 @@ public class gRPC_Server
 			}
 
 			@Override
-			public void ping(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
-			{
-				FUNC(request, responseObserver, n ->
-						local.ping());
-			}
-
-			@Override
 			public void notify(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
 				PROC(request, responseObserver, n ->
 						local.notify(n));
 			}
-
+			
 			@Override
-			public void updateFingerTable(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
+			public void ping(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
-				PROC(request, responseObserver, n ->
-						local.update_finger_table(n, request.getIdx()));
-			}
-
-			@Override
-			public void setPredecessor(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
-			{
-				PROC(request, responseObserver, n ->
-						local.setPredecessor(n));
+				FUNC(request, responseObserver, n ->
+						local.ping());
 			}
 
 			@Override
@@ -128,25 +114,12 @@ public class gRPC_Server
 			}
 
 			@Override
-			public void closestPrecedingFinger(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
-			{
-				FUNC(request, responseObserver, n ->
-						local.closest_preceding_finger(request.getID()));
-			}
-
-			@Override
 			public void predecessor(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
 				FUNC(request, responseObserver, n ->
 						local.getPredecessor());
 			}
 
-			@Override
-			public void successor(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
-			{
-				FUNC(request, responseObserver, n ->
-						local.getSuccessor());
-			}
 		};
 	}
 

@@ -94,18 +94,10 @@ public class gRPC_Client
 		{
 			case notify:
 				return stub.notify(c);
-			case setPredecessor:
-				return stub.setPredecessor(c);
-			case updateFingerTable:
-				return stub.updateFingerTable(c);
-			case closestPrecedingFinger:
-				return stub.closestPrecedingFinger(c);
 			case findSuccessor:
 				return stub.findSuccessor(c);
 			case predecessor:
 				return stub.predecessor(c);
-			case successor:
-				return stub.successor(c);
 			case ping:
 				return stub.ping(c);
 			default:

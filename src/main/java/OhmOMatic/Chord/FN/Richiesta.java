@@ -8,15 +8,9 @@ package OhmOMatic.Chord.FN;
 
 public enum Richiesta
 {
+	predecessor,
 	findSuccessor,
-	closestPrecedingFinger,
 
 	notify,
-	updateFingerTable,
-
-	setPredecessor,
-	predecessor,
-	successor,
-
 	ping;
 }
