@@ -18,17 +18,21 @@ public final class GB
 
 	private static Random random = new Random(new Date().getSeconds());
 
-	private static HashMap<Integer, Double> _powerOfTwo = new HashMap<>();
+	private static HashMap<Integer, Long> _powerOfTwo = new HashMap<>();
 
 
-	public static Double getPowerOfTwo(int k, char mBit)
+	public static Long getPowerOfTwo(int k, char mBit)
 	{
 		if (_powerOfTwo.size() == 0)
-			for (var i = -1; i <= mBit; i++)
+		{
+			var curVal = 1L; //2^0
+
+			for (var i = 0; i <= mBit; i++)
 			{
-				var e = Math.pow(2, i);
-				_powerOfTwo.put(i, e);
+				_powerOfTwo.put(i, curVal);
+				curVal *= 2;
 			}
+		}
 
 		return _powerOfTwo.get(k);
 	}
@@ -123,13 +127,12 @@ public final class GB
 	 */
 	public static long ithStart(long nodeid, int i, char mBit)
 	{
-		var n = nodeid;
 		var l = getPowerOfTwo(i - 1, mBit);
 		var r = getPowerOfTwo(mBit, mBit);
 
-		Double z = (n + l) % r;
+		var calc = (nodeid + l) % r;
 
-		return z.longValue();
+		return calc;
 	}
 
 	public static long hashSocketAddress(String addr)
@@ -190,8 +193,10 @@ public final class GB
 
 			long ret = (compressed[0] & 0xFF) << 24 | (compressed[1] & 0xFF) << 16 | (compressed[2] & 0xFF) << 8 | (compressed[3] & 0xFF);
 			ret = ret & (long) 0xFFFFFFFFl;
+
 			return ret;
 		}
+
 		return 0;
 	}
 
@@ -256,6 +261,11 @@ public final class GB
 		}
 
 		return byteArray;
+	}
+
+	public static void executeTimerTask(Timer _timer, int period, Runnable r)
+	{
+		_timer.scheduleAtFixedRate(executeTimerTask(r), new Date(), period);
 	}
 
 	public static TimerTask executeTimerTask(Runnable r)

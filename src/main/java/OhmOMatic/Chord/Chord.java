@@ -15,10 +15,8 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Timer;
-import java.util.TimerTask;
 
 public class Chord implements AutoCloseable
 {
@@ -141,34 +139,10 @@ public class Chord implements AutoCloseable
 	//stabilize the chord ring/circle after getNode joins and departures
 	private void startStabilizingRoutines()
 	{
-		timersChord.scheduleAtFixedRate(new TimerTask()
-		{
-			@Override
-			public void run()
-			{
-				stabilize();
-			}
-		}, new Date(), 60);
-
-		timersChord.scheduleAtFixedRate(new TimerTask()
-		{
-			@Override
-			public void run()
-			{
-				fix_fingers();
-			}
-		}, new Date(), 500);
-
-		timersChord.scheduleAtFixedRate(new TimerTask()
-		{
-			@Override
-			public void run()
-			{
-				check_predecessor();
-			}
-		}, new Date(), 500);
+		GB.executeTimerTask(timersChord, 60, this::stabilize);
+		GB.executeTimerTask(timersChord, 500, this::fix_fingers);
+		GB.executeTimerTask(timersChord, 500, this::check_predecessor);
 	}
-
 
 	// called periodically. n asks the getSuccessor
 	// about its predecessor, verifies if n's immediate
