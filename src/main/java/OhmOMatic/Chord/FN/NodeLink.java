@@ -8,16 +8,20 @@ package OhmOMatic.Chord.FN;
 
 import OhmOMatic.Global.GB;
 
+import java.math.BigInteger;
+
 public class NodeLink
 {
 
-	public final long ID;
+	public final BigInteger ID;
 	public final String IP;
 	public final int port;
 
 	public NodeLink(String IP, int port)
 	{
-		this.ID = GB.hashSocketAddress(IP + ":" + port);
+		var b = GB.SHA1(IP + ":" + port);
+		
+		this.ID = new BigInteger(b);
 		this.IP = IP;
 		this.port = port;
 	}

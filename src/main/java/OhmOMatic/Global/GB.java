@@ -6,9 +6,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Global;
 
-import OhmOMatic.Chord.FN.NodeLink;
-
 import java.io.*;
+import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -18,46 +17,75 @@ public final class GB
 
 	private static Random random = new Random(new Date().getSeconds());
 
-	private static HashMap<Integer, Long> _powerOfTwo = new HashMap<>();
+	private static HashMap<Integer, BigInteger> _powerOfTwo = new HashMap<>();
 
 
-	public static Long getPowerOfTwo(final int k, final char mBit)
+	public static BigInteger getPowerOfTwo(final int k, final char mBit)
 	{
 		if (_powerOfTwo.size() == 0)
 		{
-			var curVal = 1L; //2^0
+			var due = BigInteger.valueOf(2);
+			var curVal = BigInteger.valueOf(1); //2^0
 
 			for (var i = 0; i <= mBit; i++)
 			{
 				_powerOfTwo.put(i, curVal);
-				curVal *= 2;
+				curVal = curVal.multiply(due);
 			}
 		}
 
 		return _powerOfTwo.get(k);
 	}
 
-	/*public static long computeRelativeId(NodeLink universal, long local, char mBit)
-	{
-		var univ = hashSocketAddress(universal);
-
-		return computeRelativeId(univ, local, mBit);
-	}*/
-
-	/*public static long computeRelativeId(long universal, long local, char mBit)
-	{
-		long ret = universal - local;
-
-		if (ret < 0)
-			ret += getPowerOfTwo(32, mBit);
-
-		return ret;
-	}*/
-
 	public static void clearScreen()
 	{
 		System.out.print("\033[H\033[2J");
 		System.out.flush();
+	}
+
+	public static boolean incluso(BigInteger v, BigInteger da, BigInteger a)
+	{
+		//5.compareTo(3) == 1
+		//5.compareTo(5) == 0
+		//5.compareTo(8) == -1
+
+		//da < v < a
+		//v > da && v < a
+		return (v.compareTo(da) > 0 && v.compareTo(a) < 0);
+	}
+
+	public static boolean inclusoR(BigInteger v, BigInteger da, BigInteger a)
+	{
+		//5.compareTo(3) == 1
+		//5.compareTo(5) == 0
+		//5.compareTo(8) == -1
+
+		//da < v < a
+		//v > da && v <= a
+		return (v.compareTo(da) > 0 && v.compareTo(a) <= 0);
+	}
+
+	public static byte[] SHA1(String s)
+	{
+		try
+		{
+			var sha1 = MessageDigest.getInstance("SHA-1");
+
+			sha1.reset();
+			sha1.update(s.getBytes("UTF-8"));
+
+			return sha1.digest();
+		}
+		catch (NoSuchAlgorithmException e)
+		{
+			e.printStackTrace();
+		}
+		catch (UnsupportedEncodingException e)
+		{
+			e.printStackTrace();
+		}
+
+		return null;
 	}
 
 	public static byte[] serialize(final Object obj) throws IOException
@@ -84,122 +112,6 @@ public final class GB
 		}
 	}
 
-	/**
-	 * Compute a socket address' SHA-1 hash in hex
-	 * and its approximate position in string
-	 *
-	 * @param addr
-	 * @return
-	 */
-	public static String hexIdAndPosition(final NodeLink addr, final char mBit)
-	{
-		long hash = addr.ID;
-
-		return (longTo8DigitHex(hash) + " (" + hash * 100 / getPowerOfTwo(mBit, mBit) + "%)");
-	}
-
-	/**
-	 * @param l generate a long type number's 8-digit hex string
-	 * @return
-	 */
-	public static String longTo8DigitHex(final long l)
-	{
-		var hex = Long.toHexString(l);
-
-		int lack = 8 - hex.length();
-
-		var sb = new StringBuilder();
-
-		for (var i = lack; i > 0; i--)
-			sb.append("0");
-
-		sb.append(hex);
-
-		return sb.toString();
-	}
-
-	/**
-	 * Return a node's finger[i].start, universal
-	 *
-	 * @param nodeid: node's identifier
-	 * @param i:      finger table index
-	 * @return finger[i].start's identifier
-	 */
-	public static long ithStart(final long nodeid, final int i, final char mBit)
-	{
-		var l = getPowerOfTwo(i - 1, mBit);
-		var r = getPowerOfTwo(mBit, mBit);
-
-		var calc = (nodeid + l) % r;
-
-		return calc;
-	}
-
-	public static long hashSocketAddress(final String addr)
-	{
-		var i = addr.hashCode();
-
-		return hashHashCode(i);
-	}
-
-	/**
-	 * Compute a 32 bit integer's identifier
-	 *
-	 * @param i: integer
-	 * @return 32-bit identifier in long type
-	 */
-	private static long hashHashCode(final int i)
-	{
-		//32 bit regular hash code -> byte[4]
-		byte[] hashbytes = new byte[4];
-		hashbytes[0] = (byte) (i >> 24);
-		hashbytes[1] = (byte) (i >> 16);
-		hashbytes[2] = (byte) (i >> 8);
-		hashbytes[3] = (byte) (i /*>> 0*/);
-
-		// try to create SHA1 digest
-		MessageDigest md = null;
-		try
-		{
-			md = MessageDigest.getInstance("SHA-1");
-		}
-		catch (NoSuchAlgorithmException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		// successfully created SHA1 digest
-		// try to convert byte[4]
-		// -> SHA1 result byte[]
-		// -> compressed result byte[4]
-		// -> compressed result in long type
-		if (md != null)
-		{
-			md.reset();
-			md.update(hashbytes);
-			byte[] result = md.digest();
-
-			byte[] compressed = new byte[4];
-			for (int j = 0; j < 4; j++)
-			{
-				byte temp = result[j];
-				for (int k = 1; k < 5; k++)
-				{
-					temp = (byte) (temp ^ result[j + k]);
-				}
-				compressed[j] = temp;
-			}
-
-			long ret = (compressed[0] & 0xFF) << 24 | (compressed[1] & 0xFF) << 16 | (compressed[2] & 0xFF) << 8 | (compressed[3] & 0xFF);
-			ret = ret & (long) 0xFFFFFFFFl;
-
-			return ret;
-		}
-
-		return 0;
-	}
-
 	public static boolean stringIsBlank(final String s)
 	{
 		return (s == null || s.equals("") || s.equals(" "));
@@ -208,59 +120,6 @@ public final class GB
 	public static int randomInt(final int da, final int a)
 	{
 		return random.nextInt(a) + da;
-	}
-
-	public static boolean gt(final byte[] a, final byte[] b)
-	{
-		return Arrays.compare(a, b) > 0;
-	}
-
-	public static boolean ge(final byte[] a, final byte[] b)
-	{
-		return Arrays.compare(a, b) >= 0;
-	}
-
-	public static boolean lt(final byte[] a, final byte[] b)
-	{
-		return Arrays.compare(a, b) < 0;
-	}
-
-	public static boolean le(final byte[] a, final byte[] b)
-	{
-		return Arrays.compare(a, b) <= 0;
-	}
-
-	public static byte[] shiftLeft(final byte[] byteArray, final int shiftBitCount)
-	{
-		//https://github.com/patrickfav/bytes-java
-
-		final var shiftMod = shiftBitCount % 8;
-		final var carryMask = (byte) ((1 << shiftMod) - 1);
-		final var offsetBytes = (shiftBitCount / 8);
-
-		int sourceIndex;
-
-		for (var i = 0; i < byteArray.length; i++)
-		{
-			sourceIndex = i + offsetBytes;
-
-			if (sourceIndex >= byteArray.length)
-			{
-				byteArray[i] = 0;
-			}
-			else
-			{
-				final var src = byteArray[sourceIndex];
-				var dst = (byte) (src << shiftMod);
-
-				if (sourceIndex + 1 < byteArray.length)
-					dst |= byteArray[sourceIndex + 1] >>> (8 - shiftMod) & carryMask;
-
-				byteArray[i] = dst;
-			}
-		}
-
-		return byteArray;
 	}
 
 	public static void executeTimerTask(Timer _timer, final int period, Runnable r)

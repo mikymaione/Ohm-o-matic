@@ -12,6 +12,7 @@ import OhmOMatic.ProtoBuffer.Home;
 import OhmOMatic.ProtoBuffer.HomeServiceGrpc;
 import io.grpc.stub.StreamObserver;
 
+import java.math.BigInteger;
 import java.util.function.Function;
 
 public class gRPC_Server
@@ -98,7 +99,7 @@ public class gRPC_Server
 				PROC(request, responseObserver, n ->
 						local.notify(n));
 			}
-			
+
 			@Override
 			public void ping(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
@@ -110,7 +111,7 @@ public class gRPC_Server
 			public void findSuccessor(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
 				FUNC(request, responseObserver, n ->
-						local.find_successor(request.getID()));
+						local.find_successor(new BigInteger(request.getID().toByteArray())));
 			}
 
 			@Override

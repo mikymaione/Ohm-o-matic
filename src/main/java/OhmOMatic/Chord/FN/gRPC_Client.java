@@ -7,6 +7,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package OhmOMatic.Chord.FN;
 
 import OhmOMatic.ProtoBuffer.Home;
+import com.google.protobuf.ByteString;
+
+import java.math.BigInteger;
 
 public class gRPC_Client
 {
@@ -16,7 +19,7 @@ public class gRPC_Client
 		return gRPC(server, req, null, null, null);
 	}
 
-	public static NodeLink gRPC(NodeLink server, Richiesta req, Long _id)
+	public static NodeLink gRPC(NodeLink server, Richiesta req, BigInteger _id)
 	{
 		return gRPC(server, req, _id, null, null);
 	}
@@ -26,7 +29,7 @@ public class gRPC_Client
 		return gRPC(server, req, null, null, setNode);
 	}
 
-	public static NodeLink gRPC(NodeLink server, Richiesta req, Long _id, Integer indice, NodeLink setNode)
+	public static NodeLink gRPC(NodeLink server, Richiesta req, BigInteger _id, Integer indice, NodeLink setNode)
 	{
 		try
 		{
@@ -54,14 +57,14 @@ public class gRPC_Client
 		}
 	}
 
-	private static Home.casaRes gRPC_Execute(NodeLink server, Richiesta req, Long _id, Integer indice, NodeLink setNode) throws Exception
+	private static Home.casaRes gRPC_Execute(NodeLink server, Richiesta req, BigInteger _id, Integer indice, NodeLink setNode) throws Exception
 	{
 		try (var hfs = new HomeFastStub())
 		{
 			var casa_B = Home.casa.newBuilder();
 
 			if (_id != null)
-				casa_B.setID(_id);
+				casa_B.setID(ByteString.copyFrom(_id.toByteArray()));
 
 			if (indice != null)
 				casa_B.setIdx(indice);

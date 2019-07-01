@@ -15,12 +15,13 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Timer;
 
 public class Chord implements AutoCloseable
 {
-	private static final char mBit = 32;
+	private static final char mBit = 160; //SHA1
 
 	private final Timer timersChord;
 
@@ -86,11 +87,12 @@ public class Chord implements AutoCloseable
 
 
 	// ask node n to find the successor of id
-	public NodeLink find_successor(final long id)
+	public NodeLink find_successor(final BigInteger id)
 	{
 		//Yes, that should be a closing square bracket to match the opening parenthesis.
 		//It is a half closed interval.
-		if ((id > n.ID && id <= getSuccessor().ID))
+		//if ((id > n.ID && id <= getSuccessor().ID))
+		if (GB.inclusoR(id, n.ID, getSuccessor().ID))
 		{
 			return getSuccessor();
 		}
@@ -107,7 +109,7 @@ public class Chord implements AutoCloseable
 	}
 
 	// search the local table for the highest predecessor of id
-	public NodeLink closest_preceding_finger(final long id)
+	public NodeLink closest_preceding_finger(final BigInteger id)
 	{
 		for (var i = mBit; i > 0; i--)
 		{
@@ -116,7 +118,8 @@ public class Chord implements AutoCloseable
 			if (ith_finger == null)
 				continue;
 
-			if (ith_finger.ID > n.ID && ith_finger.ID < id)
+			//if (ith_finger.ID > n.ID && ith_finger.ID < id)
+			if (GB.incluso(ith_finger.ID, n.ID, id))
 				return ith_finger;
 		}
 
@@ -153,7 +156,8 @@ public class Chord implements AutoCloseable
 		//var x = successor.predecessor;
 
 		if (x != null)
-			if (x.ID > n.ID && x.ID < getSuccessor().ID)
+			//if (x.ID > n.ID && x.ID < getSuccessor().ID)
+			if (GB.incluso(x.ID, n.ID, getSuccessor().ID))
 				setSuccessor(x);
 
 		if (!n.equals(getSuccessor()))
@@ -164,7 +168,8 @@ public class Chord implements AutoCloseable
 	// n_ thinks it might be our predecessor.
 	public void notify(final NodeLink n_)
 	{
-		if (getPredecessor() == null || (n_.ID > getPredecessor().ID && n_.ID < n.ID))
+		//if (getPredecessor() == null || (n_.ID > getPredecessor().ID && n_.ID < n.ID))
+		if (getPredecessor() == null || (GB.incluso(n_.ID, getPredecessor().ID, n.ID)))
 			setPredecessor(n_);
 	}
 
@@ -177,8 +182,11 @@ public class Chord implements AutoCloseable
 		if (next > mBit)
 			next = 1;
 
-		var iThStart = GB.ithStart(n.ID, next, mBit);
-		var iThFinger = find_successor(iThStart);
+		var i = GB.getPowerOfTwo(next - 1, mBit);
+		i = n.ID.add(i);
+		i = i.mod(GB.getPowerOfTwo(mBit, mBit));
+
+		var iThFinger = find_successor(i);
 
 		setFinger(next, iThFinger);
 	}
@@ -219,27 +227,25 @@ public class Chord implements AutoCloseable
 	public void printDataStructure()
 	{
 		System.out.println("\n==============================================================");
-		System.out.println("\nLOCAL:\t\t\t\t" + n.toString() + "\t" + GB.hexIdAndPosition(n, mBit));
+		System.out.println("\nLOCAL:\t\t\t\t" + n.toString() + "\t");
 
 		if (getPredecessor() != null)
-			System.out.println("\nPREDECESSOR:\t\t\t" + getPredecessor().toString() + "\t" + GB.hexIdAndPosition(getPredecessor(), mBit));
+			System.out.println("\nPREDECESSOR:\t\t\t" + getPredecessor().toString() + "\t");
 		else
 			System.out.println("\nPREDECESSOR:\t\t\tNULL");
 
 		System.out.println("\nFINGER TABLE:\n");
 
-		for (int i = 1; i <= 32; i++)
+		for (int i = 1; i <= mBit; i++)
 		{
-			long ithstart = GB.ithStart(n.ID, i, mBit);
-
 			var f = getFinger(i);
 
 			var sb = new StringBuilder();
 
-			sb.append(i + "\t" + GB.longTo8DigitHex(ithstart) + "\t\t");
+			sb.append(i + "\t" + "\t\t");
 
 			if (f != null)
-				sb.append(f + "\t" + GB.hexIdAndPosition(f, mBit));
+				sb.append(f + "\t");
 
 			else
 				sb.append("NULL");
