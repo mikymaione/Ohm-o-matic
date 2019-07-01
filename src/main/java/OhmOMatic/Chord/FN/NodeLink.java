@@ -11,23 +11,15 @@ import OhmOMatic.Global.GB;
 public class NodeLink
 {
 
+	public final long ID;
 	public final String IP;
 	public final int port;
-	private Long _id;
-
 
 	public NodeLink(String IP, int port)
 	{
+		this.ID = GB.hashSocketAddress(IP + ":" + port);
 		this.IP = IP;
 		this.port = port;
-	}
-
-	public Long ID()
-	{
-		if (_id == null)
-			_id = GB.hashSocketAddress(this);
-
-		return _id;
 	}
 
 	@Override

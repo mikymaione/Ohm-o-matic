@@ -89,7 +89,7 @@ public final class GB
 	 */
 	public static String hexIdAndPosition(NodeLink addr, char mBit)
 	{
-		long hash = hashSocketAddress(addr);
+		long hash = addr.ID;
 
 		return (longTo8DigitHex(hash) + " (" + hash * 100 / getPowerOfTwo(mBit, mBit) + "%)");
 	}
@@ -132,7 +132,7 @@ public final class GB
 		return z.longValue();
 	}
 
-	public static long hashSocketAddress(NodeLink addr)
+	public static long hashSocketAddress(String addr)
 	{
 		int i = addr.hashCode();
 

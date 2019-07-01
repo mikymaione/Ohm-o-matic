@@ -28,7 +28,7 @@ public class Chord implements AutoCloseable
 
 	private final NodeLink n;
 	private final Thread threadListener;
-	private NodeLink predecessor;
+	private NodeLink _predecessor;
 	private final HashMap<Integer, NodeLink> fingerTable;
 	private Server gRPC_listner;
 	private int next = 1;
@@ -54,22 +54,22 @@ public class Chord implements AutoCloseable
 		threadListener.stop();
 	}
 
-	public NodeLink getPredecessor()
+	public synchronized NodeLink getPredecessor()
 	{
-		return predecessor;
+		return _predecessor;
 	}
 
 	public synchronized void setPredecessor(NodeLink n_)
 	{
-		predecessor = n_;
+		_predecessor = n_;
 	}
 
-	public NodeLink getSuccessor()
+	public synchronized NodeLink getSuccessor()
 	{
 		return fingerTable.get(1);
 	}
 
-	public void setSuccessor(NodeLink n_)
+	public synchronized void setSuccessor(NodeLink n_)
 	{
 		fingerTable.put(1, n_);
 	}
@@ -95,13 +95,11 @@ public class Chord implements AutoCloseable
 	// ask node n to find the successor of id
 	public NodeLink find_successor(long id)
 	{
-		var _successor = getSuccessor();
-
 		//Yes, that should be a closing square bracket to match the opening parenthesis.
 		//It is a half closed interval.
-		if ((id > n.ID() && id <= _successor.ID()))
+		if ((id > n.ID && id <= getSuccessor().ID))
 		{
-			return _successor;
+			return getSuccessor();
 		}
 		else
 		{
@@ -125,7 +123,7 @@ public class Chord implements AutoCloseable
 			if (ith_finger == null)
 				continue;
 
-			if (ith_finger.ID() > n.ID() && ith_finger.ID() < id)
+			if (ith_finger.ID > n.ID && ith_finger.ID < id)
 				return ith_finger;
 		}
 
@@ -168,7 +166,7 @@ public class Chord implements AutoCloseable
 	{
 		if (!n.equals(n_))
 		{
-			var s = gRPC_Client.gRPC(n_, Richiesta.findSuccessor, n.ID());
+			var s = gRPC_Client.gRPC(n_, Richiesta.findSuccessor, n.ID);
 			setSuccessor(s);
 			//successor = n_.find_successor(n);
 		}
@@ -182,12 +180,12 @@ public class Chord implements AutoCloseable
 		var ith_finger = fingerTable.get(i);
 
 		if (ith_finger != null)
-			if (s.ID() >= n.ID() && s.ID() < ith_finger.ID())
+			if (s.ID >= n.ID && s.ID < ith_finger.ID)
 			{
 				fingerTable.put(i, s);
 
 				//get first getNode preceding n
-				gRPC_Client.gRPC(predecessor, Richiesta.updateFingerTable, null, i, s);
+				gRPC_Client.gRPC(getPredecessor(), Richiesta.updateFingerTable, null, i, s);
 				//p.update_finger_table(s, i);
 			}
 	}
@@ -197,25 +195,23 @@ public class Chord implements AutoCloseable
 	// getSuccessor is consistent, and tells the getSuccessor about n
 	private void stabilize()
 	{
-		var _successor = getSuccessor();
-		var x = gRPC_Client.gRPC(_successor, Richiesta.predecessor);
+		var x = gRPC_Client.gRPC(getSuccessor(), Richiesta.predecessor);
 		//var x = successor.predecessor;
 
 		if (x != null)
-		{
-			if (x.ID() > n.ID() && x.ID() < _successor.ID())
+			if (x.ID > n.ID && x.ID < getSuccessor().ID)
 				setSuccessor(x);
 
-			gRPC_Client.gRPC(_successor, Richiesta.notify, n);
-			//successor.notify(n);
-		}
+		if (!n.equals(getSuccessor()))
+			gRPC_Client.gRPC(getSuccessor(), Richiesta.notify, n);
+		//successor.notify(n);
 	}
 
 	// n_ thinks it might be our predecessor.
 	public void notify(NodeLink n_)
 	{
-		if (predecessor == null || (n_.ID() > predecessor.ID() && n_.ID() < n.ID()))
-			predecessor = n_;
+		if (getPredecessor() == null || (n_.ID > getPredecessor().ID && n_.ID < n.ID))
+			setPredecessor(n_);
 	}
 
 	// called periodically. refreshes finger table entries.
@@ -225,12 +221,10 @@ public class Chord implements AutoCloseable
 		next++;
 
 		if (next > mBit)
-			next = 2;
+			next = 1;
 
-		var d = GB.getPowerOfTwo(next - 1, mBit);
-		d += n.ID();
-
-		var iThFinger = find_successor(d.longValue());
+		var iThStart = GB.ithStart(n.ID, next, mBit);
+		var iThFinger = find_successor(iThStart);
 
 		fingerTable.put(next, iThFinger);
 
@@ -241,12 +235,12 @@ public class Chord implements AutoCloseable
 	// called periodically. checks whether predecessor has failed.
 	private void check_predecessor()
 	{
-		if (predecessor != null)
+		if (getPredecessor() != null)
 		{
-			var vivo = gRPC_Client.gRPC(predecessor, Richiesta.ping);
+			var vivo = gRPC_Client.gRPC(getPredecessor(), Richiesta.ping);
 
-			if (!predecessor.equals(vivo))
-				predecessor = null;
+			if (!getPredecessor().equals(vivo))
+				setPredecessor(null);
 		}
 	}
 
@@ -260,8 +254,8 @@ public class Chord implements AutoCloseable
 		System.out.println("\n==============================================================");
 		System.out.println("\nLOCAL:\t\t\t\t" + n.toString() + "\t" + GB.hexIdAndPosition(n, mBit));
 
-		if (predecessor != null)
-			System.out.println("\nPREDECESSOR:\t\t\t" + predecessor.toString() + "\t" + GB.hexIdAndPosition(predecessor, mBit));
+		if (getPredecessor() != null)
+			System.out.println("\nPREDECESSOR:\t\t\t" + getPredecessor().toString() + "\t" + GB.hexIdAndPosition(getPredecessor(), mBit));
 		else
 			System.out.println("\nPREDECESSOR:\t\t\tNULL");
 
@@ -269,7 +263,7 @@ public class Chord implements AutoCloseable
 
 		for (int i = 1; i <= 32; i++)
 		{
-			long ithstart = GB.ithStart(n.ID(), i, mBit);
+			long ithstart = GB.ithStart(n.ID, i, mBit);
 
 			var f = fingerTable.get(i);
 
@@ -294,21 +288,20 @@ public class Chord implements AutoCloseable
 		System.out.println("You are listening on port " + n.port + ".");
 		System.out.println("Your position is " + n + ".");
 
-		var _successor = getSuccessor();
-		if ((predecessor == null || predecessor.equals(n)) && (_successor == null || _successor.equals(n)))
+		if ((getPredecessor() == null || getPredecessor().equals(n)) && (getSuccessor() == null || getSuccessor().equals(n)))
 		{
 			System.out.println("Your predecessor is yourself.");
 			System.out.println("Your successor is yourself.");
 		}
 		else
 		{
-			if (predecessor != null)
-				System.out.println("Your predecessor is getNode " + predecessor.IP + ", " + "port " + predecessor.port + ", position " + predecessor + ".");
+			if (getPredecessor() != null)
+				System.out.println("Your predecessor is node " + getPredecessor().IP + ", " + "port " + getPredecessor().port + ", position " + getPredecessor() + ".");
 			else
 				System.out.println("Your predecessor is updating.");
 
-			if (_successor != null)
-				System.out.println("Your successor is getNode " + _successor.IP + ", " + "port " + _successor.port + ", position " + _successor + ".");
+			if (getSuccessor() != null)
+				System.out.println("Your successor is node " + getSuccessor().IP + ", " + "port " + getSuccessor().port + ", position " + getSuccessor() + ".");
 			else
 				System.out.println("Your successor is updating.");
 		}
