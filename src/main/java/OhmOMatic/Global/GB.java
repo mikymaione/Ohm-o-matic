@@ -33,14 +33,14 @@ public final class GB
 		return _powerOfTwo.get(k);
 	}
 
-	public static long computeRelativeId(NodeLink universal, long local, char mBit)
+	/*public static long computeRelativeId(NodeLink universal, long local, char mBit)
 	{
 		var univ = hashSocketAddress(universal);
 
 		return computeRelativeId(univ, local, mBit);
-	}
+	}*/
 
-	public static long computeRelativeId(long universal, long local, char mBit)
+	/*public static long computeRelativeId(long universal, long local, char mBit)
 	{
 		long ret = universal - local;
 
@@ -48,7 +48,7 @@ public final class GB
 			ret += getPowerOfTwo(32, mBit);
 
 		return ret;
-	}
+	}*/
 
 	public static void clearScreen()
 	{
@@ -110,7 +110,7 @@ public final class GB
 			sb.append("0");
 
 		sb.append(hex);
-		
+
 		return sb.toString();
 	}
 

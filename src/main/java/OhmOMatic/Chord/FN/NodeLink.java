@@ -6,17 +6,28 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Chord.FN;
 
+import OhmOMatic.Global.GB;
+
 public class NodeLink
 {
 
 	public final String IP;
 	public final int port;
+	private Long _id;
 
 
 	public NodeLink(String IP, int port)
 	{
 		this.IP = IP;
 		this.port = port;
+	}
+
+	public Long ID()
+	{
+		if (_id == null)
+			_id = GB.hashSocketAddress(this);
+
+		return _id;
 	}
 
 	@Override

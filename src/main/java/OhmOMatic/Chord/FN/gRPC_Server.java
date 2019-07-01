@@ -93,6 +93,13 @@ public class gRPC_Server
 			}
 
 			@Override
+			public void ping(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
+			{
+				FUNC(request, responseObserver, n ->
+						local.ping());
+			}
+
+			@Override
 			public void notify(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
 				PROC(request, responseObserver, n ->

@@ -106,6 +106,8 @@ public class gRPC_Client
 				return stub.predecessor(c);
 			case successor:
 				return stub.successor(c);
+			case ping:
+				return stub.ping(c);
 			default:
 				throw new Exception("Switch " + req + " non implementato");
 		}
