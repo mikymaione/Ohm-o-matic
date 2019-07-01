@@ -8,13 +8,15 @@ package OhmOMatic.Chord;
 
 import OhmOMatic.Chord.FN.NodeLink;
 import OhmOMatic.Chord.FN.Richiesta;
-import OhmOMatic.Chord.FN.gRPCCommander;
+import OhmOMatic.Chord.FN.gRPC_Client;
+import OhmOMatic.Chord.FN.gRPC_Server;
 import OhmOMatic.Global.GB;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -27,7 +29,7 @@ public class Chord implements AutoCloseable
 	private final NodeLink n;
 	private final Thread threadListener;
 	private NodeLink predecessor;
-	private final FingerTable fingerTable;
+	private final HashMap<Integer, NodeLink> fingerTable;
 	private Server gRPC_listner;
 	private int next = 1;
 
@@ -39,7 +41,7 @@ public class Chord implements AutoCloseable
 		n = address;
 		ID = GB.hashSocketAddress(address);
 
-		fingerTable = new FingerTable(ID, mBit);
+		fingerTable = new HashMap<>(mBit);
 
 		setSuccessor(address);
 		predecessor = null;
@@ -69,12 +71,12 @@ public class Chord implements AutoCloseable
 
 	public NodeLink getSuccessor()
 	{
-		return fingerTable.getNode(1);
+		return fingerTable.get(1);
 	}
 
 	public void setSuccessor(NodeLink n_)
 	{
-		fingerTable.setNode(1, n_);
+		fingerTable.put(1, n_);
 	}
 
 	private void listener()
@@ -85,7 +87,7 @@ public class Chord implements AutoCloseable
 		{
 			gRPC_listner = ServerBuilder
 					.forPort(n.port)
-					.addService(gRPCCommander.getListnerServer(chord))
+					.addService(gRPC_Server.getListnerServer(chord))
 					.build()
 					.start();
 		}
@@ -113,7 +115,7 @@ public class Chord implements AutoCloseable
 			if (n.equals(n_))
 				_successor = n;
 			else
-				_successor = gRPCCommander.gRPC_A(n_, Richiesta.FindSuccessor, id);
+				_successor = gRPC_Client.gRPC(n_, Richiesta.findSuccessor, id);
 
 			return _successor;
 		}
@@ -124,7 +126,7 @@ public class Chord implements AutoCloseable
 	{
 		for (var i = mBit; i > 0; i--)
 		{
-			var ith_finger = fingerTable.getNode(i);
+			var ith_finger = fingerTable.get(i);
 
 			if (ith_finger == null)
 				continue;
@@ -174,7 +176,7 @@ public class Chord implements AutoCloseable
 	{
 		if (!n.equals(n_))
 		{
-			var s = gRPCCommander.gRPC_A(n_, Richiesta.FindSuccessor, ID);
+			var s = gRPC_Client.gRPC(n_, Richiesta.findSuccessor, ID);
 			setSuccessor(s);
 			//successor = n_.find_successor(n);
 		}
@@ -183,9 +185,9 @@ public class Chord implements AutoCloseable
 	}
 
 	// if s is iTh fingerTable of n, update n's fingerTable table with s
-	public void update_finger_table(NodeLink s, int i) throws Exception
+	public void update_finger_table(NodeLink s, int i)
 	{
-		var ith_finger = fingerTable.getNode(i);
+		var ith_finger = fingerTable.get(i);
 
 		if (ith_finger != null)
 		{
@@ -194,10 +196,10 @@ public class Chord implements AutoCloseable
 
 			if (s_ID >= ID && s_ID < ith_finger_ID)
 			{
-				fingerTable.setNode(i, s);
+				fingerTable.put(i, s);
 
 				//get first getNode preceding n
-				gRPCCommander.gRPC_E(predecessor, Richiesta.UpdateFingerTable, -1, i, s);
+				gRPC_Client.gRPC(predecessor, Richiesta.updateFingerTable, null, i, s);
 				//p.update_finger_table(s, i);
 			}
 		}
@@ -209,7 +211,7 @@ public class Chord implements AutoCloseable
 	private void stabilize() throws Exception
 	{
 		var _successor = getSuccessor();
-		var x = gRPCCommander.gRPC_A(_successor, Richiesta.Predecessor);
+		var x = gRPC_Client.gRPC(_successor, Richiesta.predecessor);
 		//var x = successor.predecessor;
 
 		if (x != null)
@@ -220,7 +222,7 @@ public class Chord implements AutoCloseable
 			if (x_ID > ID && x_ID < successor_ID)
 				setSuccessor(x);
 
-			gRPCCommander.gRPC_E(_successor, Richiesta.Notify, n);
+			gRPC_Client.gRPC(_successor, Richiesta.notify, n);
 			//successor.notify(n);
 		}
 	}
@@ -248,7 +250,7 @@ public class Chord implements AutoCloseable
 
 		var iThFinger = find_successor(d.longValue());
 
-		fingerTable.setNode(next, iThFinger);
+		fingerTable.put(next, iThFinger);
 
 		//forse
 		//notify(iThFinger);
@@ -270,14 +272,14 @@ public class Chord implements AutoCloseable
 		{
 			long ithstart = GB.ithStart(GB.hashSocketAddress(n), i, mBit);
 
-			var f = fingerTable.getNode(i);
+			var f = fingerTable.get(i);
 
 			var sb = new StringBuilder();
 
 			sb.append(i + "\t" + GB.longTo8DigitHex(ithstart) + "\t\t");
 
 			if (f != null)
-				sb.append(f.toString() + "\t" + GB.hexIdAndPosition(f, mBit));
+				sb.append(f + "\t" + GB.hexIdAndPosition(f, mBit));
 
 			else
 				sb.append("NULL");

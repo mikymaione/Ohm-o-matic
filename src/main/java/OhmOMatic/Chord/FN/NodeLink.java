@@ -19,11 +19,6 @@ public class NodeLink
 		this.port = port;
 	}
 
-	public static NodeLink Empty()
-	{
-		return new NodeLink("", -1);
-	}
-
 	@Override
 	public String toString()
 	{
