@@ -225,7 +225,7 @@ public class Chord implements AutoCloseable
 		next++;
 
 		if (next > mBit)
-			next = 1;
+			next = 2;
 
 		var d = GB.getPowerOfTwo(next - 1, mBit);
 		d += n.ID();
