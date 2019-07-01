@@ -32,7 +32,7 @@ public class Chord implements AutoCloseable
 	private char next = 1;
 
 
-	public Chord(NodeLink address)
+	public Chord(final NodeLink address)
 	{
 		n = address;
 
@@ -59,7 +59,7 @@ public class Chord implements AutoCloseable
 		return getFinger(1);
 	}
 
-	public void setSuccessor(NodeLink n_)
+	public void setSuccessor(final NodeLink n_)
 	{
 		setFinger(1, n_);
 	}
@@ -69,24 +69,24 @@ public class Chord implements AutoCloseable
 		return _predecessor;
 	}
 
-	public synchronized void setPredecessor(NodeLink n_)
+	public synchronized void setPredecessor(final NodeLink n_)
 	{
 		_predecessor = n_;
 	}
 
-	public synchronized NodeLink getFinger(int i)
+	public synchronized NodeLink getFinger(final int i)
 	{
 		return _fingerTable.get(i);
 	}
 
-	public synchronized void setFinger(int i, NodeLink n_)
+	public synchronized void setFinger(final int i, final NodeLink n_)
 	{
 		_fingerTable.put(i, n_);
 	}
 
 
 	// ask node n to find the successor of id
-	public NodeLink find_successor(long id)
+	public NodeLink find_successor(final long id)
 	{
 		//Yes, that should be a closing square bracket to match the opening parenthesis.
 		//It is a half closed interval.
@@ -107,7 +107,7 @@ public class Chord implements AutoCloseable
 	}
 
 	// search the local table for the highest predecessor of id
-	public NodeLink closest_preceding_finger(long id)
+	public NodeLink closest_preceding_finger(final long id)
 	{
 		for (var i = mBit; i > 0; i--)
 		{
@@ -124,7 +124,7 @@ public class Chord implements AutoCloseable
 	}
 
 	// join a Chord ring containing node n_
-	public void join(NodeLink n_)
+	public void join(final NodeLink n_)
 	{
 		if (!n.equals(n_))
 		{
@@ -162,7 +162,7 @@ public class Chord implements AutoCloseable
 	}
 
 	// n_ thinks it might be our predecessor.
-	public void notify(NodeLink n_)
+	public void notify(final NodeLink n_)
 	{
 		if (getPredecessor() == null || (n_.ID > getPredecessor().ID && n_.ID < n.ID))
 			setPredecessor(n_);

@@ -21,7 +21,7 @@ public final class GB
 	private static HashMap<Integer, Long> _powerOfTwo = new HashMap<>();
 
 
-	public static Long getPowerOfTwo(int k, char mBit)
+	public static Long getPowerOfTwo(final int k, final char mBit)
 	{
 		if (_powerOfTwo.size() == 0)
 		{
@@ -60,7 +60,7 @@ public final class GB
 		System.out.flush();
 	}
 
-	public static byte[] serialize(Object obj) throws IOException
+	public static byte[] serialize(final Object obj) throws IOException
 	{
 		try (
 				var out = new ByteArrayOutputStream();
@@ -73,7 +73,7 @@ public final class GB
 		}
 	}
 
-	public static Object deserialize(byte[] data) throws IOException, ClassNotFoundException
+	public static Object deserialize(final byte[] data) throws IOException, ClassNotFoundException
 	{
 		try (
 				var in = new ByteArrayInputStream(data);
@@ -91,7 +91,7 @@ public final class GB
 	 * @param addr
 	 * @return
 	 */
-	public static String hexIdAndPosition(NodeLink addr, char mBit)
+	public static String hexIdAndPosition(final NodeLink addr, final char mBit)
 	{
 		long hash = addr.ID;
 
@@ -102,7 +102,7 @@ public final class GB
 	 * @param l generate a long type number's 8-digit hex string
 	 * @return
 	 */
-	public static String longTo8DigitHex(long l)
+	public static String longTo8DigitHex(final long l)
 	{
 		var hex = Long.toHexString(l);
 
@@ -125,7 +125,7 @@ public final class GB
 	 * @param i:      finger table index
 	 * @return finger[i].start's identifier
 	 */
-	public static long ithStart(long nodeid, int i, char mBit)
+	public static long ithStart(final long nodeid, final int i, final char mBit)
 	{
 		var l = getPowerOfTwo(i - 1, mBit);
 		var r = getPowerOfTwo(mBit, mBit);
@@ -135,9 +135,9 @@ public final class GB
 		return calc;
 	}
 
-	public static long hashSocketAddress(String addr)
+	public static long hashSocketAddress(final String addr)
 	{
-		int i = addr.hashCode();
+		var i = addr.hashCode();
 
 		return hashHashCode(i);
 	}
@@ -148,7 +148,7 @@ public final class GB
 	 * @param i: integer
 	 * @return 32-bit identifier in long type
 	 */
-	private static long hashHashCode(int i)
+	private static long hashHashCode(final int i)
 	{
 		//32 bit regular hash code -> byte[4]
 		byte[] hashbytes = new byte[4];
@@ -200,12 +200,12 @@ public final class GB
 		return 0;
 	}
 
-	public static boolean stringIsBlank(String s)
+	public static boolean stringIsBlank(final String s)
 	{
 		return (s == null || s.equals("") || s.equals(" "));
 	}
 
-	public static int randomInt(int da, int a)
+	public static int randomInt(final int da, final int a)
 	{
 		return random.nextInt(a) + da;
 	}
@@ -230,7 +230,7 @@ public final class GB
 		return Arrays.compare(a, b) <= 0;
 	}
 
-	public static byte[] shiftLeft(byte[] byteArray, int shiftBitCount)
+	public static byte[] shiftLeft(final byte[] byteArray, final int shiftBitCount)
 	{
 		//https://github.com/patrickfav/bytes-java
 
@@ -263,7 +263,7 @@ public final class GB
 		return byteArray;
 	}
 
-	public static void executeTimerTask(Timer _timer, int period, Runnable r)
+	public static void executeTimerTask(Timer _timer, final int period, Runnable r)
 	{
 		_timer.scheduleAtFixedRate(executeTimerTask(r), new Date(), period);
 	}
