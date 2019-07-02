@@ -28,7 +28,8 @@ public class Chord implements AutoCloseable
 {
 
 	//===================================== Chord =====================================
-	private static final Integer mBit = 160; //SHA1
+	//private static final Integer mBit = 160; //SHA1 versione normale
+	private static final Integer mBit = 16; //versione semplificata
 	private static final Integer _successorNumber = 1;
 	private Integer next = 1;
 
@@ -118,20 +119,22 @@ public class Chord implements AutoCloseable
 		//Yes, that should be a closing square bracket to match the opening parenthesis.
 		//It is a half closed interval.
 		if (GB.incluso(id, n, s))
-		{
 			return s;
-		}
 		else
-		{
 			// forward the query around the circle
-			var n0 = closest_preceding_node(id);
+			return find_successor_remote(id);
+	}
 
-			if (n0.equals(n))
-				return n;
+	private NodeLink find_successor_remote(final BigInteger id)
+	{
+		// forward the query around the circle
+		var n0 = closest_preceding_node(id);
 
-			//return n0.find_successor(id);
-			return gRPC_Client.gRPC(n0, Richiesta.findSuccessor, id);
-		}
+		if (n0.equals(n))
+			return n;
+
+		//return n0.find_successor(id);
+		return gRPC_Client.gRPC(n0, Richiesta.findSuccessor, id);
 	}
 
 	// search the local table for the highest predecessor of id
@@ -143,14 +146,19 @@ public class Chord implements AutoCloseable
 
 			if (ith_finger != null)
 				if (GB.incluso(ith_finger, n, id))
-					return ith_finger;
+				{
+					var ping = gRPC_Client.gRPC(ith_finger, Richiesta.ping);
+
+					if (ping != null)
+						return ith_finger;
+				}
 		}
 
 		return n;
 	}
 
 	// join a Chord ring containing node n_
-	public void join(final NodeLink n_)
+	public void join(final NodeLink n_) throws Exception
 	{
 		if (!n.equals(n_))
 		{
@@ -158,6 +166,10 @@ public class Chord implements AutoCloseable
 
 			//successor = n_.find_successor(n);
 			var s = gRPC_Client.gRPC(n_, Richiesta.findSuccessor, n.ID);
+
+			if (s == null)
+				throw new Exception("Join fallito, " + n_ + " è irraggiungibile!");
+
 			setSuccessor(s);
 		}
 
@@ -181,10 +193,20 @@ public class Chord implements AutoCloseable
 	private void stabilize()
 	{
 		//var x = successor.predecessor;
-		var x = gRPC_Client.gRPC(getSuccessor(), Richiesta.predecessor);
+		var s = getSuccessor();
+
+		var ping = gRPC_Client.gRPC(s, Richiesta.ping);
+
+		if (ping == null)
+		{
+			s = find_successor_remote(n.ID);
+			setSuccessor(s);
+		}
+
+		var x = gRPC_Client.gRPC(s, Richiesta.predecessor);
 
 		if (x != null)
-			if (GB.incluso(x, n, getSuccessor()))
+			if (GB.incluso(x, n, s))
 				setSuccessor(x);
 
 		if (!n.equals(getSuccessor()))
@@ -222,10 +244,11 @@ public class Chord implements AutoCloseable
 		i = i.mod(GB.getPowerOfTwo(mBit, mBit));
 		// n + 2^(next - 1)
 
-		
+
 		var iThFinger = find_successor(i);
 
-		setFinger(next, iThFinger);
+		if (iThFinger != null)
+			setFinger(next, iThFinger);
 	}
 
 	// called periodically. checks whether predecessor has failed.
