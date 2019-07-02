@@ -20,6 +20,9 @@ public class NodeLink
 	public final String IP;
 	public final int port;
 
+	public boolean isDead = false;
+
+
 	public NodeLink(String IP, int port)
 	{
 		//versione normale con numeri SHA1

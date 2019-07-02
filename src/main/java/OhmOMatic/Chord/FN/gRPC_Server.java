@@ -47,9 +47,12 @@ public class gRPC_Server
 				}
 				catch (Exception e)
 				{
-					_standardRes
-							.setOk(false)
-							.setErrore(e.getMessage());
+					var eMsg = e.getMessage();
+
+					if (eMsg != null)
+						_standardRes.setErrore(eMsg);
+
+					_standardRes.setOk(false);
 				}
 
 				_casaRes

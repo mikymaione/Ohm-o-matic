@@ -112,14 +112,19 @@ public class Chord implements AutoCloseable
 	{
 		var s = getSuccessor();
 
-		if (GB.incluso(id, n, s))
-			return s;
+		if (s != null)
+			if (GB.incluso(id, n, s))
+				return s;
 
 		// forward the query around the circle
 		var n0 = closest_preceding_node(id);
 
+		if (n.equals(n0))
+			return n;
+
 		//return n0.find_successor(id);
 		return gRPC_Client.gRPC(n0, Richiesta.findSuccessor, id);
+
 	}
 
 	// search the local table for the highest predecessor of id
@@ -127,11 +132,11 @@ public class Chord implements AutoCloseable
 	{
 		for (Integer i = mBit; i > 0; i--)
 		{
-			var ith_finger = getFinger(i);
+			var iThFinger = getFinger(i);
 
-			if (ith_finger != null)
-				if (GB.incluso(ith_finger, n, id))
-					return ith_finger;
+			if (iThFinger != null)
+				if (GB.incluso(iThFinger, n, id))
+					return iThFinger;
 		}
 
 		return n;
@@ -176,6 +181,14 @@ public class Chord implements AutoCloseable
 		var successor = getSuccessor();
 		var x = gRPC_Client.gRPC(successor, Richiesta.predecessor);
 
+		if (successor.isDead)
+		{
+			removeFinger(successor);
+
+			successor = find_successor(n.ID);
+			setSuccessor(successor);
+		}
+
 		if (x != null)
 			if (GB.incluso(x, n, successor))
 			{
@@ -186,6 +199,13 @@ public class Chord implements AutoCloseable
 		if (!n.equals(successor))
 			//successor.notify(n);
 			gRPC_Client.gRPC(successor, Richiesta.notify, n);
+	}
+
+	private synchronized void removeFinger(NodeLink finger)
+	{
+		for (var e : _fingerTable.entrySet())
+			if (finger.equals(e.getValue()))
+				e.setValue(null);
 	}
 
 	// n_ thinks it might be our predecessor.
@@ -220,10 +240,7 @@ public class Chord implements AutoCloseable
 		i = i.mod(GB.getPowerOfTwo(mBit, mBit));
 		// n + 2^(next - 1)
 
-		var iThFinger = find_successor(i);
-
-		if (iThFinger != null)
-			setFinger(next, iThFinger);
+		setFinger(next, find_successor(i));
 	}
 
 	// called periodically. checks whether predecessor has failed.

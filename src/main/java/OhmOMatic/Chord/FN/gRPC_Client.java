@@ -8,6 +8,7 @@ package OhmOMatic.Chord.FN;
 
 import OhmOMatic.ProtoBuffer.Home;
 import com.google.protobuf.ByteString;
+import io.grpc.StatusRuntimeException;
 
 import java.math.BigInteger;
 
@@ -31,34 +32,6 @@ public class gRPC_Client
 
 	private static NodeLink gRPC(NodeLink server, Richiesta req, BigInteger _id, Integer indice, NodeLink setNode)
 	{
-		try
-		{
-			var response = gRPC_Execute(server, req, _id, indice, setNode);
-
-			if (response.getNullValue())
-			{
-				return null;
-			}
-			else if (response.getStandardRes().getOk())
-			{
-				var c = response.getCasa();
-
-				return new NodeLink(c.getIP(), c.getPort());
-			}
-			else
-			{
-				return server;
-			}
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			return null;
-		}
-	}
-
-	private static Home.casaRes gRPC_Execute(NodeLink server, Richiesta req, BigInteger _id, Integer indice, NodeLink setNode) throws Exception
-	{
 		try (var hfs = new HomeFastStub())
 		{
 			var casa_B = Home.casa.newBuilder();
@@ -79,13 +52,36 @@ public class gRPC_Client
 					.setIP(server.IP)
 					.setPort(server.port);
 
-			return gestioneErroreRequest(
-					doRequest(server, hfs, req, casa_B.build())
-			);
+			var R = doRequest(server, hfs, req, casa_B.build());
+
+			if (R.getNullValue())
+			{
+				return null;
+			}
+			else if (R.getStandardRes().getOk())
+			{
+				var c = R.getCasa();
+
+				return new NodeLink(c.getIP(), c.getPort());
+			}
+			else
+			{
+				return server;
+			}
 		}
+		catch (StatusRuntimeException sre)
+		{
+			server.isDead = true;
+		}
+		catch (Exception er)
+		{
+			er.printStackTrace();
+		}
+
+		return null;
 	}
 
-	private static Home.casaRes doRequest(NodeLink server, HomeFastStub hfs, Richiesta req, Home.casa c) throws Exception
+	private static Home.casaRes doRequest(NodeLink server, HomeFastStub hfs, Richiesta req, Home.casa c)
 	{
 		var stub = hfs.getStub(server);
 
@@ -100,21 +96,8 @@ public class gRPC_Client
 			case ping:
 				return stub.ping(c);
 			default:
-				throw new Exception("Switch " + req + " non implementato");
+				throw new UnsupportedOperationException("Switch non implentat");
 		}
-	}
-
-	private static Home.casaRes gestioneErroreRequest(Home.casaRes CR) throws Exception
-	{
-		var R = CR.getStandardRes();
-
-		if (R == null)
-			throw new Exception("Errore richiesta!");
-
-		if (!R.getOk())
-			throw new Exception(R.getErrore());
-
-		return CR;
 	}
 
 
