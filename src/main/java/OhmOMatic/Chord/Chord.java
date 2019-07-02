@@ -26,6 +26,8 @@ import java.util.Timer;
 
 public class Chord implements AutoCloseable
 {
+
+	//===================================== Chord =====================================
 	private static final Integer mBit = 160; //SHA1
 	private static final Integer _successorNumber = 1;
 	private Integer next = 1;
@@ -35,9 +37,16 @@ public class Chord implements AutoCloseable
 
 	private final HashMap<Integer, NodeLink> _fingerTable;
 
+	//timer per le funzioni di stabilizzazione
+	private final Timer timersChord;
+	//===================================== Chord =====================================
+
+
+	//============================= Comunicazione di rete =============================
+	//listner gRPC
 	private Server gRPC_listner;
 	private final Thread threadListener;
-	private final Timer timersChord;
+	//============================= Comunicazione di rete =============================
 
 
 	public Chord(final NodeLink address)
@@ -108,8 +117,6 @@ public class Chord implements AutoCloseable
 
 		//Yes, that should be a closing square bracket to match the opening parenthesis.
 		//It is a half closed interval.
-
-		//id ∈ (n, successor)
 		if (GB.incluso(id, n, s))
 		{
 			return s;
@@ -122,6 +129,7 @@ public class Chord implements AutoCloseable
 			if (n0.equals(n))
 				return n;
 
+			//return n0.find_successor(id);
 			return gRPC_Client.gRPC(n0, Richiesta.findSuccessor, id);
 		}
 	}
@@ -134,11 +142,8 @@ public class Chord implements AutoCloseable
 			var ith_finger = getFinger(i);
 
 			if (ith_finger != null)
-			{
-				//finger[i] ∈ (n, id)
 				if (GB.incluso(ith_finger, n, id))
 					return ith_finger;
-			}
 		}
 
 		return n;
@@ -151,9 +156,9 @@ public class Chord implements AutoCloseable
 		{
 			setPredecessor(null);
 
+			//successor = n_.find_successor(n);
 			var s = gRPC_Client.gRPC(n_, Richiesta.findSuccessor, n.ID);
 			setSuccessor(s);
-			//successor = n_.find_successor(n);
 		}
 
 		startStabilizingRoutines();
@@ -175,23 +180,21 @@ public class Chord implements AutoCloseable
 	// getSuccessor is consistent, and tells the getSuccessor about n
 	private void stabilize()
 	{
-		var x = gRPC_Client.gRPC(getSuccessor(), Richiesta.predecessor);
 		//var x = successor.predecessor;
+		var x = gRPC_Client.gRPC(getSuccessor(), Richiesta.predecessor);
 
 		if (x != null)
-			//x ∈ (n, successor)
 			if (GB.incluso(x, n, getSuccessor()))
 				setSuccessor(x);
 
 		if (!n.equals(getSuccessor()))
+			//successor.notify(n);
 			gRPC_Client.gRPC(getSuccessor(), Richiesta.notify, n);
-		//successor.notify(n);
 	}
 
 	// n_ thinks it might be our predecessor.
 	public NodeLink notify(final NodeLink n_)
 	{
-		//predecessor is nil or n_ ∈ (predecessor, n)
 		if (getPredecessor() == null || (GB.incluso(n_, getPredecessor(), n)))
 		{
 			setPredecessor(n_);
@@ -216,8 +219,10 @@ public class Chord implements AutoCloseable
 		// n + 2^(next - 1)
 		var i = GB.getPowerOfTwo(next - 1, mBit);
 		i = n.ID.add(i);
-		i = i.mod(GB.getPowerOfTwo(mBit, mBit)); // da fare?
+		i = i.mod(GB.getPowerOfTwo(mBit, mBit));
+		// n + 2^(next - 1)
 
+		
 		var iThFinger = find_successor(i);
 
 		setFinger(next, iThFinger);
