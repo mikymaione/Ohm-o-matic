@@ -17,19 +17,20 @@ import java.util.*;
 public final class GB
 {
 
-	private static Random random = new Random(new Date().getSeconds());
+	private static final int randomSeed = new Date().getSeconds();
+	private static Random randomFN = new Random(randomSeed);
 
 	private static HashMap<Integer, BigInteger> _powerOfTwo = new HashMap<>();
 
 
-	public static BigInteger getPowerOfTwo(final int k, final int mBit)
+	public static BigInteger getPowerOfTwo(final Integer k, final Integer mBit)
 	{
 		if (_powerOfTwo.size() == 0)
 		{
 			var due = BigInteger.valueOf(2);
 			var curVal = BigInteger.valueOf(1); //2^0
 
-			for (var i = 0; i <= mBit; i++)
+			for (Integer i = 0; i <= mBit; i++)
 			{
 				_powerOfTwo.put(i, curVal);
 				curVal = curVal.multiply(due);
@@ -45,54 +46,37 @@ public final class GB
 		System.out.flush();
 	}
 
-	public static boolean incluso(NodeLink v, NodeLink da, BigInteger a)
+	public static boolean incluso(NodeLink id, NodeLink x, BigInteger y)
 	{
-		return incluso(v.ID, da.ID, a);
+		return incluso(id.ID, x.ID, y);
 	}
 
-	public static boolean incluso(NodeLink v, NodeLink da, NodeLink a)
+	public static boolean incluso(NodeLink id, NodeLink x, NodeLink y)
 	{
-		return incluso(v.ID, da.ID, a.ID);
+		return incluso(id.ID, x.ID, y.ID);
 	}
 
-	public static boolean incluso(BigInteger v, NodeLink da, NodeLink a)
+	public static boolean incluso(BigInteger id, NodeLink x, NodeLink y)
 	{
-		return incluso(v, da.ID, a.ID);
+		return incluso(id, x.ID, y.ID);
 	}
 
-	public static boolean incluso(BigInteger v, BigInteger da, BigInteger a)
+	public static boolean incluso(BigInteger id, BigInteger x, BigInteger y)
 	{
 		//5.compareTo(3) == 1
 		//5.compareTo(5) == 0
 		//5.compareTo(8) == -1
 
-		//x < v < y
-		//v > x && v < y
+		//x < id < y
+		//id > x && id <= y
 
-		return inclusoR(v, da, a);
-	}
-
-	public static boolean inclusoR(BigInteger v, NodeLink da, NodeLink a)
-	{
-		return inclusoR(v, da.ID, a.ID);
-	}
-
-	public static boolean inclusoR(BigInteger v, BigInteger da, BigInteger a)
-	{
-		//5.compareTo(3) == 1
-		//5.compareTo(5) == 0
-		//5.compareTo(8) == -1
-
-		//da < v < a
-		//v > da && v <= a
-
-		if (da.equals(a))
+		if (x.equals(y))
 			return true;
 
-		if (a.compareTo(v) < 0)
-			return da.compareTo(a) > 0 && da.compareTo(v) < 0;
+		if (y.compareTo(id) < 0)
+			return x.compareTo(y) > 0 && x.compareTo(id) < 0;
 		else
-			return da.compareTo(a) < 0 && da.compareTo(v) < 0 || da.compareTo(a) > 0 && da.compareTo(v) > 0;
+			return x.compareTo(y) < 0 && x.compareTo(id) < 0 || x.compareTo(y) > 0 && x.compareTo(id) > 0;
 	}
 
 	public static byte[] SHA1(String s)
@@ -149,7 +133,7 @@ public final class GB
 
 	public static int randomInt(final int da, final int a)
 	{
-		return random.nextInt(a) + da;
+		return randomFN.nextInt(a) + da;
 	}
 
 	public static void executeTimerTask(Timer _timer, final int period, Runnable r)

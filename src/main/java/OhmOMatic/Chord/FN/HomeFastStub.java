@@ -15,7 +15,7 @@ public class HomeFastStub implements AutoCloseable
 
 	private ManagedChannel chan;
 
-	public HomeServiceGrpc.HomeServiceBlockingStub getStub(NodeLink destination) throws Exception
+	HomeServiceGrpc.HomeServiceBlockingStub getStub(NodeLink destination) throws Exception
 	{
 		var ip = destination.IP;
 		var port = destination.port;

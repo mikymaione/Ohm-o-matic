@@ -29,7 +29,7 @@ public class gRPC_Client
 		return gRPC(server, req, null, null, setNode);
 	}
 
-	public static NodeLink gRPC(NodeLink server, Richiesta req, BigInteger _id, Integer indice, NodeLink setNode)
+	private static NodeLink gRPC(NodeLink server, Richiesta req, BigInteger _id, Integer indice, NodeLink setNode)
 	{
 		try
 		{
@@ -82,10 +82,6 @@ public class gRPC_Client
 			return gestioneErroreRequest(
 					doRequest(server, hfs, req, casa_B.build())
 			);
-		}
-		catch (Exception e)
-		{
-			throw e;
 		}
 	}
 

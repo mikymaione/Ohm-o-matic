@@ -21,16 +21,18 @@ import java.util.Timer;
 
 public class Chord implements AutoCloseable
 {
-	private static final int mBit = 160; //SHA1
-
-	private final Timer timersChord;
+	private static final Integer mBit = 160; //SHA1
+	private static final Integer _successorNumber = 1;
+	private Integer next = 1;
 
 	private final NodeLink n;
-	private final Thread threadListener;
 	private NodeLink _predecessor;
+
 	private final HashMap<Integer, NodeLink> _fingerTable;
+
 	private Server gRPC_listner;
-	private char next = 1;
+	private final Thread threadListener;
+	private final Timer timersChord;
 
 
 	public Chord(final NodeLink address)
@@ -57,14 +59,15 @@ public class Chord implements AutoCloseable
 	}
 
 
+	//region Proprietà
 	private NodeLink getSuccessor()
 	{
-		return getFinger(1);
+		return getFinger(_successorNumber);
 	}
 
 	private void setSuccessor(final NodeLink n_)
 	{
-		setFinger(1, n_);
+		setFinger(_successorNumber, n_);
 	}
 
 	public synchronized NodeLink getPredecessor()
@@ -77,12 +80,12 @@ public class Chord implements AutoCloseable
 		_predecessor = n_;
 	}
 
-	private synchronized NodeLink getFinger(final int i)
+	private synchronized NodeLink getFinger(final Integer i)
 	{
 		return _fingerTable.get(i);
 	}
 
-	private synchronized void setFinger(final int i, final NodeLink n_)
+	private synchronized void setFinger(final Integer i, final NodeLink n_)
 	{
 		_fingerTable.put(i, n_);
 
@@ -90,8 +93,9 @@ public class Chord implements AutoCloseable
 		if (i == 1 && n_ != null && !n_.equals(n))
 			notify(n_);
 	}
+	//endregion
 
-
+	//region Funzioni Chord
 	// ask node n to find the successor of id
 	public NodeLink find_successor(final BigInteger id)
 	{
@@ -100,8 +104,8 @@ public class Chord implements AutoCloseable
 		//Yes, that should be a closing square bracket to match the opening parenthesis.
 		//It is a half closed interval.
 
-		//id ∈ (n, successor]
-		if (GB.inclusoR(id, n, s))
+		//id ∈ (n, successor)
+		if (GB.incluso(id, n, s))
 		{
 			return s;
 		}
@@ -120,7 +124,7 @@ public class Chord implements AutoCloseable
 	// search the local table for the highest predecessor of id
 	private NodeLink closest_preceding_node(final BigInteger id)
 	{
-		for (var i = mBit; i > 0; i--)
+		for (Integer i = mBit; i > 0; i--)
 		{
 			var ith_finger = getFinger(i);
 
@@ -149,6 +153,9 @@ public class Chord implements AutoCloseable
 
 		startStabilizingRoutines();
 	}
+	//endregion
+
+	//region Stabilizzazione
 
 	//stabilize the chord ring/circle after getNode joins and departures
 	private void startStabilizingRoutines()
@@ -177,11 +184,19 @@ public class Chord implements AutoCloseable
 	}
 
 	// n_ thinks it might be our predecessor.
-	public void notify(final NodeLink n_)
+	public NodeLink notify(final NodeLink n_)
 	{
 		//predecessor is nil or n_ ∈ (predecessor, n)
 		if (getPredecessor() == null || (GB.incluso(n_, getPredecessor(), n)))
+		{
 			setPredecessor(n_);
+
+			return n_;
+		}
+		else
+		{
+			return null;
+		}
 	}
 
 	// called periodically. refreshes finger table entries.
@@ -221,7 +236,9 @@ public class Chord implements AutoCloseable
 	{
 		return n;
 	}
+	//endregion
 
+	//region Server
 	private void listener()
 	{
 		try
@@ -237,9 +254,12 @@ public class Chord implements AutoCloseable
 			e.printStackTrace();
 		}
 	}
+	//endregion
 
+	//region Print
 	public void printDataStructure()
 	{
+		GB.clearScreen();
 		System.out.println("\n==============================================================");
 		System.out.println("\nLOCAL:\t\t\t\t" + n.toString() + "\t");
 
@@ -250,7 +270,7 @@ public class Chord implements AutoCloseable
 
 		System.out.println("\nFINGER TABLE:\n");
 
-		for (int i = 1; i <= mBit; i++)
+		for (Integer i = 1; i <= mBit; i++)
 		{
 			var f = getFinger(i);
 
@@ -272,6 +292,7 @@ public class Chord implements AutoCloseable
 
 	public void printNeighbors()
 	{
+		GB.clearScreen();
 		System.out.println("You are listening on port " + n.port + ".");
 		System.out.println("Your position is " + n + ".");
 
@@ -293,6 +314,6 @@ public class Chord implements AutoCloseable
 				System.out.println("Your successor is updating.");
 		}
 	}
-
+	//endregion
 
 }

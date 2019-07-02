@@ -22,39 +22,6 @@ public class gRPC_Server
 	{
 		return new HomeServiceGrpc.HomeServiceImplBase()
 		{
-			private void PROC(Home.casa request, StreamObserver<Home.casaRes> responseObserver, java.util.function.Consumer<NodeLink> pro)
-			{
-				var _standardRes = Common.standardRes.newBuilder();
-				var _casa = Home.casa.newBuilder();
-				var _casaRes = Home.casaRes.newBuilder();
-
-				try
-				{
-					var n_ = (request.getOptionalPort() > 0
-							? new NodeLink(request.getOptionalIP(), request.getOptionalPort())
-							: null);
-
-					pro.accept(n_);
-
-					_standardRes
-							.setOk(true);
-				}
-				catch (Exception e)
-				{
-					_standardRes
-							.setOk(false)
-							.setErrore(e.getMessage());
-				}
-
-				_casaRes
-						.setStandardRes(_standardRes.build())
-						.setCasa(_casa.build())
-						.setNullValue(false);
-
-				responseObserver.onNext(_casaRes.build());
-				responseObserver.onCompleted();
-			}
-
 			private void FUNC(Home.casa request, StreamObserver<Home.casaRes> responseObserver, Function<NodeLink, NodeLink> fun)
 			{
 				var _standardRes = Common.standardRes.newBuilder();
@@ -96,7 +63,7 @@ public class gRPC_Server
 			@Override
 			public void notify(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
-				PROC(request, responseObserver, n ->
+				FUNC(request, responseObserver, n ->
 						local.notify(n));
 			}
 
