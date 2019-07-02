@@ -44,7 +44,7 @@ public class Chord implements AutoCloseable
 
 		timersChord = new Timer();
 
-		threadListener = new Thread(() -> listener());
+		threadListener = new Thread(this::listener);
 		threadListener.start();
 	}
 
@@ -57,12 +57,12 @@ public class Chord implements AutoCloseable
 	}
 
 
-	public NodeLink getSuccessor()
+	private NodeLink getSuccessor()
 	{
 		return getFinger(1);
 	}
 
-	public void setSuccessor(final NodeLink n_)
+	private void setSuccessor(final NodeLink n_)
 	{
 		setFinger(1, n_);
 	}
@@ -72,17 +72,17 @@ public class Chord implements AutoCloseable
 		return _predecessor;
 	}
 
-	public synchronized void setPredecessor(final NodeLink n_)
+	private synchronized void setPredecessor(final NodeLink n_)
 	{
 		_predecessor = n_;
 	}
 
-	public synchronized NodeLink getFinger(final int i)
+	private synchronized NodeLink getFinger(final int i)
 	{
 		return _fingerTable.get(i);
 	}
 
-	public synchronized void setFinger(final int i, final NodeLink n_)
+	private synchronized void setFinger(final int i, final NodeLink n_)
 	{
 		_fingerTable.put(i, n_);
 	}
