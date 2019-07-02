@@ -103,10 +103,6 @@ public class Chord implements AutoCloseable
 	private synchronized void setFinger(final Integer i, final NodeLink n_)
 	{
 		_fingerTable.put(i, n_);
-
-		// if the updated one is successor, notify the new successor
-		if (i == 1 && n_ != null && !n_.equals(n))
-			notify(n_);
 	}
 	//endregion
 
@@ -116,22 +112,11 @@ public class Chord implements AutoCloseable
 	{
 		var s = getSuccessor();
 
-		//Yes, that should be a closing square bracket to match the opening parenthesis.
-		//It is a half closed interval.
 		if (GB.incluso(id, n, s))
 			return s;
-		else
-			// forward the query around the circle
-			return find_successor_remote(id);
-	}
 
-	private NodeLink find_successor_remote(final BigInteger id)
-	{
 		// forward the query around the circle
 		var n0 = closest_preceding_node(id);
-
-		if (n0.equals(n))
-			return n;
 
 		//return n0.find_successor(id);
 		return gRPC_Client.gRPC(n0, Richiesta.findSuccessor, id);
@@ -146,12 +131,7 @@ public class Chord implements AutoCloseable
 
 			if (ith_finger != null)
 				if (GB.incluso(ith_finger, n, id))
-				{
-					var ping = gRPC_Client.gRPC(ith_finger, Richiesta.ping);
-
-					if (ping != null)
-						return ith_finger;
-				}
+					return ith_finger;
 		}
 
 		return n;
@@ -193,31 +173,27 @@ public class Chord implements AutoCloseable
 	private void stabilize()
 	{
 		//var x = successor.predecessor;
-		var s = getSuccessor();
-
-		var ping = gRPC_Client.gRPC(s, Richiesta.ping);
-
-		if (ping == null)
-		{
-			s = find_successor_remote(n.ID);
-			setSuccessor(s);
-		}
-
-		var x = gRPC_Client.gRPC(s, Richiesta.predecessor);
+		var successor = getSuccessor();
+		var x = gRPC_Client.gRPC(successor, Richiesta.predecessor);
 
 		if (x != null)
-			if (GB.incluso(x, n, s))
-				setSuccessor(x);
+			if (GB.incluso(x, n, successor))
+			{
+				successor = x;
+				setSuccessor(successor);
+			}
 
-		if (!n.equals(getSuccessor()))
+		if (!n.equals(successor))
 			//successor.notify(n);
-			gRPC_Client.gRPC(getSuccessor(), Richiesta.notify, n);
+			gRPC_Client.gRPC(successor, Richiesta.notify, n);
 	}
 
 	// n_ thinks it might be our predecessor.
 	public NodeLink notify(final NodeLink n_)
 	{
-		if (getPredecessor() == null || (GB.incluso(n_, getPredecessor(), n)))
+		var predecessor = getPredecessor();
+
+		if (predecessor == null || (GB.incluso(n_, predecessor, n)))
 		{
 			setPredecessor(n_);
 
@@ -243,7 +219,6 @@ public class Chord implements AutoCloseable
 		i = n.ID.add(i);
 		i = i.mod(GB.getPowerOfTwo(mBit, mBit));
 		// n + 2^(next - 1)
-
 
 		var iThFinger = find_successor(i);
 
