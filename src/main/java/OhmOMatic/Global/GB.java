@@ -66,12 +66,10 @@ public final class GB
 		//5.compareTo(5) == 0
 		//5.compareTo(8) == -1
 
-		//da < v < a
-		//v > da && v < a
-		var r0 = (v.compareTo(da) > 0 && v.compareTo(a) < 0);
-		var r1 = (v.compareTo(a) > 0 && v.compareTo(da) < 0);
+		//x < v < y
+		//v > x && v < y
 
-		return r0 || r1;
+		return inclusoR(v, da, a);
 	}
 
 	public static boolean inclusoR(BigInteger v, NodeLink da, NodeLink a)
@@ -87,10 +85,14 @@ public final class GB
 
 		//da < v < a
 		//v > da && v <= a
-		var r0 = (v.compareTo(da) > 0 && v.compareTo(a) <= 0);
-		var r1 = (v.compareTo(a) > 0 && v.compareTo(da) <= 0);
 
-		return r0 || r1;
+		if (da.equals(a))
+			return true;
+
+		if (a.compareTo(v) < 0)
+			return da.compareTo(a) > 0 && da.compareTo(v) < 0;
+		else
+			return da.compareTo(a) < 0 && da.compareTo(v) < 0 || da.compareTo(a) > 0 && da.compareTo(v) > 0;
 	}
 
 	public static byte[] SHA1(String s)

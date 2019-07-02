@@ -85,6 +85,10 @@ public class Chord implements AutoCloseable
 	private synchronized void setFinger(final int i, final NodeLink n_)
 	{
 		_fingerTable.put(i, n_);
+
+		// if the updated one is successor, notify the new successor
+		if (i == 1 && n_ != null && !n_.equals(n))
+			notify(n_);
 	}
 
 
@@ -167,8 +171,8 @@ public class Chord implements AutoCloseable
 			if (GB.incluso(x, n, getSuccessor()))
 				setSuccessor(x);
 
-		//if (!n.equals(getSuccessor())) //da controllare?
-		gRPC_Client.gRPC(getSuccessor(), Richiesta.notify, n);
+		if (!n.equals(getSuccessor()))
+			gRPC_Client.gRPC(getSuccessor(), Richiesta.notify, n);
 		//successor.notify(n);
 	}
 
