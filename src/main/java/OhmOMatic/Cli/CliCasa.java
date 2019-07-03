@@ -8,10 +8,10 @@ package OhmOMatic.Cli;
 
 import OhmOMatic.Base.BaseCommandLineApplication;
 import OhmOMatic.Chord.Chord;
-import OhmOMatic.Chord.FN.NodeLink;
 import OhmOMatic.Sistema.Casa;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 import java.util.Scanner;
 
@@ -38,14 +38,14 @@ public final class CliCasa extends BaseCommandLineApplication
 			{
 				System.out.println("Casa avviata!");
 
-				var meLink = new NodeLink(mio_peer_address, mio_peer_port);
-
-				try (var chord = new Chord(meLink))
+				try (var chord = new Chord(mio_peer_address, mio_peer_port))
 				{
 					if (peer_port > -1)
-						chord.join(new NodeLink(peer_address, peer_port));
+						chord.join(peer_address, peer_port);
 					else
-						chord.join(meLink);
+						chord.join(mio_peer_address, mio_peer_port);
+
+					chord.stampaTutto();
 
 					//casa.iscriviCasa();
 					System.out.println("Casa iscritta sul server!");
@@ -53,77 +53,19 @@ public final class CliCasa extends BaseCommandLineApplication
 					//casa.entraNelCondominio();
 					System.out.println("Casa nel condominio!");
 
-
-					// print join info
-					System.out.println("Joining the Chord ring.");
-					System.out.println("Local IP: " + mio_peer_address + ":" + mio_peer_port);
-					chord.printNeighbors();
+					casa.avviaSmartMeter();
+					System.out.println("Smart meter avviato!");
 
 					try (var scanner = new Scanner(System.in))
 					{
-						var Esecuzione = true;
-						while (Esecuzione)
-						{
-							final var commands = createOptionsInteractiveProgram();
-							printOptions("", commands);
-
-							final var line = scanner.nextLine();
-							final var inpts = getCommandLine(commands, line.split(" "));
-
-							if (inpts.hasOption("q"))
-							{
-								Esecuzione = false;
-							}
-							else if (inpts.hasOption("i"))
-							{
-								chord.printDataStructure();
-							}
-							else if (inpts.hasOption("r"))
-							{
-								final var key = stringToBigInteger(inpts.getOptionValue("r"), -1);
-
-								var remove = chord.remove(key);
-
-								if (remove == null)
-									System.out.println("-Nessun oggetto con chiave " + key);
-								else
-									System.out.println("-Rimosso oggetto " + key);
-							}
-							else if (inpts.hasOption("g"))
-							{
-								final var key = stringToBigInteger(inpts.getOptionValue("g"), -1);
-
-								var get = chord.get(key);
-
-								if (get == null)
-									System.out.println("-Nessun oggetto con chiave " + key);
-								else
-									System.out.println("-Ottenuto oggetto con chiave " + key + ": " + get);
-							}
-							else if (inpts.hasOption("p"))
-							{
-								final var set = inpts.getOptionValues("p");
-								final var key = stringToBigInteger(set[0], -1);
-								final var obj = set[1];
-
-								var put = chord.put(key, obj);
-
-								if (put == null)
-									System.out.println("-Inserito oggetto con chiave " + key);
-								else
-									System.out.println("-Sostituito oggetto con chiave " + key);
-							}
-						}
-
-//					casa.avviaSmartMeter();
-//					System.out.println("Smart meter avviato!");
-//
-//					//casa.fermaSmartMeter();
-//					System.out.println("Smart meter fermato!");
-//
-//					//casa.esciDalCondominio();
-//					System.out.println("Casa fuori dal condominio!");
+						while (LeggiComandiInterattivi(chord, scanner)) ;
 					}
+
+					casa.fermaSmartMeter();
+					System.out.println("Smart meter fermato!");
+
+					casa.esciDalCondominio();
+					System.out.println("Casa fuori dal condominio!");
 				}
 			}
 		}
@@ -134,6 +76,61 @@ public final class CliCasa extends BaseCommandLineApplication
 	}
 
 	//region Opzioni command line
+	private static boolean LeggiComandiInterattivi(Chord chord, Scanner scanner) throws ParseException
+	{
+		final var commands = createOptionsInteractiveProgram();
+		printOptions("", commands);
+
+		final var line = scanner.nextLine();
+		final var inpts = getCommandLine(commands, line.split(" "));
+
+		if (inpts.hasOption("q"))
+		{
+			return false;
+		}
+		else if (inpts.hasOption("i"))
+		{
+			chord.stampaTutto();
+		}
+		else if (inpts.hasOption("r"))
+		{
+			final var key = stringToBigInteger(inpts.getOptionValue("r"), -1);
+
+			var remove = chord.remove(key);
+
+			if (remove == null)
+				System.out.println("-Nessun oggetto con chiave " + key);
+			else
+				System.out.println("-Rimosso oggetto " + key);
+		}
+		else if (inpts.hasOption("g"))
+		{
+			final var key = stringToBigInteger(inpts.getOptionValue("g"), -1);
+
+			var get = chord.get(key);
+
+			if (get == null)
+				System.out.println("-Nessun oggetto con chiave " + key);
+			else
+				System.out.println("-Ottenuto oggetto con chiave " + key + ": " + get);
+		}
+		else if (inpts.hasOption("p"))
+		{
+			final var set = inpts.getOptionValues("p");
+			final var key = stringToBigInteger(set[0], -1);
+			final var obj = set[1];
+
+			var put = chord.put(key, obj);
+
+			if (put == null)
+				System.out.println("-Inserito oggetto con chiave " + key);
+			else
+				System.out.println("-Sostituito oggetto con chiave " + key);
+		}
+
+		return true;
+	}
+
 	private static Options createOptionsInteractiveProgram()
 	{
 		final var info = Option.builder("i")

@@ -40,12 +40,6 @@ public final class GB
 		return _powerOfTwo.get(k);
 	}
 
-	public static void clearScreen()
-	{
-		System.out.print("\033[H\033[2J");
-		System.out.flush();
-	}
-
 	public static boolean incluso(NodeLink id, NodeLink x, BigInteger y)
 	{
 		return incluso(id.ID, x.ID, y);

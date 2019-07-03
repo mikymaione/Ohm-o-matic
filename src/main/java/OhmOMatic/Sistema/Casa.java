@@ -18,7 +18,6 @@ import OhmOMatic.Sistema.Base.MeanListener;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Server;
-import io.grpc.ServerBuilder;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -242,15 +241,19 @@ public class Casa implements MeanListener, AutoCloseable
 
 	public void avviaSmartMeter()
 	{
-		var smartMeter = getSmartMeter();
+		var threadSmartMeter = new Thread(this::_avviaSmartMeter);
+		threadSmartMeter.start();
+	}
 
+	private void _avviaSmartMeter()
+	{
+		var smartMeter = getSmartMeter();
 		smartMeter.run();
 	}
 
 	public void fermaSmartMeter()
 	{
 		var smartMeter = getSmartMeter();
-
 		smartMeter.stop();
 	}
 

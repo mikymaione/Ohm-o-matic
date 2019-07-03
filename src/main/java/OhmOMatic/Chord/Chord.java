@@ -59,6 +59,11 @@ public class Chord implements AutoCloseable
 	//endregion
 
 	//region Constructor & Destructors
+	public Chord(final String _ip, final int _port)
+	{
+		this(new NodeLink(_ip, _port));
+	}
+
 	public Chord(final NodeLink address)
 	{
 		n = address;
@@ -155,6 +160,11 @@ public class Chord implements AutoCloseable
 	}
 
 	// join a Chord ring containing node n_
+	public void join(final String _ip, final int _port) throws Exception
+	{
+		join(new NodeLink(_ip, _port));
+	}
+
 	public void join(final NodeLink n_) throws Exception
 	{
 		if (!n.equals(n_))
@@ -407,62 +417,25 @@ public class Chord implements AutoCloseable
 	//endregion
 
 	//region Print
-	public void printDataStructure()
+	public void stampaTutto()
 	{
-		GB.clearScreen();
-		System.out.println("\n==============================================================");
-		System.out.println("\nLOCAL:\t\t\t\t" + n.toString() + "\t");
-
-		if (getPredecessor() != null)
-			System.out.println("\nPREDECESSOR:\t\t\t" + getPredecessor().toString() + "\t");
-		else
-			System.out.println("\nPREDECESSOR:\t\t\tNULL");
-
-		System.out.println("\nFINGER TABLE:\n");
-
-		for (Integer i = 1; i <= mBit; i++)
-		{
-			var f = getFinger(i);
-
-			var sb = new StringBuilder();
-
-			sb.append(i + "\t" + "\t\t");
-
-			if (f != null)
-				sb.append(f + "\t");
-
-			else
-				sb.append("NULL");
-
-			System.out.println(sb.toString());
-		}
-
-		System.out.println("\n==============================================================\n");
+		stampaStato();
+		stampaFingerTable();
 	}
 
-	public void printNeighbors()
+	public void stampaFingerTable()
 	{
-		GB.clearScreen();
-		System.out.println("You are listening on port " + n.port + ".");
-		System.out.println("Your position is " + n + ".");
+		System.out.println("Finger Table:");
 
-		if ((getPredecessor() == null || getPredecessor().equals(n)) && (getSuccessor() == null || getSuccessor().equals(n)))
-		{
-			System.out.println("Your predecessor is yourself.");
-			System.out.println("Your successor is yourself.");
-		}
-		else
-		{
-			if (getPredecessor() != null)
-				System.out.println("Your predecessor is node " + getPredecessor().IP + ", " + "port " + getPredecessor().port + ", position " + getPredecessor() + ".");
-			else
-				System.out.println("Your predecessor is updating.");
+		for (Integer i = 1; i <= mBit; i++)
+			System.out.println(i + ": " + getFinger(i));
+	}
 
-			if (getSuccessor() != null)
-				System.out.println("Your successor is node " + getSuccessor().IP + ", " + "port " + getSuccessor().port + ", position " + getSuccessor() + ".");
-			else
-				System.out.println("Your successor is updating.");
-		}
+	public void stampaStato()
+	{
+		System.out.println("Nodo: " + n);
+		System.out.println("Predecessor: " + getPredecessor());
+		System.out.println("Successor: " + getSuccessor());
 	}
 	//endregion
 
