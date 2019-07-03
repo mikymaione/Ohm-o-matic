@@ -10,6 +10,5 @@ public enum RichiestaDHT
 {
 	get,
 	put,
-	offer,
 	remove;
 }

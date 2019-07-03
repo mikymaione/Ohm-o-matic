@@ -7,10 +7,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package OhmOMatic.Chord.FN;
 
 import OhmOMatic.Chord.Chord;
+import OhmOMatic.Global.GB;
 import OhmOMatic.ProtoBuffer.Common;
 import OhmOMatic.ProtoBuffer.Home;
 import OhmOMatic.ProtoBuffer.HomeServiceGrpc;
+import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import java.math.BigInteger;
 import java.util.function.Function;
@@ -23,7 +26,8 @@ public class gRPC_Server
 		return new HomeServiceGrpc.HomeServiceImplBase()
 		{
 
-			private void elabora(Home.casa request, StreamObserver<Home.casaRes> responseObserver, Function<NodeLink, NodeLink> callback)
+			//region Funzioni Chord
+			private void elaboraChord(Home.casa request, StreamObserver<Home.casaRes> responseObserver, Function<NodeLink, NodeLink> callback)
 			{
 				var _standardRes = Common.standardRes.newBuilder();
 				var _casa = Home.casa.newBuilder();
@@ -68,30 +72,93 @@ public class gRPC_Server
 			@Override
 			public void notify(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
-				elabora(request, responseObserver, n ->
+				elaboraChord(request, responseObserver, n ->
 						local.notify(n));
 			}
 
 			@Override
 			public void ping(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
-				elabora(request, responseObserver, n ->
+				elaboraChord(request, responseObserver, n ->
 						local.ping());
 			}
 
 			@Override
 			public void findSuccessor(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
-				elabora(request, responseObserver, n ->
+				elaboraChord(request, responseObserver, n ->
 						local.find_successor(new BigInteger(request.getID().toByteArray())));
 			}
 
 			@Override
 			public void predecessor(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
-				elabora(request, responseObserver, n ->
+				elaboraChord(request, responseObserver, n ->
 						local.getPredecessor());
 			}
+			//endregion
+
+			//region Funzioni DHT
+			private void elaboraDHT(Home.oggetto request, StreamObserver<Home.oggettoRes> responseObserver, Function<ImmutablePair<BigInteger, Object>, Object> callback)
+			{
+				var _standardRes = Common.standardRes.newBuilder();
+				var _oggetto = Home.oggetto.newBuilder();
+				var _oggettoRes = Home.oggettoRes.newBuilder();
+
+				try
+				{
+					var _key = new BigInteger(request.getKey().toByteArray());
+					var _obj = GB.deserialize(request.getObj().toByteArray());
+
+					var R = callback.apply(new ImmutablePair<>(_key, _obj));
+
+					_oggetto
+							.setKey(request.getKey())
+							.setObj(ByteString.copyFrom(GB.serialize(R)));
+
+					_standardRes
+							.setOk(true);
+				}
+				catch (Exception e)
+				{
+					var _errorMessage = e.getMessage();
+
+					if (_errorMessage != null)
+						_standardRes.setErrore(_errorMessage);
+
+					_standardRes.setOk(false);
+				}
+
+				_oggettoRes
+						.setObj(_oggetto)
+						.setStandardRes(_standardRes);
+
+				responseObserver.onNext(_oggettoRes.build());
+				responseObserver.onCompleted();
+			}
+
+
+			@Override
+			public void get(Home.oggetto request, StreamObserver<Home.oggettoRes> responseObserver)
+			{
+				elaboraDHT(request, responseObserver, e ->
+						local.get(e.getKey()));
+			}
+
+			@Override
+			public void put(Home.oggetto request, StreamObserver<Home.oggettoRes> responseObserver)
+			{
+				elaboraDHT(request, responseObserver, e ->
+						local.put(e.getKey(), e.getValue()));
+			}
+
+			@Override
+			public void remove(Home.oggetto request, StreamObserver<Home.oggettoRes> responseObserver)
+			{
+				elaboraDHT(request, responseObserver, e ->
+						local.remove(e.getKey()));
+			}
+			//endregion
 
 		};
 	}

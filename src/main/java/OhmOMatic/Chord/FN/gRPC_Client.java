@@ -101,11 +101,6 @@ public class gRPC_Client
 	//endregion
 
 	//region DHT gRPC
-	public static Object gRPC(NodeLink server, RichiestaDHT req, BigInteger key)
-	{
-		return gRPC(server, req, key, null);
-	}
-
 	public static Object gRPC(NodeLink server, RichiestaDHT req, BigInteger key, Object object)
 	{
 		try (var hfs = new HomeFastStub())
@@ -148,8 +143,6 @@ public class gRPC_Client
 				return stub.put(o);
 			case get:
 				return stub.get(o);
-			case offer:
-				return stub.offer(o);
 			case remove:
 				return stub.remove(o);
 			default:

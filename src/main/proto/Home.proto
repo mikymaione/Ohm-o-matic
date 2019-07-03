@@ -20,7 +20,6 @@ service HomeService {
 
     rpc put (oggetto) returns (oggettoRes);
     rpc get (oggetto) returns (oggettoRes);
-    rpc offer (oggetto) returns (oggettoRes);
     rpc remove (oggetto) returns (oggettoRes);
 }
 

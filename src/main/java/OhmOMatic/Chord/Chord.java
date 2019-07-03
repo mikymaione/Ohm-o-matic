@@ -185,6 +185,20 @@ public class Chord implements AutoCloseable
 		return _functionDHT(RichiestaDHT.put, key, object);
 	}
 
+	private void handoff()
+	{
+		synchronized (this.data)
+		{
+			for (var key : data.keySet())
+			{
+				var n_ = find_successor(key);
+
+				if (!n.equals(n_))
+					gRPC_Client.gRPC(n_, RichiestaDHT.put, key, data.remove(key));
+			}
+		}
+	}
+
 	private Object _functionDHT(RichiestaDHT req, final BigInteger key, final Object object)
 	{
 		var n_ = find_successor(key);
