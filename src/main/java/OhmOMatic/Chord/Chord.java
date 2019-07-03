@@ -187,7 +187,7 @@ public class Chord implements AutoCloseable
 
 	private void handoff()
 	{
-		synchronized (this.data)
+		synchronized (data)
 		{
 			for (var key : data.keySet())
 			{
@@ -257,6 +257,8 @@ public class Chord implements AutoCloseable
 		if (!n.equals(successor))
 			//successor.notify(n);
 			gRPC_Client.gRPC(successor, RichiestaChord.notify, n);
+
+		handoff();
 	}
 
 	private synchronized void removeFinger(NodeLink finger)
