@@ -34,7 +34,7 @@ public final class CliCasa extends BaseCommandLineApplication
 			final var peer_address = cmd.getOptionValue("j");
 			final var peer_port = stringToInt(cmd.getOptionValue("p"), -1);
 
-			try (var casa = new Casa(rest_url, mio_peer_address, mio_peer_port, peer_address, peer_port))
+			try (var casa = new Casa(rest_url, mio_peer_address, mio_peer_port, peer_address, peer_port, chord))
 			{
 				System.out.println("Casa avviata!");
 

@@ -6,25 +6,20 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Sistema;
 
-import OhmOMatic.Global.GB;
+import OhmOMatic.Chord.Chord;
 import OhmOMatic.ProtoBuffer.Common.standardRes;
 import OhmOMatic.ProtoBuffer.Home.casa;
 import OhmOMatic.ProtoBuffer.Home.listaCase;
-import OhmOMatic.ProtoBuffer.HomeServiceGrpc;
-import OhmOMatic.ProtoBuffer.HomeServiceGrpc.HomeServiceBlockingStub;
 import OhmOMatic.Simulation.SmartMeterSimulator;
 import OhmOMatic.Sistema.Base.BufferImpl;
 import OhmOMatic.Sistema.Base.MeanListener;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
-import io.grpc.Server;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
+import java.math.BigInteger;
 
 public class Casa implements MeanListener, AutoCloseable
 {
@@ -35,10 +30,6 @@ public class Casa implements MeanListener, AutoCloseable
 	private Client client;
 	private WebTarget webTargetRest;
 
-	private Server gRPC_listner;
-	private ManagedChannel gRPC_channel;
-	private HomeServiceBlockingStub homeServiceBlockingStub;
-
 	private final String RESTAddress;
 
 	private final String myAddress;
@@ -47,9 +38,13 @@ public class Casa implements MeanListener, AutoCloseable
 	private final String serverAddress;
 	private final int serverPort;
 
+	private final Chord chord;
 
-	public Casa(String indirizzoREST_, String mioIndirizzo_, int miaPorta_, String indirizzoServerPeer_, int portaServerPeer_) throws IOException
+
+	public Casa(String indirizzoREST_, String mioIndirizzo_, int miaPorta_, String indirizzoServerPeer_, int portaServerPeer_, Chord chord_) throws IOException
 	{
+		chord = chord_;
+
 		RESTAddress = indirizzoREST_;
 
 		myAddress = mioIndirizzo_;
@@ -61,78 +56,10 @@ public class Casa implements MeanListener, AutoCloseable
 
 
 	@Override
-	public void close() throws InterruptedException
+	public void close()
 	{
-		if (gRPC_channel != null)
-			gRPC_channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
-
-		if (gRPC_listner != null)
-			gRPC_listner.shutdown();
+		//
 	}
-
-	//region Funzioni P2P
-	private HomeServiceBlockingStub getStub()
-	{
-		if (homeServiceBlockingStub == null)
-		{
-			gRPC_channel = ManagedChannelBuilder
-					.forAddress(serverAddress, serverPort)
-					.usePlaintext()
-					.build();
-
-			homeServiceBlockingStub = HomeServiceGrpc.newBlockingStub(gRPC_channel);
-		}
-
-		return homeServiceBlockingStub;
-	}
-
-	public boolean entraNelCondominio() throws Exception
-	{
-		if (GB.stringIsBlank(serverAddress))
-		{
-
-		}
-		else
-		{
-			var stub = getStub();
-
-			var c = casa.newBuilder()
-					.setIP(myAddress)
-					.setPort(myPort)
-					.build();
-
-			//var Res = stub.join(c);
-			//var R = Res.getStandardRes();
-
-			/*if (R.getOk())
-			{
-				var k = Res.getCasa();
-
-			}
-			else
-				throw new Exception(R.getErrore());*/
-		}
-
-		return true;
-	}
-
-	public boolean esciDalCondominio() throws Exception
-	{
-		var stub = getStub();
-
-		var c = casa.newBuilder()
-				.setIP(myAddress)
-				.setPort(myPort)
-				.build();
-
-		/*var R = stub.esciDalCondominio(c);
-
-		if (!R.getOk())
-			throw new Exception(R.getErrore());*/
-
-		return true;
-	}
-	//endregion
 
 	//region Chiamate WS
 	private WebTarget getWebTarget()
@@ -210,7 +137,7 @@ public class Casa implements MeanListener, AutoCloseable
 	{
 		//var ts = System.currentTimeMillis();
 		//var k = GB.sha1(ID + "_" + ts);
-
+		//chord.put( new BigInteger())
 		System.out.println("Mean: " + mean);
 	}
 	//endregion
