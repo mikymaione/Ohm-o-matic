@@ -20,7 +20,7 @@ public final class CliCasa extends BaseCommandLineApplication
 
 	public static void main(String[] args)
 	{
-		final var options = createOptions();
+		final var options = createOptionsStartProgram();
 		printOptions("CliCasa", options);
 
 		try
@@ -59,26 +59,46 @@ public final class CliCasa extends BaseCommandLineApplication
 					System.out.println("Local IP: " + mio_peer_address + ":" + mio_peer_port);
 					chord.printNeighbors();
 
-					// begin to take user input, "info" or "quit"
-					var userinput = new Scanner(System.in);
-
-					var Esecuzione = true;
-					while (Esecuzione)
+					try (var scanner = new Scanner(System.in))
 					{
-						System.out.println("Type \"info\" to check this getNode's data or \n type \"quit\"to leave ring: ");
-						String command = null;
-						command = userinput.next();
+						var Esecuzione = true;
+						while (Esecuzione)
+						{
+							final var commands = createOptionsInteractiveProgram();
+							printOptions("", commands);
 
-						if (command.startsWith("quit"))
-						{
-							System.out.println("Leaving the ring...");
-							Esecuzione = false;
+							final var line = scanner.nextLine();
+							final var inpts = getCommandLine(commands, line.split(" "));
+
+							if (inpts.hasOption("q"))
+							{
+								Esecuzione = false;
+							}
+							else if (inpts.hasOption("i"))
+							{
+								chord.printDataStructure();
+							}
+							else if (inpts.hasOption("r"))
+							{
+								final var key = stringToBigInteger(inpts.getOptionValue("r"), -1);
+
+								System.out.println("-Rimosso oggetto " + key + ": " + chord.remove(key));
+							}
+							else if (inpts.hasOption("g"))
+							{
+								final var key = stringToBigInteger(inpts.getOptionValue("g"), -1);
+
+								System.out.println("-Ottenuto oggetto " + key + ": " + chord.get(key));
+							}
+							else if (inpts.hasOption("p"))
+							{
+								final var set = inpts.getOptionValues("p");
+								final var key = stringToBigInteger(set[0], -1);
+								final var obj = set[1];
+
+								System.out.println("-Inserito oggetto " + key + ": " + chord.put(key, obj));
+							}
 						}
-						else if (command.startsWith("info"))
-						{
-							chord.printDataStructure();
-						}
-					}
 
 //					casa.avviaSmartMeter();
 //					System.out.println("Smart meter avviato!");
@@ -88,6 +108,7 @@ public final class CliCasa extends BaseCommandLineApplication
 //
 //					//casa.esciDalCondominio();
 //					System.out.println("Casa fuori dal condominio!");
+					}
 				}
 			}
 		}
@@ -98,7 +119,46 @@ public final class CliCasa extends BaseCommandLineApplication
 	}
 
 	//region Opzioni command line
-	private static Options createOptions()
+	private static Options createOptionsInteractiveProgram()
+	{
+		final var info = Option.builder("i")
+				.desc("Info")
+				.hasArg(false)
+				.build();
+
+		final var quit = Option.builder("q")
+				.desc("Quit")
+				.hasArg(false)
+				.build();
+
+		final var get = Option.builder("g")
+				.desc("Get")
+				.argName("Key")
+				.build();
+
+		final var put = Option.builder("p")
+				.desc("Put")
+				.numberOfArgs(2)
+				.argName("Key")
+				.argName("Value")
+				.build();
+
+		final var remove = Option.builder("r")
+				.desc("Remove")
+				.argName("Key")
+				.build();
+
+		final var options = new Options()
+				.addOption(info)
+				.addOption(quit)
+				.addOption(get)
+				.addOption(put)
+				.addOption(remove);
+
+		return options;
+	}
+
+	private static Options createOptionsStartProgram()
 	{
 		final var rest_url = Option.builder("r")
 				.desc("REST URL")

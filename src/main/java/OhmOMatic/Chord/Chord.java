@@ -45,7 +45,7 @@ public class Chord implements AutoCloseable
 	private final HashMap<Integer, NodeLink> _fingerTable;
 
 	//timer per le funzioni di stabilizzazione
-	private final Timer timersChord;
+	private final Timer timerStabilizingRoutines;
 	//===================================== Chord =====================================
 
 
@@ -66,7 +66,7 @@ public class Chord implements AutoCloseable
 		setPredecessor(null);
 		setSuccessor(n);
 
-		timersChord = new Timer();
+		timerStabilizingRoutines = new Timer();
 
 		threadListener = new Thread(this::listener);
 		threadListener.start();
@@ -75,8 +75,12 @@ public class Chord implements AutoCloseable
 	@Override
 	public void close()
 	{
-		timersChord.cancel();
+		timerStabilizingRoutines.cancel();
+
+		handoff();
+
 		threadListener.stop();
+
 		gRPC_listner.shutdown();
 	}
 	//endregion
@@ -194,7 +198,12 @@ public class Chord implements AutoCloseable
 				var n_ = find_successor(key);
 
 				if (!n.equals(n_))
-					gRPC_Client.gRPC(n_, RichiestaDHT.put, key, data.remove(key));
+				{
+					var o = gRPC_Client.gRPC(n_, RichiestaDHT.put, key, data.get(key));
+
+					if (o != null)
+						data.remove(key);
+				}
 			}
 		}
 	}
@@ -225,9 +234,9 @@ public class Chord implements AutoCloseable
 	//stabilize the chord ring/circle after getNode joins and departures
 	private void startStabilizingRoutines()
 	{
-		GB.executeTimerTask(timersChord, 60, this::stabilize);
-		GB.executeTimerTask(timersChord, 500, this::fix_fingers);
-		GB.executeTimerTask(timersChord, 500, this::check_predecessor);
+		GB.executeTimerTask(timerStabilizingRoutines, 60, this::stabilize);
+		GB.executeTimerTask(timerStabilizingRoutines, 500, this::fix_fingers);
+		GB.executeTimerTask(timerStabilizingRoutines, 500, this::check_predecessor);
 	}
 
 	// called periodically. n asks the getSuccessor
