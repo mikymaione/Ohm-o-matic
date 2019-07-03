@@ -6,6 +6,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Chord.FN;
 
+import OhmOMatic.Global.GB;
 import OhmOMatic.ProtoBuffer.Home;
 import com.google.protobuf.ByteString;
 import io.grpc.StatusRuntimeException;
@@ -15,22 +16,23 @@ import java.math.BigInteger;
 public class gRPC_Client
 {
 
-	public static NodeLink gRPC(NodeLink server, Richiesta req)
+	//region Chord gRPC
+	public static NodeLink gRPC(NodeLink server, RichiestaChord req)
 	{
 		return gRPC(server, req, null, null);
 	}
 
-	public static NodeLink gRPC(NodeLink server, Richiesta req, BigInteger _id)
+	public static NodeLink gRPC(NodeLink server, RichiestaChord req, BigInteger _id)
 	{
 		return gRPC(server, req, _id, null);
 	}
 
-	public static NodeLink gRPC(NodeLink server, Richiesta req, NodeLink setNode)
+	public static NodeLink gRPC(NodeLink server, RichiestaChord req, NodeLink setNode)
 	{
 		return gRPC(server, req, null, setNode);
 	}
 
-	private static NodeLink gRPC(NodeLink server, Richiesta req, BigInteger _id, NodeLink setNode)
+	private static NodeLink gRPC(NodeLink server, RichiestaChord req, BigInteger _id, NodeLink setNode)
 	{
 		try (var hfs = new HomeFastStub())
 		{
@@ -49,7 +51,7 @@ public class gRPC_Client
 					.setIP(server.IP)
 					.setPort(server.port);
 
-			var _request = doRequest(server, hfs, req, _casa.build());
+			var _request = doRequestChord(server, hfs, req, _casa.build());
 
 			if (_request.getNullValue())
 			{
@@ -78,7 +80,7 @@ public class gRPC_Client
 		return null;
 	}
 
-	private static Home.casaRes doRequest(NodeLink server, HomeFastStub hfs, Richiesta req, Home.casa c)
+	private static Home.casaRes doRequestChord(NodeLink server, HomeFastStub hfs, RichiestaChord req, Home.casa c)
 	{
 		var stub = hfs.getStub(server);
 
@@ -96,6 +98,65 @@ public class gRPC_Client
 				throw new UnsupportedOperationException("Switch non implementato!");
 		}
 	}
+	//endregion
+
+	//region DHT gRPC
+	public static Object gRPC(NodeLink server, RichiestaDHT req, BigInteger key)
+	{
+		return gRPC(server, req, key, null);
+	}
+
+	public static Object gRPC(NodeLink server, RichiestaDHT req, BigInteger key, Object object)
+	{
+		try (var hfs = new HomeFastStub())
+		{
+			var _oggetto = Home.oggetto.newBuilder()
+					.setKey(ByteString.copyFrom(key.toByteArray()))
+					.setObj(ByteString.copyFrom(GB.serialize(object)))
+					.build();
+
+			var _request = doRequestDHT(server, hfs, req, _oggetto);
+
+			if (_request.getStandardRes().getOk())
+			{
+				var _obj = _request.getObj();
+
+				var _bytes = _obj.getObj().toByteArray();
+
+				return GB.deserialize(_bytes);
+			}
+		}
+		catch (StatusRuntimeException sre)
+		{
+			server.isDead = true;
+		}
+		catch (Exception er)
+		{
+			er.printStackTrace();
+		}
+
+		return null;
+	}
+
+	private static Home.oggettoRes doRequestDHT(NodeLink server, HomeFastStub hfs, RichiestaDHT req, Home.oggetto o)
+	{
+		var stub = hfs.getStub(server);
+
+		switch (req)
+		{
+			case put:
+				return stub.put(o);
+			case get:
+				return stub.get(o);
+			case offer:
+				return stub.offer(o);
+			case remove:
+				return stub.remove(o);
+			default:
+				throw new UnsupportedOperationException("Switch non implementato!");
+		}
+	}
+	//endregion
 
 
 }

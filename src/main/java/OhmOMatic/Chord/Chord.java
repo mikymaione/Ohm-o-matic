@@ -13,10 +13,7 @@ package OhmOMatic.Chord;
 
 //region Imports
 
-import OhmOMatic.Chord.FN.NodeLink;
-import OhmOMatic.Chord.FN.Richiesta;
-import OhmOMatic.Chord.FN.gRPC_Client;
-import OhmOMatic.Chord.FN.gRPC_Server;
+import OhmOMatic.Chord.FN.*;
 import OhmOMatic.Global.GB;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
@@ -31,6 +28,11 @@ public class Chord implements AutoCloseable
 {
 
 	//region Fields
+	//====================================== DHT ======================================
+	private final HashMap<BigInteger, Object> data = new HashMap<>();
+	//====================================== DHT ======================================
+
+
 	//===================================== Chord =====================================
 	//private static final Integer mBit = 160; //SHA1 versione normale
 	private static final Integer mBit = 16; //versione semplificata
@@ -128,7 +130,7 @@ public class Chord implements AutoCloseable
 			return n;
 
 		//return n0.find_successor(id);
-		return gRPC_Client.gRPC(n0, Richiesta.findSuccessor, id);
+		return gRPC_Client.gRPC(n0, RichiestaChord.findSuccessor, id);
 
 	}
 
@@ -155,7 +157,7 @@ public class Chord implements AutoCloseable
 			setPredecessor(null);
 
 			//successor = n_.find_successor(n);
-			var s = gRPC_Client.gRPC(n_, Richiesta.findSuccessor, n.ID);
+			var s = gRPC_Client.gRPC(n_, RichiestaChord.findSuccessor, n.ID);
 
 			if (s == null)
 				throw new Exception("Join fallito, " + n_ + " è irraggiungibile!");
@@ -164,6 +166,44 @@ public class Chord implements AutoCloseable
 		}
 
 		startStabilizingRoutines();
+	}
+	//endregion
+
+	//region DHT
+	public Object remove(final BigInteger key)
+	{
+		return _functionDHT(RichiestaDHT.remove, key, null);
+	}
+
+	public Object get(final BigInteger key)
+	{
+		return _functionDHT(RichiestaDHT.get, key, null);
+	}
+
+	public Object put(final BigInteger key, final Object object)
+	{
+		return _functionDHT(RichiestaDHT.put, key, object);
+	}
+
+	private Object _functionDHT(RichiestaDHT req, final BigInteger key, final Object object)
+	{
+		var n_ = find_successor(key);
+
+		if (n.equals(n_))
+			synchronized (data)
+			{
+				switch (req)
+				{
+					case put:
+						return data.put(key, object);
+					case get:
+						return data.get(key);
+					case remove:
+						return data.remove(key);
+				}
+			}
+
+		return gRPC_Client.gRPC(n_, req, key, object);
 	}
 	//endregion
 
@@ -183,7 +223,7 @@ public class Chord implements AutoCloseable
 	{
 		//var x = successor.predecessor;
 		var successor = getSuccessor();
-		var x = gRPC_Client.gRPC(successor, Richiesta.predecessor);
+		var x = gRPC_Client.gRPC(successor, RichiestaChord.predecessor);
 
 		if (successor.isDead)
 		{
@@ -202,7 +242,7 @@ public class Chord implements AutoCloseable
 
 		if (!n.equals(successor))
 			//successor.notify(n);
-			gRPC_Client.gRPC(successor, Richiesta.notify, n);
+			gRPC_Client.gRPC(successor, RichiestaChord.notify, n);
 	}
 
 	private synchronized void removeFinger(NodeLink finger)
@@ -254,7 +294,7 @@ public class Chord implements AutoCloseable
 
 		if (predecessor != null)
 		{
-			var vivo = gRPC_Client.gRPC(predecessor, Richiesta.ping);
+			var vivo = gRPC_Client.gRPC(predecessor, RichiestaChord.ping);
 
 			if (vivo == null)
 				setPredecessor(null);

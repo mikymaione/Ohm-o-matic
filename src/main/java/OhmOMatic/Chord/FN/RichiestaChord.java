@@ -4,53 +4,13 @@ Copyright (c) 2019 Michele Maione
 Permission is hereby granted, free of charge, toE any person obtaining a copy of this software and associated documentation files (the "Software"), toE deal in the Software without restriction, including without limitation the rights toE use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and toE permit persons toE whom the Software is furnished toE do so, subject toE the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-syntax = "proto3";
+package OhmOMatic.Chord.FN;
 
-package OhmOMatic.ProtoBuffer;
+public enum RichiestaChord
+{
+	predecessor,
+	findSuccessor,
 
-import "Common.proto";
-
-
-service HomeService {
-    rpc findSuccessor (casa) returns (casaRes);
-    rpc predecessor (casa) returns (casaRes);
-
-    rpc notify (casa) returns (casaRes);
-    rpc ping (casa) returns (casaRes);
-
-    rpc put (oggetto) returns (oggettoRes);
-    rpc get (oggetto) returns (oggettoRes);
-    rpc offer (oggetto) returns (oggettoRes);
-    rpc remove (oggetto) returns (oggettoRes);
-}
-
-message oggetto {
-    bytes Key = 1;
-    bytes Obj = 2;
-}
-
-message casa {
-    bytes ID = 1;
-
-    string IP = 3;
-    int32 port = 4;
-
-    string Optional_IP = 5;
-    int32 Optional_port = 6;
-}
-
-message oggettoRes {
-    standardRes StandardRes = 1;
-    oggetto Obj = 2;
-}
-
-message casaRes {
-    standardRes StandardRes = 1;
-    casa Casa = 2;
-    bool NullValue = 3;
-}
-
-message listaCase {
-    standardRes standardResponse = 1;
-    repeated casa case = 2;
+	notify,
+	ping;
 }

@@ -6,11 +6,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Chord.FN;
 
-public enum Richiesta
+public enum RichiestaDHT
 {
-	predecessor,
-	findSuccessor,
-
-	notify,
-	ping;
+	get,
+	put,
+	offer,
+	remove;
 }
