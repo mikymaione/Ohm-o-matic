@@ -11,6 +11,8 @@ Implementazione in Java di Chord:
 */
 package OhmOMatic.Chord;
 
+//region Imports
+
 import OhmOMatic.Chord.FN.NodeLink;
 import OhmOMatic.Chord.FN.Richiesta;
 import OhmOMatic.Chord.FN.gRPC_Client;
@@ -23,10 +25,12 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Timer;
+//endregion
 
 public class Chord implements AutoCloseable
 {
 
+	//region Fields
 	//===================================== Chord =====================================
 	//private static final Integer mBit = 160; //SHA1 versione normale
 	private static final Integer mBit = 16; //versione semplificata
@@ -48,8 +52,9 @@ public class Chord implements AutoCloseable
 	private Server gRPC_listner;
 	private final Thread threadListener;
 	//============================= Comunicazione di rete =============================
+	//endregion
 
-
+	//region Constructor & Destructors
 	public Chord(final NodeLink address)
 	{
 		n = address;
@@ -72,7 +77,7 @@ public class Chord implements AutoCloseable
 		threadListener.stop();
 		gRPC_listner.shutdown();
 	}
-
+	//endregion
 
 	//region Proprietà
 	private NodeLink getSuccessor()
@@ -163,7 +168,6 @@ public class Chord implements AutoCloseable
 	//endregion
 
 	//region Stabilizzazione
-
 	//stabilize the chord ring/circle after getNode joins and departures
 	private void startStabilizingRoutines()
 	{
