@@ -82,13 +82,23 @@ public final class CliCasa extends BaseCommandLineApplication
 							{
 								final var key = stringToBigInteger(inpts.getOptionValue("r"), -1);
 
-								System.out.println("-Rimosso oggetto " + key + ": " + chord.remove(key));
+								var remove = chord.remove(key);
+
+								if (remove == null)
+									System.out.println("-Nessun oggetto con chiave " + key);
+								else
+									System.out.println("-Rimosso oggetto " + key);
 							}
 							else if (inpts.hasOption("g"))
 							{
 								final var key = stringToBigInteger(inpts.getOptionValue("g"), -1);
 
-								System.out.println("-Ottenuto oggetto " + key + ": " + chord.get(key));
+								var get = chord.get(key);
+
+								if (get == null)
+									System.out.println("-Nessun oggetto con chiave " + key);
+								else
+									System.out.println("-Ottenuto oggetto con chiave " + key + ": " + get);
 							}
 							else if (inpts.hasOption("p"))
 							{
@@ -96,7 +106,12 @@ public final class CliCasa extends BaseCommandLineApplication
 								final var key = stringToBigInteger(set[0], -1);
 								final var obj = set[1];
 
-								System.out.println("-Inserito oggetto " + key + ": " + chord.put(key, obj));
+								var put = chord.put(key, obj);
+
+								if (put == null)
+									System.out.println("-Inserito oggetto con chiave " + key);
+								else
+									System.out.println("-Sostituito oggetto con chiave " + key);
 							}
 						}
 
@@ -133,11 +148,13 @@ public final class CliCasa extends BaseCommandLineApplication
 
 		final var get = Option.builder("g")
 				.desc("Get")
+				.hasArg()
 				.argName("Key")
 				.build();
 
 		final var put = Option.builder("p")
 				.desc("Put")
+				.hasArgs()
 				.numberOfArgs(2)
 				.argName("Key")
 				.argName("Value")

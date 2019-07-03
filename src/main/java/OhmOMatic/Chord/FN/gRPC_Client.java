@@ -11,6 +11,7 @@ import OhmOMatic.ProtoBuffer.Home;
 import com.google.protobuf.ByteString;
 import io.grpc.StatusRuntimeException;
 
+import java.io.Serializable;
 import java.math.BigInteger;
 
 public class gRPC_Client
@@ -101,7 +102,7 @@ public class gRPC_Client
 	//endregion
 
 	//region DHT gRPC
-	public static Object gRPC(NodeLink server, RichiestaDHT req, BigInteger key, Object object)
+	public static Serializable gRPC(NodeLink server, RichiestaDHT req, BigInteger key, Serializable object)
 	{
 		try (var hfs = new HomeFastStub())
 		{
@@ -139,6 +140,8 @@ public class gRPC_Client
 
 		switch (req)
 		{
+			case transfer:
+				return stub.transfer(o);
 			case put:
 				return stub.put(o);
 			case get:

@@ -19,7 +19,9 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Timer;
 //endregion
@@ -29,7 +31,7 @@ public class Chord implements AutoCloseable
 
 	//region Fields
 	//====================================== DHT ======================================
-	private final HashMap<BigInteger, Object> data = new HashMap<>();
+	private final HashMap<BigInteger, Serializable> data = new HashMap<>();
 	//====================================== DHT ======================================
 
 
@@ -77,7 +79,7 @@ public class Chord implements AutoCloseable
 	{
 		timerStabilizingRoutines.cancel();
 
-		handoff();
+		leave();
 
 		threadListener.stop();
 
@@ -130,12 +132,11 @@ public class Chord implements AutoCloseable
 		// forward the query around the circle
 		var n0 = closest_preceding_node(id);
 
-		if (n.equals(n0))
+		if (n.ID.equals(n0.ID))
 			return n;
 
 		//return n0.find_successor(id);
 		return gRPC_Client.gRPC(n0, RichiestaChord.findSuccessor, id);
-
 	}
 
 	// search the local table for the highest predecessor of id
@@ -174,59 +175,115 @@ public class Chord implements AutoCloseable
 	//endregion
 
 	//region DHT
-	public Object remove(final BigInteger key)
+	public Serializable remove(final BigInteger key)
 	{
 		return _functionDHT(RichiestaDHT.remove, key, null);
 	}
 
-	public Object get(final BigInteger key)
+	public Serializable get(final BigInteger key)
 	{
 		return _functionDHT(RichiestaDHT.get, key, null);
 	}
 
-	public Object put(final BigInteger key, final Object object)
+	public Serializable put(final BigInteger key, final Serializable object)
 	{
 		return _functionDHT(RichiestaDHT.put, key, object);
+	}
+
+	public Serializable transfer(final BigInteger key, final Serializable object)
+	{
+		synchronized (data)
+		{
+			return data.put(key, object);
+		}
 	}
 
 	private void handoff()
 	{
 		synchronized (data)
 		{
+			var daRimuovere = new ArrayList<BigInteger>();
+
 			for (var key : data.keySet())
 			{
 				var n_ = find_successor(key);
 
-				if (!n.equals(n_))
+				if (!n.ID.equals(n_.ID))
 				{
-					var o = gRPC_Client.gRPC(n_, RichiestaDHT.put, key, data.get(key));
+					gRPC_Client.gRPC(n_, RichiestaDHT.put, key, data.get(key));
 
-					if (o != null)
-						data.remove(key);
+					if (!n_.isDead)
+						daRimuovere.add(key);
 				}
+			}
+
+			for (var r : daRimuovere)
+				data.remove(r);
+		}
+	}
+
+	private void leave()
+	{
+		var cercandoDestinatario = true;
+
+		while (cercandoDestinatario)
+		{
+			var s = getSuccessor();
+			var p = getPredecessor();
+
+			var ping = gRPC_Client.gRPC(s, RichiestaChord.ping);
+
+			if (ping == null)
+			{
+				stabilize();
+			}
+			else
+			{
+				cercandoDestinatario = false;
+
+				if (!n.ID.equals(s.ID) && p != null)
+					synchronized (data)
+					{
+						for (var key : data.keySet())
+							gRPC_Client.gRPC(s, RichiestaDHT.transfer, key, data.get(key));
+
+						data.clear();
+					}
 			}
 		}
 	}
 
-	private Object _functionDHT(RichiestaDHT req, final BigInteger key, final Object object)
+	private Serializable _functionDHT(RichiestaDHT req, final BigInteger key, final Serializable object)
 	{
+		Serializable R = null;
 		var n_ = find_successor(key);
 
-		if (n.equals(n_))
+		if (n.ID.equals(n_.ID))
+		{
 			synchronized (data)
 			{
 				switch (req)
 				{
 					case put:
-						return data.put(key, object);
+						R = data.put(key, object);
+						break;
 					case get:
-						return data.get(key);
+						R = data.get(key);
+						break;
 					case remove:
-						return data.remove(key);
+						R = data.remove(key);
+						break;
 				}
 			}
 
-		return gRPC_Client.gRPC(n_, req, key, object);
+			System.out.println("-" + n + ": ho appena eseguito un'operazione sulla chiave " + key);
+		}
+		else
+		{
+			R = gRPC_Client.gRPC(n_, req, key, object);
+		}
+
+		return R;
 	}
 	//endregion
 
@@ -237,6 +294,7 @@ public class Chord implements AutoCloseable
 		GB.executeTimerTask(timerStabilizingRoutines, 60, this::stabilize);
 		GB.executeTimerTask(timerStabilizingRoutines, 500, this::fix_fingers);
 		GB.executeTimerTask(timerStabilizingRoutines, 500, this::check_predecessor);
+		GB.executeTimerTask(timerStabilizingRoutines, 1000, this::handoff);
 	}
 
 	// called periodically. n asks the getSuccessor
@@ -263,11 +321,9 @@ public class Chord implements AutoCloseable
 				setSuccessor(successor);
 			}
 
-		if (!n.equals(successor))
+		if (!n.ID.equals(successor.ID))
 			//successor.notify(n);
 			gRPC_Client.gRPC(successor, RichiestaChord.notify, n);
-
-		handoff();
 	}
 
 	private synchronized void removeFinger(NodeLink finger)

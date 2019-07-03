@@ -15,6 +15,7 @@ import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.function.Function;
 
@@ -99,7 +100,7 @@ public class gRPC_Server
 			//endregion
 
 			//region Funzioni DHT
-			private void elaboraDHT(Home.oggetto request, StreamObserver<Home.oggettoRes> responseObserver, Function<ImmutablePair<BigInteger, Object>, Object> callback)
+			private void elaboraDHT(Home.oggetto request, StreamObserver<Home.oggettoRes> responseObserver, Function<ImmutablePair<BigInteger, Serializable>, Serializable> callback)
 			{
 				var _standardRes = Common.standardRes.newBuilder();
 				var _oggetto = Home.oggetto.newBuilder();
@@ -143,6 +144,13 @@ public class gRPC_Server
 			{
 				elaboraDHT(request, responseObserver, e ->
 						local.get(e.getKey()));
+			}
+
+			@Override
+			public void transfer(Home.oggetto request, StreamObserver<Home.oggettoRes> responseObserver)
+			{
+				elaboraDHT(request, responseObserver, e ->
+						local.transfer(e.getKey(), e.getValue()));
 			}
 
 			@Override

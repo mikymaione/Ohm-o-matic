@@ -102,7 +102,7 @@ public final class GB
 		return null;
 	}
 
-	public static byte[] serialize(final Object obj) throws IOException
+	public static byte[] serialize(final Serializable obj) throws IOException
 	{
 		try (
 				var out = new ByteArrayOutputStream();
@@ -115,14 +115,14 @@ public final class GB
 		}
 	}
 
-	public static Object deserialize(final byte[] data) throws IOException, ClassNotFoundException
+	public static Serializable deserialize(final byte[] data) throws IOException, ClassNotFoundException
 	{
 		try (
 				var in = new ByteArrayInputStream(data);
 				var is = new ObjectInputStream(in)
 		)
 		{
-			return is.readObject();
+			return (Serializable) is.readObject();
 		}
 	}
 

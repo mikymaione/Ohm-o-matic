@@ -17,7 +17,8 @@ service HomeService {
 
     rpc notify (casa) returns (casaRes);
     rpc ping (casa) returns (casaRes);
-
+    
+    rpc transfer (oggetto) returns (oggettoRes);
     rpc put (oggetto) returns (oggettoRes);
     rpc get (oggetto) returns (oggettoRes);
     rpc remove (oggetto) returns (oggettoRes);
