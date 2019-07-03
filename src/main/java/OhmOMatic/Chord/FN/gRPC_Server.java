@@ -22,7 +22,8 @@ public class gRPC_Server
 	{
 		return new HomeServiceGrpc.HomeServiceImplBase()
 		{
-			private void FUNC(Home.casa request, StreamObserver<Home.casaRes> responseObserver, Function<NodeLink, NodeLink> fun)
+
+			private void elabora(Home.casa request, StreamObserver<Home.casaRes> responseObserver, Function<NodeLink, NodeLink> callback)
 			{
 				var _standardRes = Common.standardRes.newBuilder();
 				var _casa = Home.casa.newBuilder();
@@ -32,7 +33,7 @@ public class gRPC_Server
 				{
 					var n_ = new NodeLink(request.getOptionalIP(), request.getOptionalPort());
 
-					var R = fun.apply(n_);
+					var R = callback.apply(n_);
 
 					if (R == null)
 						_casaRes
@@ -47,10 +48,10 @@ public class gRPC_Server
 				}
 				catch (Exception e)
 				{
-					var eMsg = e.getMessage();
+					var _errorMessage = e.getMessage();
 
-					if (eMsg != null)
-						_standardRes.setErrore(eMsg);
+					if (_errorMessage != null)
+						_standardRes.setErrore(_errorMessage);
 
 					_standardRes.setOk(false);
 				}
@@ -63,31 +64,32 @@ public class gRPC_Server
 				responseObserver.onCompleted();
 			}
 
+
 			@Override
 			public void notify(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
-				FUNC(request, responseObserver, n ->
+				elabora(request, responseObserver, n ->
 						local.notify(n));
 			}
 
 			@Override
 			public void ping(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
-				FUNC(request, responseObserver, n ->
+				elabora(request, responseObserver, n ->
 						local.ping());
 			}
 
 			@Override
 			public void findSuccessor(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
-				FUNC(request, responseObserver, n ->
+				elabora(request, responseObserver, n ->
 						local.find_successor(new BigInteger(request.getID().toByteArray())));
 			}
 
 			@Override
 			public void predecessor(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
 			{
-				FUNC(request, responseObserver, n ->
+				elabora(request, responseObserver, n ->
 						local.getPredecessor());
 			}
 

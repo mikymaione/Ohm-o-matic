@@ -17,50 +17,47 @@ public class gRPC_Client
 
 	public static NodeLink gRPC(NodeLink server, Richiesta req)
 	{
-		return gRPC(server, req, null, null, null);
+		return gRPC(server, req, null, null);
 	}
 
 	public static NodeLink gRPC(NodeLink server, Richiesta req, BigInteger _id)
 	{
-		return gRPC(server, req, _id, null, null);
+		return gRPC(server, req, _id, null);
 	}
 
 	public static NodeLink gRPC(NodeLink server, Richiesta req, NodeLink setNode)
 	{
-		return gRPC(server, req, null, null, setNode);
+		return gRPC(server, req, null, setNode);
 	}
 
-	private static NodeLink gRPC(NodeLink server, Richiesta req, BigInteger _id, Integer indice, NodeLink setNode)
+	private static NodeLink gRPC(NodeLink server, Richiesta req, BigInteger _id, NodeLink setNode)
 	{
 		try (var hfs = new HomeFastStub())
 		{
-			var casa_B = Home.casa.newBuilder();
+			var _casa = Home.casa.newBuilder();
 
 			if (_id != null)
-				casa_B.setID(ByteString.copyFrom(_id.toByteArray()));
-
-			if (indice != null)
-				casa_B.setIdx(indice);
+				_casa.setID(ByteString.copyFrom(_id.toByteArray()));
 
 			if (setNode != null)
 			{
-				casa_B.setOptionalIP(setNode.IP);
-				casa_B.setOptionalPort(setNode.port);
+				_casa.setOptionalIP(setNode.IP);
+				_casa.setOptionalPort(setNode.port);
 			}
 
-			casa_B
+			_casa
 					.setIP(server.IP)
 					.setPort(server.port);
 
-			var R = doRequest(server, hfs, req, casa_B.build());
+			var _request = doRequest(server, hfs, req, _casa.build());
 
-			if (R.getNullValue())
+			if (_request.getNullValue())
 			{
 				return null;
 			}
-			else if (R.getStandardRes().getOk())
+			else if (_request.getStandardRes().getOk())
 			{
-				var c = R.getCasa();
+				var c = _request.getCasa();
 
 				return new NodeLink(c.getIP(), c.getPort());
 			}
@@ -96,7 +93,7 @@ public class gRPC_Client
 			case ping:
 				return stub.ping(c);
 			default:
-				throw new UnsupportedOperationException("Switch non implentat");
+				throw new UnsupportedOperationException("Switch non implementato!");
 		}
 	}
 

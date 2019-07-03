@@ -22,7 +22,6 @@ service HomeService {
 
 message casa {
     bytes ID = 1;
-    int32 idx = 2;
 
     string IP = 3;
     int32 port = 4;
