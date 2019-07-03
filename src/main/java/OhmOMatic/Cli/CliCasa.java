@@ -27,19 +27,18 @@ public final class CliCasa extends BaseCommandLineApplication
 		{
 			final var cmd = getCommandLine(options, args);
 
-			final var id = cmd.getOptionValue("i");
 			final var rest_url = cmd.getOptionValue("r");
 			final var mio_peer_address = cmd.getOptionValue("k");
 			final var mio_peer_port = stringToInt(cmd.getOptionValue("q"), -1);
 			final var peer_address = cmd.getOptionValue("j");
 			final var peer_port = stringToInt(cmd.getOptionValue("p"), -1);
 
-			try (var casa = new Casa(rest_url, mio_peer_address, mio_peer_port, peer_address, peer_port, chord))
+			try (var chord = new Chord(mio_peer_address, mio_peer_port))
 			{
-				System.out.println("Casa avviata!");
-
-				try (var chord = new Chord(mio_peer_address, mio_peer_port))
+				try (var casa = new Casa(rest_url, mio_peer_address, mio_peer_port, chord))
 				{
+					System.out.println("Casa avviata!");
+
 					if (peer_port > -1)
 						chord.join(peer_address, peer_port);
 					else
@@ -64,7 +63,7 @@ public final class CliCasa extends BaseCommandLineApplication
 					casa.fermaSmartMeter();
 					System.out.println("Smart meter fermato!");
 
-					casa.esciDalCondominio();
+					//casa.disiscriviCasa();
 					System.out.println("Casa fuori dal condominio!");
 				}
 			}

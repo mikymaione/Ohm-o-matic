@@ -7,6 +7,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package OhmOMatic.Sistema;
 
 import OhmOMatic.Chord.Chord;
+import OhmOMatic.Global.GB;
 import OhmOMatic.ProtoBuffer.Common.standardRes;
 import OhmOMatic.ProtoBuffer.Home.casa;
 import OhmOMatic.ProtoBuffer.Home.listaCase;
@@ -35,13 +36,10 @@ public class Casa implements MeanListener, AutoCloseable
 	private final String myAddress;
 	private final int myPort;
 
-	private final String serverAddress;
-	private final int serverPort;
-
 	private final Chord chord;
 
 
-	public Casa(String indirizzoREST_, String mioIndirizzo_, int miaPorta_, String indirizzoServerPeer_, int portaServerPeer_, Chord chord_) throws IOException
+	public Casa(String indirizzoREST_, String mioIndirizzo_, int miaPorta_, Chord chord_) throws IOException
 	{
 		chord = chord_;
 
@@ -49,9 +47,6 @@ public class Casa implements MeanListener, AutoCloseable
 
 		myAddress = mioIndirizzo_;
 		myPort = miaPorta_;
-
-		serverAddress = indirizzoServerPeer_;
-		serverPort = portaServerPeer_;
 	}
 
 
@@ -135,10 +130,13 @@ public class Casa implements MeanListener, AutoCloseable
 
 	public void inviaStatistiche(double mean)
 	{
-		//var ts = System.currentTimeMillis();
-		//var k = GB.sha1(ID + "_" + ts);
-		//chord.put( new BigInteger())
-		System.out.println("Mean: " + mean);
+		var ts = System.currentTimeMillis();
+		var s = myAddress + ":" + myPort + "__" + ts;
+		var h = GB.SHA1(s);
+		var b = new BigInteger(h);
+		
+		chord.put(b, mean);
+		//System.out.println("Mean: " + mean);
 	}
 	//endregion
 
