@@ -132,19 +132,14 @@ public final class GB
 
 	public static void executeTimerTask(Timer _timer, final int period, Runnable r)
 	{
-		_timer.scheduleAtFixedRate(executeTimerTask(r), new Date(), period);
-	}
-
-	public static TimerTask executeTimerTask(Runnable r)
-	{
-		return new TimerTask()
+		_timer.scheduleAtFixedRate(new TimerTask()
 		{
 			@Override
 			public void run()
 			{
 				r.run();
 			}
-		};
+		}, period, period);
 	}
 
 

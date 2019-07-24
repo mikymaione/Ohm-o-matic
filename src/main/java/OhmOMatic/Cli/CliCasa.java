@@ -40,9 +40,14 @@ public final class CliCasa extends BaseCommandLineApplication
 					System.out.println("Casa avviata!");
 
 					if (peer_port > -1)
+					{
+						Thread.sleep(4000);
 						chord.join(peer_address, peer_port);
+					}
 					else
+					{
 						chord.join(mio_peer_address, mio_peer_port);
+					}
 
 					chord.stampaTutto();
 
@@ -72,6 +77,8 @@ public final class CliCasa extends BaseCommandLineApplication
 		{
 			e.printStackTrace();
 		}
+
+		System.out.println("Fine.");
 	}
 
 	//region Opzioni command line

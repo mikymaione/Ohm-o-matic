@@ -172,6 +172,7 @@ public class Chord implements AutoCloseable
 			setPredecessor(null);
 
 			//successor = n_.find_successor(n);
+
 			var s = gRPC_Client.gRPC(n_, RichiestaChord.findSuccessor, n.ID);
 
 			if (s == null)
@@ -286,7 +287,7 @@ public class Chord implements AutoCloseable
 				}
 			}
 
-			System.out.println("-" + n + ": ho appena eseguito un'operazione sulla chiave " + key);
+			//System.out.println("-" + n + ": ho appena eseguito un'operazione sulla chiave " + key);
 		}
 		else
 		{
@@ -296,6 +297,7 @@ public class Chord implements AutoCloseable
 		return R;
 	}
 	//endregion
+
 
 	//region Stabilizzazione
 	//stabilize the chord ring/circle after getNode joins and departures
