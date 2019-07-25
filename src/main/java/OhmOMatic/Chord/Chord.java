@@ -69,15 +69,15 @@ public class Chord implements AutoCloseable
 
 		_fingerTable = new HashMap<>(mBit);
 
-		setPredecessor(null);
-		setSuccessor(n);
-
 		stabilizingRoutines = Set.of(
 				new SleepingThread("stabilize", this::stabilize, 60),
 				new SleepingThread("fix_fingers", this::fix_fingers, 500),
 				new SleepingThread("check_predecessor", this::check_predecessor, 500),
 				new SleepingThread("handoff", this::handoff, 1000)
 		);
+
+		setPredecessor(null);
+		setSuccessor(n);
 
 		start_gRPC_listner();
 	}
@@ -86,7 +86,7 @@ public class Chord implements AutoCloseable
 	public void close()
 	{
 		for (var t : stabilizingRoutines)
-			t.die();
+			t.stopMeGently();
 
 		leave();
 

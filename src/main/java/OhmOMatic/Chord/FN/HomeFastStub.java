@@ -24,7 +24,7 @@ public class HomeFastStub implements AutoCloseable
 				.forAddress(ip, port)
 				.usePlaintext()
 				.build();
-		
+
 		return HomeServiceGrpc.newBlockingStub(chan);
 	}
 

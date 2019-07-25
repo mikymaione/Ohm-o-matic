@@ -15,12 +15,12 @@ public class SleepingThread extends Thread
 	public SleepingThread(String name, Runnable procedura, long riposo)
 	{
 		super(name);
-		
+
 		this.riposo = riposo;
 		this.procedura = procedura;
 	}
 
-	public void die()
+	public void stopMeGently()
 	{
 		running = false;
 	}

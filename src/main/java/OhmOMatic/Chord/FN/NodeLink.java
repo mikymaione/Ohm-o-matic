@@ -37,6 +37,21 @@ public class NodeLink
 	}
 
 	@Override
+	public boolean equals(Object obj)
+	{
+		if (obj instanceof NodeLink)
+		{
+			var aNode = (NodeLink) obj;
+
+			return ID.equals(aNode.ID);
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	@Override
 	public String toString()
 	{
 		return IP + ":" + port;
