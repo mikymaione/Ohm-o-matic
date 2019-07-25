@@ -23,7 +23,7 @@ import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Timer;
+import java.util.Set;
 //endregion
 
 public class Chord implements AutoCloseable
@@ -47,7 +47,7 @@ public class Chord implements AutoCloseable
 	private final HashMap<Integer, NodeLink> _fingerTable;
 
 	//timer per le funzioni di stabilizzazione
-	private final Timer timerStabilizingRoutines;
+	private final Set<SleepingThread> stabilizingRoutines;
 	//===================================== Chord =====================================
 
 
@@ -73,20 +73,24 @@ public class Chord implements AutoCloseable
 		setPredecessor(null);
 		setSuccessor(n);
 
-		timerStabilizingRoutines = new Timer();
+		stabilizingRoutines = Set.of(
+				new SleepingThread("stabilize", this::stabilize, 60),
+				new SleepingThread("fix_fingers", this::fix_fingers, 500),
+				new SleepingThread("check_predecessor", this::check_predecessor, 500),
+				new SleepingThread("handoff", this::handoff, 1000)
+		);
 
-		threadListener = new Thread(this::listener);
+		threadListener = new Thread(this::listener, "gRPC Listner");
 		threadListener.start();
 	}
 
 	@Override
 	public void close()
 	{
-		timerStabilizingRoutines.cancel();
+		for (var t : stabilizingRoutines)
+			t.die();
 
 		leave();
-
-		threadListener.stop();
 
 		gRPC_listner.shutdown();
 	}
@@ -303,10 +307,8 @@ public class Chord implements AutoCloseable
 	//stabilize the chord ring/circle after getNode joins and departures
 	private void startStabilizingRoutines()
 	{
-		GB.executeTimerTask(timerStabilizingRoutines, 60, this::stabilize);
-		GB.executeTimerTask(timerStabilizingRoutines, 500, this::fix_fingers);
-		GB.executeTimerTask(timerStabilizingRoutines, 500, this::check_predecessor);
-		GB.executeTimerTask(timerStabilizingRoutines, 1000, this::handoff);
+		for (var t : stabilizingRoutines)
+			t.start();
 	}
 
 	// called periodically. n asks the getSuccessor

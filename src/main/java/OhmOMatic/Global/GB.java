@@ -12,7 +12,9 @@ import java.io.*;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Random;
 
 public final class GB
 {
@@ -128,18 +130,6 @@ public final class GB
 	public static int randomInt(final int da, final int a)
 	{
 		return randomFN.nextInt(a) + da;
-	}
-
-	public static void executeTimerTask(Timer _timer, final int period, Runnable r)
-	{
-		_timer.scheduleAtFixedRate(new TimerTask()
-		{
-			@Override
-			public void run()
-			{
-				r.run();
-			}
-		}, period, period);
 	}
 
 
