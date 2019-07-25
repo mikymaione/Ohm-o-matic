@@ -58,12 +58,12 @@ public class Chord implements AutoCloseable
 	//endregion
 
 	//region Constructor & Destructors
-	public Chord(final String _ip, final int _port)
+	public Chord(final String _ip, final int _port) throws IOException
 	{
 		this(new NodeLink(_ip, _port));
 	}
 
-	public Chord(final NodeLink address)
+	public Chord(final NodeLink address) throws IOException
 	{
 		n = address;
 
@@ -86,7 +86,15 @@ public class Chord implements AutoCloseable
 	public void close()
 	{
 		for (var t : stabilizingRoutines)
-			t.stopMeGently();
+			try
+			{
+				t.stopMeGently();
+				t.join();
+			}
+			catch (InterruptedException e)
+			{
+				e.printStackTrace();
+			}
 
 		leave();
 
@@ -174,13 +182,12 @@ public class Chord implements AutoCloseable
 			setPredecessor(null);
 
 			//successor = n_.find_successor(n);
+			var successor = gRPC_Client.gRPC(n_, RichiestaChord.findSuccessor, n.ID);
 
-			var s = gRPC_Client.gRPC(n_, RichiestaChord.findSuccessor, n.ID);
-
-			if (s == null)
+			if (successor == null)
 				throw new Exception("Join fallito, " + n_ + " è irraggiungibile!");
 
-			setSuccessor(s);
+			setSuccessor(successor);
 		}
 
 		startStabilizingRoutines();
@@ -271,13 +278,8 @@ public class Chord implements AutoCloseable
 		var n_ = find_successor(key);
 
 		if (n_ != null && !n.equals(n_))
-		{
 			return gRPC_Client.gRPC(n_, req, key, object);
-		}
 		else
-		{
-			System.out.println("-" + n + ": ho appena eseguito " + req + " sulla chiave " + key);
-
 			synchronized (_data)
 			{
 				switch (req)
@@ -288,11 +290,10 @@ public class Chord implements AutoCloseable
 						return _data.get(key);
 					case remove:
 						return _data.remove(key);
+					default:
+						return null;
 				}
 			}
-		}
-
-		return null;
 	}
 	//endregion
 
@@ -397,20 +398,13 @@ public class Chord implements AutoCloseable
 	//endregion
 
 	//region Server
-	private void start_gRPC_listner()
+	private void start_gRPC_listner() throws IOException
 	{
-		try
-		{
-			gRPC_listner = ServerBuilder
-					.forPort(n.port)
-					.addService(gRPC_Server.getListnerServer(this))
-					.build()
-					.start();
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-		}
+		gRPC_listner = ServerBuilder
+				.forPort(n.port)
+				.addService(gRPC_Server.getListnerServer(this))
+				.build()
+				.start();
 	}
 	//endregion
 
