@@ -35,7 +35,7 @@ public class NodeLink
 		this.IP = IP;
 		this.port = port;
 	}
-	
+
 	@Override
 	public boolean equals(Object obj)
 	{

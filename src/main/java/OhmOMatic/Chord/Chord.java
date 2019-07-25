@@ -31,7 +31,7 @@ public class Chord implements AutoCloseable
 
 	//region Fields
 	//====================================== DHT ======================================
-	private final HashMap<BigInteger, Serializable> data = new HashMap<>();
+	private final HashMap<BigInteger, Serializable> _data = new HashMap<>();
 	//====================================== DHT ======================================
 
 
@@ -205,25 +205,25 @@ public class Chord implements AutoCloseable
 
 	public Serializable transfer(final BigInteger key, final Serializable object)
 	{
-		synchronized (data)
+		synchronized (_data)
 		{
-			return data.put(key, object);
+			return _data.put(key, object);
 		}
 	}
 
 	private void handoff()
 	{
-		synchronized (data)
+		synchronized (_data)
 		{
 			var daRimuovere = new ArrayList<BigInteger>();
 
-			for (var key : data.keySet())
+			for (var key : _data.keySet())
 			{
 				var n_ = find_successor(key);
 
 				if (n_ != null && !n.equals(n_))
 				{
-					gRPC_Client.gRPC(n_, RichiestaDHT.put, key, data.get(key));
+					gRPC_Client.gRPC(n_, RichiestaDHT.put, key, _data.get(key));
 
 					if (!n_.isDead)
 						daRimuovere.add(key);
@@ -231,7 +231,7 @@ public class Chord implements AutoCloseable
 			}
 
 			for (var r : daRimuovere)
-				data.remove(r);
+				_data.remove(r);
 		}
 	}
 
@@ -255,12 +255,12 @@ public class Chord implements AutoCloseable
 				cercandoDestinatario = false;
 
 				if (s != null && !n.equals(s) && p != null)
-					synchronized (data)
+					synchronized (_data)
 					{
-						for (var key : data.keySet())
-							gRPC_Client.gRPC(s, RichiestaDHT.transfer, key, data.get(key));
+						for (var key : _data.keySet())
+							gRPC_Client.gRPC(s, RichiestaDHT.transfer, key, _data.get(key));
 
-						data.clear();
+						_data.clear();
 					}
 			}
 		}
@@ -268,35 +268,31 @@ public class Chord implements AutoCloseable
 
 	private Serializable _functionDHT(RichiestaDHT req, final BigInteger key, final Serializable object)
 	{
-		Serializable R = null;
 		var n_ = find_successor(key);
 
 		if (n_ != null && !n.equals(n_))
 		{
-			R = gRPC_Client.gRPC(n_, req, key, object);
+			return gRPC_Client.gRPC(n_, req, key, object);
 		}
 		else
 		{
-			synchronized (data)
+			System.out.println("-" + n + ": ho appena eseguito " + req + " sulla chiave " + key);
+
+			synchronized (_data)
 			{
 				switch (req)
 				{
 					case put:
-						R = data.put(key, object);
-						break;
+						return _data.put(key, object);
 					case get:
-						R = data.get(key);
-						break;
+						return _data.get(key);
 					case remove:
-						R = data.remove(key);
-						break;
+						return _data.remove(key);
 				}
 			}
-
-			//System.out.println("-" + n + ": ho appena eseguito un'operazione sulla chiave " + key);
 		}
 
-		return R;
+		return null;
 	}
 	//endregion
 
