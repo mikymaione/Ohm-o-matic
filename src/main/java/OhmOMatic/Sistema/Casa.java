@@ -25,8 +25,8 @@ import java.math.BigInteger;
 public class Casa implements MeanListener, AutoCloseable
 {
 
-	private SmartMeterSimulator smartMeterSimulator;
-	private BufferImpl theBuffer;
+	private final SmartMeterSimulator smartMeterSimulator;
+	private final BufferImpl theBuffer;
 
 	private Client client;
 	private WebTarget webTargetRest;
@@ -47,6 +47,9 @@ public class Casa implements MeanListener, AutoCloseable
 
 		myAddress = mioIndirizzo_;
 		myPort = miaPorta_;
+
+		theBuffer = new BufferImpl(24, this);
+		smartMeterSimulator = new SmartMeterSimulator(theBuffer);
 	}
 
 
@@ -134,7 +137,7 @@ public class Casa implements MeanListener, AutoCloseable
 		var s = myAddress + ":" + myPort + "__" + ts;
 		var h = GB.SHA1(s);
 		var b = new BigInteger(h);
-		
+
 		chord.put(b, mean);
 		//System.out.println("Mean: " + mean);
 	}
@@ -153,33 +156,14 @@ public class Casa implements MeanListener, AutoCloseable
 	//endregion
 
 	//region Gestione Smart meter
-	private SmartMeterSimulator getSmartMeter()
-	{
-		if (smartMeterSimulator == null)
-		{
-			theBuffer = new BufferImpl(24, this);
-			smartMeterSimulator = new SmartMeterSimulator(theBuffer);
-		}
-
-		return smartMeterSimulator;
-	}
-
 	public void avviaSmartMeter()
 	{
-		var threadSmartMeter = new Thread(this::_avviaSmartMeter);
-		threadSmartMeter.start();
-	}
-
-	private void _avviaSmartMeter()
-	{
-		var smartMeter = getSmartMeter();
-		smartMeter.run();
+		smartMeterSimulator.start();
 	}
 
 	public void fermaSmartMeter()
 	{
-		var smartMeter = getSmartMeter();
-		smartMeter.stop();
+		smartMeterSimulator.stopMeGently();
 	}
 
 	@Override

@@ -54,7 +54,6 @@ public class Chord implements AutoCloseable
 	//============================= Comunicazione di rete =============================
 	//listner gRPC
 	private Server gRPC_listner;
-	private final Thread threadListener;
 	//============================= Comunicazione di rete =============================
 	//endregion
 
@@ -80,8 +79,7 @@ public class Chord implements AutoCloseable
 				new SleepingThread("handoff", this::handoff, 1000)
 		);
 
-		threadListener = new Thread(this::listener, "gRPC Listner");
-		threadListener.start();
+		start_gRPC_listner();
 	}
 
 	@Override
@@ -403,7 +401,7 @@ public class Chord implements AutoCloseable
 	//endregion
 
 	//region Server
-	private void listener()
+	private void start_gRPC_listner()
 	{
 		try
 		{
