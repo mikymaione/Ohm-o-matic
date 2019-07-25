@@ -139,7 +139,7 @@ public class Chord implements AutoCloseable
 		// forward the query around the circle
 		var n0 = closest_preceding_node(id);
 
-		if (n.ID.equals(n0.ID))
+		if (n.equals(n0))
 			return n;
 
 		//return n0.find_successor(id);
@@ -221,7 +221,7 @@ public class Chord implements AutoCloseable
 			{
 				var n_ = find_successor(key);
 
-				if (!n.ID.equals(n_.ID))
+				if (n_ != null && !n.equals(n_))
 				{
 					gRPC_Client.gRPC(n_, RichiestaDHT.put, key, data.get(key));
 
@@ -254,7 +254,7 @@ public class Chord implements AutoCloseable
 			{
 				cercandoDestinatario = false;
 
-				if (!n.ID.equals(s.ID) && p != null)
+				if (s != null && !n.equals(s) && p != null)
 					synchronized (data)
 					{
 						for (var key : data.keySet())
@@ -271,7 +271,11 @@ public class Chord implements AutoCloseable
 		Serializable R = null;
 		var n_ = find_successor(key);
 
-		if (n.ID.equals(n_.ID))
+		if (n_ != null && !n.equals(n_))
+		{
+			R = gRPC_Client.gRPC(n_, req, key, object);
+		}
+		else
 		{
 			synchronized (data)
 			{
@@ -290,10 +294,6 @@ public class Chord implements AutoCloseable
 			}
 
 			//System.out.println("-" + n + ": ho appena eseguito un'operazione sulla chiave " + key);
-		}
-		else
-		{
-			R = gRPC_Client.gRPC(n_, req, key, object);
 		}
 
 		return R;
@@ -333,7 +333,7 @@ public class Chord implements AutoCloseable
 				setSuccessor(successor);
 			}
 
-		if (!n.ID.equals(successor.ID))
+		if (successor != null && !n.equals(successor))
 			//successor.notify(n);
 			gRPC_Client.gRPC(successor, RichiestaChord.notify, n);
 	}

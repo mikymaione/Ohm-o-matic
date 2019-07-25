@@ -37,6 +37,9 @@ public class gRPC_Client
 	{
 		try (var hfs = new HomeFastStub())
 		{
+			if (server == null)
+				return null;
+
 			var _casa = Home.casa.newBuilder();
 
 			if (_id != null)
