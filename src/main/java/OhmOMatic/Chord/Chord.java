@@ -31,7 +31,7 @@ public class Chord implements AutoCloseable
 
 	//region Fields
 	//====================================== DHT ======================================
-	private final HashMap<BigInteger, Serializable> _data = new HashMap<>();
+	private final DHT dht = new DHT();
 	//====================================== DHT ======================================
 
 
@@ -212,34 +212,25 @@ public class Chord implements AutoCloseable
 
 	public Serializable transfer(final BigInteger key, final Serializable object)
 	{
-		synchronized (_data)
-		{
-			return _data.put(key, object);
-		}
+		return dht.put(key, object);
 	}
 
 	private void handoff()
 	{
-		synchronized (_data)
+		var daRimuovere = new ArrayList<BigInteger>();
+
+		dht.forEachAndRemoveAll(e ->
 		{
-			var daRimuovere = new ArrayList<BigInteger>();
+			var n_ = find_successor(e.getKey());
 
-			for (var key : _data.keySet())
+			if (n_ != null && !n.equals(n_))
 			{
-				var n_ = find_successor(key);
+				gRPC_Client.gRPC(n_, RichiestaDHT.put, e.getKey(), e.getValue());
 
-				if (n_ != null && !n.equals(n_))
-				{
-					gRPC_Client.gRPC(n_, RichiestaDHT.put, key, _data.get(key));
-
-					if (!n_.isDead)
-						daRimuovere.add(key);
-				}
+				if (!n_.isDead)
+					daRimuovere.add(e.getKey());
 			}
-
-			for (var r : daRimuovere)
-				_data.remove(r);
-		}
+		}, daRimuovere);
 	}
 
 	private void leave()
@@ -262,13 +253,10 @@ public class Chord implements AutoCloseable
 				cercandoDestinatario = false;
 
 				if (s != null && !n.equals(s) && p != null)
-					synchronized (_data)
+					dht.forEachAndClearAll(e ->
 					{
-						for (var key : _data.keySet())
-							gRPC_Client.gRPC(s, RichiestaDHT.transfer, key, _data.get(key));
-
-						_data.clear();
-					}
+						gRPC_Client.gRPC(s, RichiestaDHT.transfer, e.getKey(), e.getValue());
+					});
 			}
 		}
 	}
@@ -278,21 +266,21 @@ public class Chord implements AutoCloseable
 		var n_ = find_successor(key);
 
 		if (n_ != null && !n.equals(n_))
+		{
+			System.out.println("gRPC " + n_ + ": " + req + "(" + key + "," + object + ")");
 			return gRPC_Client.gRPC(n_, req, key, object);
+		}
 		else
-			synchronized (_data)
+			switch (req)
 			{
-				switch (req)
-				{
-					case put:
-						return _data.put(key, object);
-					case get:
-						return _data.get(key);
-					case remove:
-						return _data.remove(key);
-					default:
-						return null;
-				}
+				case put:
+					return dht.put(key, object);
+				case get:
+					return dht.get(key);
+				case remove:
+					return dht.remove(key);
+				default:
+					return null;
 			}
 	}
 	//endregion
