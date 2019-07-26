@@ -74,7 +74,7 @@ public class gRPC_Client
 		}
 		catch (StatusRuntimeException sre)
 		{
-			server.isDead = true;
+			return new DeadLink(server);
 		}
 		catch (Exception er)
 		{
@@ -127,7 +127,7 @@ public class gRPC_Client
 		}
 		catch (StatusRuntimeException sre)
 		{
-			server.isDead = true;
+			return new DeadLink(server);
 		}
 		catch (Exception er)
 		{

@@ -130,14 +130,14 @@ public class Chord implements AutoCloseable
 	// ask node n to find the successor of id
 	public NodeLink find_successor(final BigInteger id)
 	{
-		var s = getSuccessor();
+		final var s = getSuccessor();
 
 		if (s != null)
 			if (GB.incluso(id, n, s))
 				return s;
 
 		// forward the query around the circle
-		var n0 = closest_preceding_node(id);
+		final var n0 = closest_preceding_node(id);
 
 		if (n.equals(n0))
 			return n;
@@ -151,7 +151,7 @@ public class Chord implements AutoCloseable
 	{
 		for (Integer i = mBit; i > 0; i--)
 		{
-			var iThFinger = getFinger(i);
+			final var iThFinger = getFinger(i);
 
 			if (iThFinger != null)
 				if (GB.incluso(iThFinger, n, id))
@@ -174,7 +174,7 @@ public class Chord implements AutoCloseable
 			setPredecessor(null);
 
 			//successor = n_.find_successor(n);
-			var successor = gRPC_Client.gRPC(n_, RichiestaChord.findSuccessor, n.ID);
+			final var successor = gRPC_Client.gRPC(n_, RichiestaChord.findSuccessor, n.ID);
 
 			if (successor == null)
 				throw new Exception("Join fallito, " + n_ + " è irraggiungibile!");
@@ -213,16 +213,21 @@ public class Chord implements AutoCloseable
 
 		dht.forEachAndRemoveAll(e ->
 		{
-			var n_ = find_successor(e.getKey());
+			final var n_ = find_successor(e.getKey());
 
 			if (n_ != null && !n.equals(n_))
 			{
-				gRPC_Client.gRPC(n_, RichiestaDHT.put, e.getKey(), e.getValue());
+				final var dL = gRPC_Client.gRPC(n_, RichiestaDHT.put, e.getKey(), e.getValue());
 
-				if (!n_.isDead)
+				if (!linkMorto(dL))
 					daRimuovere.add(e.getKey());
 			}
 		}, daRimuovere);
+	}
+
+	private boolean linkMorto(Serializable dL)
+	{
+		return (dL instanceof DeadLink && ((DeadLink) dL).isDead);
 	}
 
 	private void leave()
@@ -231,10 +236,10 @@ public class Chord implements AutoCloseable
 
 		while (cercandoDestinatario)
 		{
-			var s = getSuccessor();
-			var p = getPredecessor();
+			final var s = getSuccessor();
+			final var p = getPredecessor();
 
-			var ping = gRPC_Client.gRPC(s, RichiestaChord.ping);
+			final var ping = gRPC_Client.gRPC(s, RichiestaChord.ping);
 
 			if (ping == null)
 			{
@@ -253,7 +258,7 @@ public class Chord implements AutoCloseable
 
 	private Serializable _functionDHT(RichiestaDHT req, final BigInteger key, final Serializable object)
 	{
-		var n_ = find_successor(key);
+		final var n_ = find_successor(key);
 
 		if (n_ != null && !n.equals(n_))
 		{
@@ -291,9 +296,9 @@ public class Chord implements AutoCloseable
 	{
 		//var x = successor.predecessor;
 		var successor = getSuccessor();
-		var x = gRPC_Client.gRPC(successor, RichiestaChord.predecessor);
+		final var x = gRPC_Client.gRPC(successor, RichiestaChord.predecessor);
 
-		if (successor.isDead)
+		if (linkMorto(x))
 		{
 			removeFinger(successor);
 
@@ -323,7 +328,7 @@ public class Chord implements AutoCloseable
 	// n_ thinks it might be our predecessor.
 	public NodeLink notify(final NodeLink n_)
 	{
-		var predecessor = getPredecessor();
+		final var predecessor = getPredecessor();
 
 		if (predecessor == null || (GB.incluso(n_, predecessor, n)))
 		{
@@ -358,11 +363,11 @@ public class Chord implements AutoCloseable
 	// called periodically. checks whether predecessor has failed.
 	private void check_predecessor()
 	{
-		var predecessor = getPredecessor();
+		final var predecessor = getPredecessor();
 
 		if (predecessor != null)
 		{
-			var vivo = gRPC_Client.gRPC(predecessor, RichiestaChord.ping);
+			final var vivo = gRPC_Client.gRPC(predecessor, RichiestaChord.ping);
 
 			if (vivo == null)
 				setPredecessor(null);

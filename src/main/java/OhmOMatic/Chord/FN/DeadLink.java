@@ -6,33 +6,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Chord.FN;
 
-import OhmOMatic.ProtoBuffer.HomeServiceGrpc;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
-
-public class HomeFastStub implements AutoCloseable
+public class DeadLink extends NodeLink
 {
+	public final boolean isDead = true;
 
-	private ManagedChannel chan;
-
-	HomeServiceGrpc.HomeServiceBlockingStub getStub(NodeLink destination)
+	public DeadLink(NodeLink n)
 	{
-		final var ip = destination.IP;
-		final var port = destination.port;
-
-		chan = ManagedChannelBuilder
-				.forAddress(ip, port)
-				.usePlaintext()
-				.build();
-
-		return HomeServiceGrpc.newBlockingStub(chan);
+		super(n.IP, n.port);
 	}
-
-	@Override
-	public void close()
-	{
-		chan.shutdown();
-	}
-
 
 }

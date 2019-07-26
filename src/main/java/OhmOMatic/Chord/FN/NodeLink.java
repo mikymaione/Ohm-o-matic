@@ -11,16 +11,15 @@ Implementazione in Java di Chord:
 */
 package OhmOMatic.Chord.FN;
 
+import java.io.Serializable;
 import java.math.BigInteger;
 
-public class NodeLink
+public class NodeLink implements Serializable
 {
 
 	public final BigInteger ID;
 	public final String IP;
 	public final int port;
-
-	public boolean isDead = false;
 
 
 	public NodeLink(String IP, int port)
@@ -41,7 +40,7 @@ public class NodeLink
 	{
 		if (obj instanceof NodeLink)
 		{
-			var aNode = (NodeLink) obj;
+			final var aNode = (NodeLink) obj;
 
 			return ID.equals(aNode.ID);
 		}
