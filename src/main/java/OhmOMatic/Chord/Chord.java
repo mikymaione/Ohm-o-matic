@@ -86,15 +86,7 @@ public class Chord implements AutoCloseable
 	public void close()
 	{
 		for (var t : stabilizingRoutines)
-			try
-			{
-				t.stopMeGently();
-				t.join();
-			}
-			catch (InterruptedException e)
-			{
-				e.printStackTrace();
-			}
+			t.stopMeGently();
 
 		leave();
 
@@ -254,9 +246,7 @@ public class Chord implements AutoCloseable
 
 				if (s != null && !n.equals(s) && p != null)
 					dht.forEachAndClearAll(e ->
-					{
-						gRPC_Client.gRPC(s, RichiestaDHT.transfer, e.getKey(), e.getValue());
-					});
+							gRPC_Client.gRPC(s, RichiestaDHT.transfer, e.getKey(), e.getValue()));
 			}
 		}
 	}

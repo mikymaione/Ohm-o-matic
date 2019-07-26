@@ -20,60 +20,39 @@ import java.util.function.Consumer;
 
 public class DHT
 {
-	//====================================== DHT ======================================
-	private final HashMap<BigInteger, Serializable> _data = new HashMap<>();
-	//====================================== DHT ======================================
 
+	private final HashMap<BigInteger, Serializable> _data = new HashMap<>();
 
 	synchronized Serializable get(BigInteger key)
 	{
-		var r = _data.get(key);
-		System.out.println("DHT: get " + key);
-
-		return r;
+		return _data.get(key);
 	}
 
 	synchronized Serializable put(final BigInteger key, final Serializable value)
 	{
-		var r = _data.put(key, value);
-		System.out.println("DHT: put " + key + ": " + value);
+		return _data.put(key, value);
+	}
 
-		return r;
+	synchronized Serializable remove(BigInteger key)
+	{
+		return _data.remove(key);
 	}
 
 	synchronized void forEachAndClearAll(Consumer<Map.Entry<BigInteger, Serializable>> callback)
 	{
 		for (var e : _data.entrySet())
-		{
-			System.out.println("DHT: get " + e.getKey());
 			callback.accept(e);
-		}
 
 		_data.clear();
-		System.out.println("DHT: cleared all data");
 	}
 
 	synchronized void forEachAndRemoveAll(Consumer<Map.Entry<BigInteger, Serializable>> callback, List<BigInteger> daRimuovere)
 	{
 		for (var e : _data.entrySet())
-		{
-			System.out.println("DHT: get " + e.getKey());
 			callback.accept(e);
-		}
 
 		for (var del : daRimuovere)
-		{
 			_data.remove(del);
-			System.out.println("DHT: remove " + del);
-		}
-	}
-
-	synchronized Serializable remove(BigInteger key)
-	{
-		var r = _data.remove(key);
-		System.out.println("DHT: remove " + key);
-
-		return r;
 	}
 
 

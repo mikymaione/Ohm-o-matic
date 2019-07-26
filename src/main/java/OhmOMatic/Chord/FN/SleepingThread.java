@@ -10,7 +10,7 @@ public class SleepingThread extends Thread
 {
 	private long riposo;
 	private Runnable procedura;
-	private boolean running = true;
+	private volatile Boolean running = true;
 
 	public SleepingThread(String name, Runnable procedura, long riposo)
 	{
