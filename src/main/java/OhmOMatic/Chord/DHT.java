@@ -13,15 +13,25 @@ package OhmOMatic.Chord;
 
 import java.io.Serializable;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public class DHT
+class DHT
 {
 
 	private final HashMap<BigInteger, Serializable> _data = new HashMap<>();
+
+
+	synchronized Serializable popAll()
+	{
+		var al = new ArrayList<>(_data.values());
+		_data.clear();
+
+		return al;
+	}
 
 	synchronized Serializable get(BigInteger key)
 	{

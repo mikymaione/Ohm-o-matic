@@ -8,6 +8,7 @@ package OhmOMatic.Chord.FN;
 
 public enum RichiestaDHT
 {
+	popAll,
 	get,
 	put,
 	transfer,

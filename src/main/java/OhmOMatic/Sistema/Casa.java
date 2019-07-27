@@ -131,12 +131,12 @@ public class Casa implements MeanListener, AutoCloseable
 		}
 	}
 
-	public void inviaStatistiche(double mean)
+	public void inviaStatistiche(Double mean)
 	{
-		var ts = System.currentTimeMillis();
-		var s = myAddress + ":" + myPort + "__" + ts;
-		var h = GB.SHA1(s);
-		var b = new BigInteger(h);
+		final var ts = System.currentTimeMillis();
+		final var s = myAddress + ":" + myPort + "__" + ts;
+		final var h = GB.SHA1(s);
+		final var b = new BigInteger(h);
 
 		chord.put(b, mean);
 		//System.out.println("Mean: " + mean);
@@ -146,7 +146,13 @@ public class Casa implements MeanListener, AutoCloseable
 	//region Funzioni sul calcolo del consumo energetico
 	public void calcolaConsumoEnergeticoComplessivo()
 	{
+		Double consumo = 0d;
+		var valori = chord.popAll();
 
+		for (var valore : valori)
+			consumo += (Double) valore;
+
+		System.out.println("Consummo energetico del condominio: " + consumo);
 	}
 
 	public void richiediAlCondominioDiPoterConsumareOltreLaMedia()

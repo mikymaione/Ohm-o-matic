@@ -202,6 +202,13 @@ public class Chord implements AutoCloseable
 		return _functionDHT(RichiestaDHT.put, key, object);
 	}
 
+	public ArrayList<Serializable> popAll()
+	{
+		var valori = _functionDHT(RichiestaDHT.popAll, null, null);
+
+		return (ArrayList<Serializable>) valori;
+	}
+
 	public Serializable transfer(final BigInteger key, final Serializable object)
 	{
 		return dht.put(key, object);
@@ -268,10 +275,12 @@ public class Chord implements AutoCloseable
 		else
 			switch (req)
 			{
-				case put:
-					return dht.put(key, object);
+				case popAll:
+					return dht.popAll();
 				case get:
 					return dht.get(key);
+				case put:
+					return dht.put(key, object);
 				case remove:
 					return dht.remove(key);
 				default:

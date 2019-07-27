@@ -28,12 +28,12 @@ public final class BufferImpl implements Buffer
 	}
 
 
-	private class addMeasurementResult
+	private static class addMeasurementResult
 	{
 		final double media;
 		final boolean sendStats;
 
-		public addMeasurementResult(double media, boolean sendStats)
+		addMeasurementResult(double media, boolean sendStats)
 		{
 			this.media = media;
 			this.sendStats = sendStats;
@@ -42,27 +42,24 @@ public final class BufferImpl implements Buffer
 
 	private synchronized addMeasurementResult addMeasurement_sync(Measurement m)
 	{
-		synchronized (this)
+		buffer[buffer_index += 1] = m;
+
+		if (buffer_index + 1 == slidingWindowCount)
 		{
-			buffer[buffer_index += 1] = m;
+			var sum = 0d;
 
-			if (buffer_index + 1 == slidingWindowCount)
-			{
-				var sum = 0d;
+			for (var e : buffer)
+				sum += e.getValue();
 
-				for (var e : buffer)
-					sum += e.getValue();
+			final var media = sum / slidingWindowCount;
 
-				final var media = sum / slidingWindowCount;
+			buffer_index = -1;
 
-				buffer_index = -1;
-
-				return new addMeasurementResult(media, true);
-			}
-			else
-			{
-				return new addMeasurementResult(0d, false);
-			}
+			return new addMeasurementResult(media, true);
+		}
+		else
+		{
+			return new addMeasurementResult(0d, false);
 		}
 	}
 

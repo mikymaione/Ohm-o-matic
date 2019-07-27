@@ -57,7 +57,7 @@ public final class CliCasa extends BaseCommandLineApplication
 
 					try (var scanner = new Scanner(System.in))
 					{
-						while (LeggiComandiInterattivi(chord, scanner)) ;
+						while (LeggiComandiInterattivi(casa, chord, scanner)) ;
 					}
 
 					casa.fermaSmartMeter();
@@ -77,7 +77,7 @@ public final class CliCasa extends BaseCommandLineApplication
 	}
 
 	//region Opzioni command line
-	private static boolean LeggiComandiInterattivi(Chord chord, Scanner scanner) throws ParseException
+	private static boolean LeggiComandiInterattivi(Casa casa, Chord chord, Scanner scanner) throws ParseException
 	{
 		final var commands = createOptionsInteractiveProgram();
 		printOptions("", commands);
@@ -88,6 +88,10 @@ public final class CliCasa extends BaseCommandLineApplication
 		if (inpts.hasOption("q"))
 		{
 			return false;
+		}
+		else if (inpts.hasOption("c"))
+		{
+			casa.calcolaConsumoEnergeticoComplessivo();
 		}
 		else if (inpts.hasOption("i"))
 		{
@@ -134,13 +138,18 @@ public final class CliCasa extends BaseCommandLineApplication
 
 	private static Options createOptionsInteractiveProgram()
 	{
+		final var quit = Option.builder("q")
+				.desc("Quit")
+				.hasArg(false)
+				.build();
+
 		final var info = Option.builder("i")
 				.desc("Info")
 				.hasArg(false)
 				.build();
 
-		final var quit = Option.builder("q")
-				.desc("Quit")
+		final var consumoComplessivo = Option.builder("c")
+				.desc("Calcola consumo complessivo")
 				.hasArg(false)
 				.build();
 
@@ -164,8 +173,9 @@ public final class CliCasa extends BaseCommandLineApplication
 				.build();
 
 		final var options = new Options()
-				.addOption(info)
 				.addOption(quit)
+				.addOption(info)
+				.addOption(consumoComplessivo)
 				.addOption(get)
 				.addOption(put)
 				.addOption(remove);
