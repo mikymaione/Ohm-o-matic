@@ -204,9 +204,19 @@ public class Chord implements AutoCloseable
 
 	public ArrayList<Serializable> popAll()
 	{
-		var valori = _functionDHT(RichiestaDHT.popAll, null, null);
+		ArrayList<Serializable> miei, pred;
 
-		return (ArrayList<Serializable>) valori;
+		var predecessor = getPredecessor();
+
+		var valoriMiei = dht.popAll();
+		var valoriPred = gRPC_Client.gRPC(predecessor, RichiestaDHT.popAll, null, null);
+
+		miei = (ArrayList<Serializable>) valoriMiei;
+		pred = (ArrayList<Serializable>) valoriPred;
+
+		miei.addAll(pred);
+
+		return miei;
 	}
 
 	public Serializable transfer(final BigInteger key, final Serializable object)
@@ -272,8 +282,6 @@ public class Chord implements AutoCloseable
 		else
 			switch (req)
 			{
-				case popAll:
-					return dht.popAll();
 				case get:
 					return dht.get(key);
 				case put:

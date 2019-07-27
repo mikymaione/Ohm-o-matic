@@ -140,6 +140,13 @@ public class gRPC_Server
 
 
 			@Override
+			public void popAll(Home.oggetto request, StreamObserver<Home.oggettoRes> responseObserver)
+			{
+				elaboraDHT(request, responseObserver, e ->
+						local.popAll());
+			}
+
+			@Override
 			public void get(Home.oggetto request, StreamObserver<Home.oggettoRes> responseObserver)
 			{
 				elaboraDHT(request, responseObserver, e ->

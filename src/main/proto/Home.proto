@@ -21,6 +21,7 @@ service HomeService {
     rpc transfer (oggetto) returns (oggettoRes);
     rpc put (oggetto) returns (oggettoRes);
     rpc get (oggetto) returns (oggettoRes);
+    rpc popAll (oggetto) returns (oggettoRes);
     rpc remove (oggetto) returns (oggettoRes);
 }
 

@@ -143,6 +143,8 @@ public class gRPC_Client
 
 		switch (req)
 		{
+			case popAll:
+				return stub.popAll(o);
 			case transfer:
 				return stub.transfer(o);
 			case put:
