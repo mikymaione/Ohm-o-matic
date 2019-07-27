@@ -268,10 +268,7 @@ public class Chord implements AutoCloseable
 		final var n_ = find_successor(key);
 
 		if (n_ != null && !n.equals(n_))
-		{
-			System.out.println("gRPC " + n_ + ": " + req + "(" + key + "," + object + ")");
 			return gRPC_Client.gRPC(n_, req, key, object);
-		}
 		else
 			switch (req)
 			{
