@@ -134,11 +134,10 @@ public class Casa implements MeanListener, AutoCloseable
 	public void inviaStatistiche(Double mean)
 	{
 		final var ts = System.currentTimeMillis();
-		final var s = myAddress + ":" + myPort + "__" + ts;
-		final var h = GB.SHA1(s);
-		final var b = new BigInteger(h);
+		final var id = myAddress + ":" + myPort + "__" + ts;
+		final var sha1_id = GB.SHA1(id);
 
-		chord.put(b, mean);
+		chord.put(new BigInteger(sha1_id), mean);
 		//System.out.println("Mean: " + mean);
 	}
 	//endregion
