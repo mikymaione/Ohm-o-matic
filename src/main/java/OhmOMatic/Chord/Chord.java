@@ -95,6 +95,11 @@ public class Chord implements AutoCloseable
 	//endregion
 
 	//region Proprietà
+	public BigInteger getID()
+	{
+		return n.ID;
+	}
+
 	private NodeLink getSuccessor()
 	{
 		return getFinger(_successorNumber);
@@ -200,33 +205,6 @@ public class Chord implements AutoCloseable
 	public Serializable put(final BigInteger key, final Serializable object)
 	{
 		return _functionDHT(RichiestaDHT.put, key, object);
-	}
-
-	public ArrayList<Serializable> popAll()
-	{
-		var predecessor = getPredecessor();
-
-		var miei = serializableToArrayListOfSerializable(dht.popAll());
-
-		if (predecessor != null)
-		{
-			var pred = serializableToArrayListOfSerializable(gRPC_Client.gRPC(predecessor, RichiestaDHT.popAll, null, null));
-			miei.addAll(pred);
-		}
-
-		return miei;
-	}
-
-	private ArrayList<Serializable> serializableToArrayListOfSerializable(Serializable serializable)
-	{
-		try
-		{
-			return (ArrayList<Serializable>) serializable;
-		}
-		catch (Exception e)
-		{
-			return new ArrayList<>();
-		}
 	}
 
 	public Serializable transfer(final BigInteger key, final Serializable object)

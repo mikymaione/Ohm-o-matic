@@ -133,12 +133,10 @@ public class Casa implements MeanListener, AutoCloseable
 
 	public void inviaStatistiche(Double mean)
 	{
-		final var ts = System.currentTimeMillis();
-		final var id = myAddress + ":" + myPort + "__" + ts;
-		final var sha1_id = GB.SHA1(id);
+		chord.put(chord.getID(), mean);
 
-		chord.put(new BigInteger(sha1_id), mean);
-		//System.out.println("Mean: " + mean);
+		System.out.println("Consumo mio: " + mean);
+		calcolaConsumoEnergeticoComplessivo();
 	}
 	//endregion
 
@@ -146,10 +144,19 @@ public class Casa implements MeanListener, AutoCloseable
 	public void calcolaConsumoEnergeticoComplessivo()
 	{
 		Double consumo = 0d;
-		var valori = chord.popAll();
 
-		for (var valore : valori)
-			consumo += (Double) valore;
+		for (var porta = 9000; porta < 9006; porta++)
+		{
+			var i = GB.SHA1(myAddress + ":" + porta);
+			var k = new BigInteger(i);
+			var s = chord.get(k);
+
+			if (s instanceof Double)
+			{
+				var c = (Double) s;
+				consumo += c;
+			}
+		}
 
 		System.out.println("Consummo energetico del condominio: " + consumo);
 	}

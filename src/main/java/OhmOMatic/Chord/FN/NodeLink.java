@@ -11,6 +11,8 @@ Implementazione in Java di Chord:
 */
 package OhmOMatic.Chord.FN;
 
+import OhmOMatic.Global.GB;
+
 import java.io.Serializable;
 import java.math.BigInteger;
 
@@ -24,13 +26,9 @@ public class NodeLink implements Serializable
 
 	public NodeLink(String IP, int port)
 	{
-		//versione normale con numeri SHA1
-		//var b = GB.SHA1(IP + ":" + port);
-		//this.ID = new BigInteger(b);
+		var b = GB.SHA1(IP + ":" + port);
 
-		//versione semplificata con numeri per umani
-		this.ID = BigInteger.valueOf(port);
-
+		this.ID = new BigInteger(b);
 		this.IP = IP;
 		this.port = port;
 	}

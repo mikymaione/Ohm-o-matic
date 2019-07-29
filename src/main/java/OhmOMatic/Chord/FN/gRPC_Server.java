@@ -12,7 +12,6 @@ import OhmOMatic.ProtoBuffer.Common;
 import OhmOMatic.ProtoBuffer.Home;
 import OhmOMatic.ProtoBuffer.HomeServiceGrpc;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.Empty;
 import io.grpc.stub.StreamObserver;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
@@ -116,41 +115,6 @@ public class gRPC_Server
 
 					_oggetto
 							.setKey(request.getKey())
-							.setObj(ByteString.copyFrom(GB.serialize(R)));
-
-					_standardRes
-							.setOk(true);
-				}
-				catch (Exception e)
-				{
-					var _errorMessage = e.getMessage();
-
-					if (_errorMessage != null)
-						_standardRes.setErrore(_errorMessage);
-
-					_standardRes.setOk(false);
-				}
-
-				_oggettoRes
-						.setObj(_oggetto)
-						.setStandardRes(_standardRes);
-
-				responseObserver.onNext(_oggettoRes.build());
-				responseObserver.onCompleted();
-			}
-
-			@Override
-			public void popAll(Empty request, StreamObserver<Home.oggettoRes> responseObserver)
-			{
-				var _standardRes = Common.standardRes.newBuilder();
-				var _oggetto = Home.oggetto.newBuilder();
-				var _oggettoRes = Home.oggettoRes.newBuilder();
-
-				try
-				{
-					var R = local.popAll();
-
-					_oggetto
 							.setObj(ByteString.copyFrom(GB.serialize(R)));
 
 					_standardRes
