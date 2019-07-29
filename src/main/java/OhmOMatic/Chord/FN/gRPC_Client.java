@@ -9,6 +9,7 @@ package OhmOMatic.Chord.FN;
 import OhmOMatic.Global.GB;
 import OhmOMatic.ProtoBuffer.Home;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.Empty;
 import io.grpc.StatusRuntimeException;
 
 import java.io.Serializable;
@@ -109,12 +110,15 @@ public class gRPC_Client
 	{
 		try (var hfs = new HomeFastStub())
 		{
-			var _oggetto = Home.oggetto.newBuilder()
-					.setKey(ByteString.copyFrom(key.toByteArray()))
-					.setObj(ByteString.copyFrom(GB.serialize(object)))
-					.build();
+			var _oggetto = Home.oggetto.newBuilder();
 
-			var _request = doRequestDHT(server, hfs, req, _oggetto);
+			if (key != null)
+				_oggetto.setKey(ByteString.copyFrom(key.toByteArray()));
+
+			if (object != null)
+				_oggetto.setObj(ByteString.copyFrom(GB.serialize(object)));
+
+			var _request = doRequestDHT(server, hfs, req, _oggetto.build());
 
 			if (_request.getStandardRes().getOk())
 			{
@@ -144,7 +148,7 @@ public class gRPC_Client
 		switch (req)
 		{
 			case popAll:
-				return stub.popAll(o);
+				return stub.popAll(Empty.newBuilder().build());
 			case transfer:
 				return stub.transfer(o);
 			case put:

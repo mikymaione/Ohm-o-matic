@@ -204,19 +204,29 @@ public class Chord implements AutoCloseable
 
 	public ArrayList<Serializable> popAll()
 	{
-		ArrayList<Serializable> miei, pred;
-
 		var predecessor = getPredecessor();
 
-		var valoriMiei = dht.popAll();
-		var valoriPred = gRPC_Client.gRPC(predecessor, RichiestaDHT.popAll, null, null);
+		var miei = serializableToArrayListOfSerializable(dht.popAll());
 
-		miei = (ArrayList<Serializable>) valoriMiei;
-		pred = (ArrayList<Serializable>) valoriPred;
-
-		miei.addAll(pred);
+		if (predecessor != null)
+		{
+			var pred = serializableToArrayListOfSerializable(gRPC_Client.gRPC(predecessor, RichiestaDHT.popAll, null, null));
+			miei.addAll(pred);
+		}
 
 		return miei;
+	}
+
+	private ArrayList<Serializable> serializableToArrayListOfSerializable(Serializable serializable)
+	{
+		try
+		{
+			return (ArrayList<Serializable>) serializable;
+		}
+		catch (Exception e)
+		{
+			return new ArrayList<>();
+		}
 	}
 
 	public Serializable transfer(final BigInteger key, final Serializable object)

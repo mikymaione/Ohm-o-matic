@@ -8,8 +8,8 @@ syntax = "proto3";
 
 package OhmOMatic.ProtoBuffer;
 
+import "google/protobuf/empty.proto";
 import "Common.proto";
-
 
 service HomeService {
     rpc findSuccessor (casa) returns (casaRes);
@@ -17,11 +17,12 @@ service HomeService {
 
     rpc notify (casa) returns (casaRes);
     rpc ping (casa) returns (casaRes);
-    
+
+    rpc popAll (google.protobuf.Empty) returns (oggettoRes);
+
     rpc transfer (oggetto) returns (oggettoRes);
     rpc put (oggetto) returns (oggettoRes);
     rpc get (oggetto) returns (oggettoRes);
-    rpc popAll (oggetto) returns (oggettoRes);
     rpc remove (oggetto) returns (oggettoRes);
 }
 
