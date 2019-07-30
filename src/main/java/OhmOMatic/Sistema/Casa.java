@@ -47,7 +47,9 @@ public class Casa implements MeanListener, AutoCloseable
 		myPort = miaPorta_;
 
 		theBuffer = new BufferImpl(24, this);
+
 		smartMeterSimulator = new SmartMeterSimulator(theBuffer);
+		smartMeterSimulator.setName("smartMeterSimulator");
 	}
 
 
@@ -129,20 +131,20 @@ public class Casa implements MeanListener, AutoCloseable
 		}
 	}
 
-	private void inviaStatistiche(final Double mean)
+	private void inviaStatistiche(final Double consumo)
 	{
-		chord.put(chord.getID(), mean);
+		chord.put(chord.getID(), consumo);
 
-		final var cec = calcolaConsumoEnergeticoComplessivo();
+		final var consumoEnergeticoComplessivo = calcolaConsumoEnergeticoComplessivo();
 
 		System.out.println(
 				"Consumo mio: " +
 						System.lineSeparator() +
-						mean +
+						consumo +
 						System.lineSeparator() +
-						"Consummo energetico del condominio: " +
+						"Consumo energetico del condominio: " +
 						System.lineSeparator() +
-						cec
+						consumoEnergeticoComplessivo
 		);
 	}
 	//endregion
@@ -150,26 +152,20 @@ public class Casa implements MeanListener, AutoCloseable
 	//region Funzioni sul calcolo del consumo energetico
 	private Double calcolaConsumoEnergeticoComplessivo()
 	{
-		Double consumo = 0d;
-
-		var Lista = "Lista peer:";
+		Double consumoEnergeticoComplessivo = 0d;
 
 		for (final var peer : chord.getPeerList())
 		{
-			Lista += System.lineSeparator() + peer;
+			final var serialized_consumo = chord.get(peer);
 
-			final var s = chord.get(peer);
-
-			if (s instanceof Double)
+			if (serialized_consumo instanceof Double)
 			{
-				var c = (Double) s;
-				consumo += c;
+				var consumo = (Double) serialized_consumo;
+				consumoEnergeticoComplessivo += consumo;
 			}
 		}
 
-		System.out.println(Lista);
-
-		return consumo;
+		return consumoEnergeticoComplessivo;
 	}
 
 	public void richiediAlCondominioDiPoterConsumareOltreLaMedia()

@@ -67,11 +67,10 @@ public class Chord implements AutoCloseable
 
 	public Chord(final NodeLink address) throws IOException
 	{
-		keyListaPeers = new BigInteger(GB.SHA1("Chiave speciale per lista dei peer"));
-
 		n = address;
 
 		_fingerTable = new HashMap<>(mBit);
+		keyListaPeers = new BigInteger(GB.SHA1("Chiave speciale per lista dei peer"));
 
 		stabilizingRoutines = Set.of(
 				new SleepingThread("stabilize", this::stabilize, 60),
@@ -92,8 +91,8 @@ public class Chord implements AutoCloseable
 		removeFromPeerList(keyListaPeers, n.ID);
 		remove(n.ID);
 
-		for (var t : stabilizingRoutines)
-			t.stopMeGently();
+		for (var routine : stabilizingRoutines)
+			routine.stopMeGently();
 
 		leave();
 
@@ -142,29 +141,30 @@ public class Chord implements AutoCloseable
 	// ask node n to find the successor of id
 	public NodeLink find_successor(final BigInteger id)
 	{
-		final var s = getSuccessor();
+		final var successor = getSuccessor();
 
-		if (s != null && GB.incluso(id, n, s))
+		if (successor != null && GB.incluso(id, n, successor))
 		{
-			final var s_vivo = gRPC_Client.gRPC(s, RichiestaChord.ping);
+			final var s_vivo = gRPC_Client.gRPC(successor, RichiestaChord.ping);
 
 			if (!linkMorto(s_vivo))
-				return s;
+				return successor;
 		}
 
 		// forward the query around the circle
-		final var n0 = closest_preceding_node(id);
+		while (true)
+		{
+			final var n0 = closest_preceding_node(id);
 
-		if (n.equals(n0))
-			return n;
+			if (n.equals(n0))
+				return n;
 
-		//return n0.find_successor(id);
-		final var n0_successor = gRPC_Client.gRPC(n0, RichiestaChord.findSuccessor, id);
+			//return n0.find_successor(id);
+			final var n0_successor = gRPC_Client.gRPC(n0, RichiestaChord.findSuccessor, id);
 
-		if (linkMorto(n0_successor))
-			return null;
-		else
-			return n0_successor;
+			if (!linkMorto(n0_successor))
+				return n0_successor;
+		}
 	}
 
 	// search the local table for the highest predecessor of id
@@ -176,7 +176,19 @@ public class Chord implements AutoCloseable
 
 			if (iThFinger != null)
 				if (GB.incluso(iThFinger, n, id))
-					return iThFinger;
+				{
+					var iThFinger_vivo = gRPC_Client.gRPC(iThFinger, RichiestaChord.ping);
+
+					if (linkMorto(iThFinger_vivo))
+					{
+						if (i.equals(_successorNumber))
+							setFinger(i, n);
+						else
+							setFinger(i, null);
+					}
+					else
+						return iThFinger;
+				}
 		}
 
 		return n;
@@ -222,9 +234,9 @@ public class Chord implements AutoCloseable
 
 	public HashSet<BigInteger> getPeerList()
 	{
-		var s = _functionDHT(RichiestaDHT.getPeerList, keyListaPeers, null);
+		var HS = _functionDHT(RichiestaDHT.getPeerList, keyListaPeers, null);
 
-		return (s instanceof HashSet ? (HashSet<BigInteger>) s : new HashSet<>());
+		return (HS instanceof HashSet ? (HashSet<BigInteger>) HS : new HashSet<>());
 	}
 	//endregion
 
@@ -249,9 +261,9 @@ public class Chord implements AutoCloseable
 		return dht.put(key, object);
 	}
 
-	private boolean linkMorto(Serializable dL)
+	private boolean linkMorto(Serializable n_)
 	{
-		return (dL instanceof DeadLink && ((DeadLink) dL).isDead);
+		return (n_ == null || (n_ instanceof DeadLink && ((DeadLink) n_).isDead));
 	}
 
 	private void leave()
@@ -260,12 +272,12 @@ public class Chord implements AutoCloseable
 
 		while (cercandoDestinatario)
 		{
-			final var s = getSuccessor();
-			final var p = getPredecessor();
+			final var successor = getSuccessor();
+			final var predecessor = getPredecessor();
 
-			final var s_vivo = gRPC_Client.gRPC(s, RichiestaChord.ping);
+			final var successor_vivo = gRPC_Client.gRPC(successor, RichiestaChord.ping);
 
-			if (linkMorto(s_vivo))
+			if (linkMorto(successor_vivo))
 			{
 				stabilize();
 			}
@@ -273,9 +285,9 @@ public class Chord implements AutoCloseable
 			{
 				cercandoDestinatario = false;
 
-				if (s != null && !n.equals(s) && p != null)
-					dht.forEachAndClearAll(e ->
-							gRPC_Client.gRPC(s, RichiestaDHT.transfer, e.getKey(), e.getValue()));
+				if (successor != null && !n.equals(successor) && predecessor != null)
+					dht.forEachAndClearAll(i ->
+							gRPC_Client.gRPC(successor, RichiestaDHT.transfer, i.getKey(), i.getValue()));
 			}
 		}
 	}
@@ -290,7 +302,6 @@ public class Chord implements AutoCloseable
 			switch (req)
 			{
 				case getPeerList:
-					System.out.println("Peer list in " + n);
 					return dht.getPeerList(key);
 				case addToPeerList:
 					return dht.addToPeerList(key, object);
@@ -315,8 +326,8 @@ public class Chord implements AutoCloseable
 	//stabilize the chord ring/circle after getNode joins and departures
 	private void startStabilizingRoutines()
 	{
-		for (var t : stabilizingRoutines)
-			t.start();
+		for (var routine : stabilizingRoutines)
+			routine.start();
 	}
 
 	// called periodically. n asks the getSuccessor
@@ -337,7 +348,7 @@ public class Chord implements AutoCloseable
 		}
 		else
 		{
-			if (x != null && GB.incluso(x, n, successor))
+			if (GB.incluso(x, n, successor))
 			{
 				final var x_vivo = gRPC_Client.gRPC(x, RichiestaChord.ping);
 
@@ -460,7 +471,7 @@ public class Chord implements AutoCloseable
 		stampaFingerTable();
 	}
 
-	public void stampaFingerTable()
+	private void stampaFingerTable()
 	{
 		System.out.println("Finger Table:");
 
@@ -468,7 +479,7 @@ public class Chord implements AutoCloseable
 			System.out.println(i + ": " + getFinger(i));
 	}
 
-	public void stampaStato()
+	private void stampaStato()
 	{
 		System.out.println("Nodo: " + n);
 		System.out.println("Predecessor: " + getPredecessor());

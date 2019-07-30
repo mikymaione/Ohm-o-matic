@@ -25,11 +25,16 @@ class DHT
 	private final HashMap<BigInteger, Serializable> _data = new HashMap<>();
 
 
-	synchronized Serializable getPeerList(final BigInteger keyListaPeers)
+	private HashSet<BigInteger> toSync_getPeerList(final BigInteger keyListaPeers)
 	{
 		var s = _data.get(keyListaPeers);
 
-		return (s instanceof HashSet ? (HashSet<BigInteger>) s : new HashSet<>());
+		return (s instanceof HashSet ? (HashSet<BigInteger>) s : new HashSet<BigInteger>());
+	}
+
+	synchronized HashSet<BigInteger> getPeerList(final BigInteger keyListaPeers)
+	{
+		return toSync_getPeerList(keyListaPeers);
 	}
 
 	synchronized Serializable addToPeerList(final BigInteger keyListaPeers, final Serializable ID)
@@ -38,8 +43,7 @@ class DHT
 		{
 			final var n_ = (BigInteger) ID;
 
-			var s = _data.get(keyListaPeers);
-			var HS = (s instanceof HashSet ? (HashSet<BigInteger>) s : new HashSet<BigInteger>());
+			var HS = toSync_getPeerList(keyListaPeers);
 			HS.add(n_);
 
 			_data.put(keyListaPeers, HS);
@@ -56,8 +60,7 @@ class DHT
 		{
 			final var n_ = (BigInteger) ID;
 
-			var s = _data.get(keyListaPeers);
-			var HS = (s instanceof HashSet ? (HashSet<BigInteger>) s : new HashSet<BigInteger>());
+			var HS = toSync_getPeerList(keyListaPeers);
 			HS.remove(n_);
 
 			_data.put(keyListaPeers, HS);
