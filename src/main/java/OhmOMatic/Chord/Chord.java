@@ -125,14 +125,20 @@ public class Chord implements AutoCloseable
 		_predecessor = n_;
 	}
 
-	private synchronized NodeLink getFinger(final Integer i)
+	private NodeLink getFinger(final Integer i)
 	{
-		return _fingerTable.get(i);
+		synchronized (_fingerTable)
+		{
+			return _fingerTable.get(i);
+		}
 	}
 
-	private synchronized void setFinger(final Integer i, final NodeLink n_)
+	private void setFinger(final Integer i, final NodeLink n_)
 	{
-		_fingerTable.put(i, n_);
+		synchronized (_fingerTable)
+		{
+			_fingerTable.put(i, n_);
+		}
 	}
 	//endregion
 
@@ -371,11 +377,14 @@ public class Chord implements AutoCloseable
 			gRPC_Client.gRPC(successor, RichiestaChord.notify, n);
 	}
 
-	private synchronized void removeFinger(NodeLink finger)
+	private void removeFinger(NodeLink finger)
 	{
-		for (var e : _fingerTable.entrySet())
-			if (finger.equals(e.getValue()))
-				e.setValue(null);
+		synchronized (_fingerTable)
+		{
+			for (var e : _fingerTable.entrySet())
+				if (finger.equals(e.getValue()))
+					e.setValue(null);
+		}
 	}
 
 	// n_ thinks it might be our predecessor.

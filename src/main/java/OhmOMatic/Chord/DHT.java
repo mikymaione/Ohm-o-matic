@@ -25,36 +25,45 @@ class DHT
 	private final HashMap<BigInteger, Serializable> _data = new HashMap<>();
 
 
-	private HashSet<BigInteger> toSync_getPeerList(final BigInteger keyListaPeers)
+	private HashSet<BigInteger> _getPeerList(final BigInteger keyListaPeers)
 	{
-		var HS = _data.get(keyListaPeers);
+		synchronized (_data)
+		{
+			var HS = _data.get(keyListaPeers);
 
-		return (HS instanceof HashSet ? (HashSet<BigInteger>) HS : new HashSet<>());
+			return (HS instanceof HashSet ? (HashSet<BigInteger>) HS : null);
+		}
 	}
 
-	synchronized BigInteger[] getPeerList(final BigInteger keyListaPeers)
+	BigInteger[] getPeerList(final BigInteger keyListaPeers)
 	{
 		var i = -1;
 
-		var HS = toSync_getPeerList(keyListaPeers);
-		var ARR = new BigInteger[HS.size()];
+		synchronized (_data)
+		{
+			var HS = _getPeerList(keyListaPeers);
+			var ARR = new BigInteger[HS.size()];
 
-		for (var peer : HS)
-			ARR[i += 1] = peer;
+			for (var peer : HS)
+				ARR[i += 1] = peer;
 
-		return ARR;
+			return ARR;
+		}
 	}
 
-	synchronized Boolean addToPeerList(final BigInteger keyListaPeers, final Serializable ID)
+	Boolean addToPeerList(final BigInteger keyListaPeers, final Serializable ID)
 	{
 		if (ID instanceof BigInteger)
 		{
 			final var n_ = (BigInteger) ID;
 
-			var HS = toSync_getPeerList(keyListaPeers);
-			HS.add(n_);
+			synchronized (_data)
+			{
+				var HS = (_data.containsKey(keyListaPeers) ? _getPeerList(keyListaPeers) : new HashSet<BigInteger>());
+				HS.add(n_);
 
-			_data.put(keyListaPeers, HS);
+				_data.put(keyListaPeers, HS);
+			}
 
 			return true;
 		}
@@ -62,16 +71,19 @@ class DHT
 		return false;
 	}
 
-	synchronized Boolean removeFromPeerList(final BigInteger keyListaPeers, final Serializable ID)
+	Boolean removeFromPeerList(final BigInteger keyListaPeers, final Serializable ID)
 	{
 		if (ID instanceof BigInteger)
 		{
 			final var n_ = (BigInteger) ID;
 
-			var HS = toSync_getPeerList(keyListaPeers);
-			HS.remove(n_);
+			synchronized (_data)
+			{
+				var HS = _getPeerList(keyListaPeers);
+				HS.remove(n_);
 
-			_data.put(keyListaPeers, HS);
+				_data.put(keyListaPeers, HS);
+			}
 
 			return true;
 		}
@@ -79,36 +91,51 @@ class DHT
 		return false;
 	}
 
-	synchronized Serializable get(final BigInteger key)
+	Serializable get(final BigInteger key)
 	{
-		return _data.get(key);
+		synchronized (_data)
+		{
+			return _data.get(key);
+		}
 	}
 
-	synchronized Serializable put(final BigInteger key, final Serializable value)
+	Serializable put(final BigInteger key, final Serializable value)
 	{
-		return _data.put(key, value);
+		synchronized (_data)
+		{
+			return _data.put(key, value);
+		}
 	}
 
-	synchronized Serializable remove(BigInteger key)
+	Serializable remove(BigInteger key)
 	{
-		return _data.remove(key);
+		synchronized (_data)
+		{
+			return _data.remove(key);
+		}
 	}
 
-	synchronized void forEachAndClearAll(Consumer<Map.Entry<BigInteger, Serializable>> callback)
+	void forEachAndClearAll(Consumer<Map.Entry<BigInteger, Serializable>> callback)
 	{
-		for (var e : _data.entrySet())
-			callback.accept(e);
+		synchronized (_data)
+		{
+			for (var e : _data.entrySet())
+				callback.accept(e);
 
-		_data.clear();
+			_data.clear();
+		}
 	}
 
-	synchronized void forEachAndRemoveAll(Consumer<Map.Entry<BigInteger, Serializable>> callback, final List<BigInteger> daRimuovere)
+	void forEachAndRemoveAll(Consumer<Map.Entry<BigInteger, Serializable>> callback, final List<BigInteger> daRimuovere)
 	{
-		for (var e : _data.entrySet())
-			callback.accept(e);
+		synchronized (_data)
+		{
+			for (var e : _data.entrySet())
+				callback.accept(e);
 
-		for (var del : daRimuovere)
-			_data.remove(del);
+			for (var del : daRimuovere)
+				_data.remove(del);
+		}
 	}
 
 
