@@ -32,12 +32,20 @@ class DHT
 		return (HS instanceof HashSet ? (HashSet<BigInteger>) HS : new HashSet<>());
 	}
 
-	synchronized HashSet<BigInteger> getPeerList(final BigInteger keyListaPeers)
+	synchronized BigInteger[] getPeerList(final BigInteger keyListaPeers)
 	{
-		return toSync_getPeerList(keyListaPeers);
+		var i = -1;
+
+		var HS = toSync_getPeerList(keyListaPeers);
+		var ARR = new BigInteger[HS.size()];
+
+		for (var peer : HS)
+			ARR[i += 1] = peer;
+
+		return ARR;
 	}
 
-	synchronized Serializable addToPeerList(final BigInteger keyListaPeers, final Serializable ID)
+	synchronized Boolean addToPeerList(final BigInteger keyListaPeers, final Serializable ID)
 	{
 		if (ID instanceof BigInteger)
 		{
@@ -54,7 +62,7 @@ class DHT
 		return false;
 	}
 
-	synchronized Serializable removeFromPeerList(final BigInteger keyListaPeers, final Serializable ID)
+	synchronized Boolean removeFromPeerList(final BigInteger keyListaPeers, final Serializable ID)
 	{
 		if (ID instanceof BigInteger)
 		{

@@ -23,7 +23,6 @@ import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Set;
 //endregion
 
@@ -232,11 +231,11 @@ public class Chord implements AutoCloseable
 		return _functionDHT(RichiestaDHT.addToPeerList, key, object);
 	}
 
-	public HashSet<BigInteger> getPeerList()
+	public BigInteger[] getPeerList()
 	{
 		var HS = _functionDHT(RichiestaDHT.getPeerList, keyListaPeers, null);
 
-		return (HS instanceof HashSet ? (HashSet<BigInteger>) HS : null);
+		return (HS instanceof BigInteger[] ? (BigInteger[]) HS : null);
 	}
 	//endregion
 
