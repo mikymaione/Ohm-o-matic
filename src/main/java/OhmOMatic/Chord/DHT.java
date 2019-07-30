@@ -27,9 +27,9 @@ class DHT
 
 	private HashSet<BigInteger> toSync_getPeerList(final BigInteger keyListaPeers)
 	{
-		var s = _data.get(keyListaPeers);
+		var HS = _data.get(keyListaPeers);
 
-		return (s instanceof HashSet ? (HashSet<BigInteger>) s : new HashSet<BigInteger>());
+		return (HS instanceof HashSet ? (HashSet<BigInteger>) HS : new HashSet<>());
 	}
 
 	synchronized HashSet<BigInteger> getPeerList(final BigInteger keyListaPeers)

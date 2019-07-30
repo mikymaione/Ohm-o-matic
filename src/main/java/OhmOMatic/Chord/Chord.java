@@ -236,7 +236,7 @@ public class Chord implements AutoCloseable
 	{
 		var HS = _functionDHT(RichiestaDHT.getPeerList, keyListaPeers, null);
 
-		return (HS instanceof HashSet ? (HashSet<BigInteger>) HS : new HashSet<>());
+		return (HS instanceof HashSet ? (HashSet<BigInteger>) HS : null);
 	}
 	//endregion
 
