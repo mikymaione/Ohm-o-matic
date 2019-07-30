@@ -38,7 +38,7 @@ public class Chord implements AutoCloseable
 
 	//===================================== Chord =====================================
 	//private static final Integer mBit = 160; //SHA1 versione normale
-	private static final Integer mBit = 16; //versione semplificata
+	private static final Integer mBit = 4; //versione semplificata
 	private static final Integer _successorNumber = 1;
 	private Integer next = 1;
 
@@ -144,9 +144,13 @@ public class Chord implements AutoCloseable
 	{
 		final var s = getSuccessor();
 
-		if (s != null)
-			if (GB.incluso(id, n, s))
+		if (s != null && GB.incluso(id, n, s))
+		{
+			final var s_vivo = gRPC_Client.gRPC(s, RichiestaChord.ping);
+
+			if (!linkMorto(s_vivo))
 				return s;
+		}
 
 		// forward the query around the circle
 		final var n0 = closest_preceding_node(id);
@@ -155,7 +159,12 @@ public class Chord implements AutoCloseable
 			return n;
 
 		//return n0.find_successor(id);
-		return gRPC_Client.gRPC(n0, RichiestaChord.findSuccessor, id);
+		final var n0_successor = gRPC_Client.gRPC(n0, RichiestaChord.findSuccessor, id);
+
+		if (linkMorto(n0_successor))
+			return null;
+		else
+			return n0_successor;
 	}
 
 	// search the local table for the highest predecessor of id
@@ -254,9 +263,9 @@ public class Chord implements AutoCloseable
 			final var s = getSuccessor();
 			final var p = getPredecessor();
 
-			final var vivo = gRPC_Client.gRPC(s, RichiestaChord.ping);
+			final var s_vivo = gRPC_Client.gRPC(s, RichiestaChord.ping);
 
-			if (linkMorto(vivo))
+			if (linkMorto(s_vivo))
 			{
 				stabilize();
 			}
@@ -330,9 +339,9 @@ public class Chord implements AutoCloseable
 		{
 			if (x != null && GB.incluso(x, n, successor))
 			{
-				final var vivo = gRPC_Client.gRPC(x, RichiestaChord.ping);
+				final var x_vivo = gRPC_Client.gRPC(x, RichiestaChord.ping);
 
-				if (linkMorto(vivo))
+				if (linkMorto(x_vivo))
 				{
 					removeFinger(x);
 
@@ -401,13 +410,14 @@ public class Chord implements AutoCloseable
 
 		if (predecessor != null)
 		{
-			final var vivo = gRPC_Client.gRPC(predecessor, RichiestaChord.ping);
+			final var predecessor_vivo = gRPC_Client.gRPC(predecessor, RichiestaChord.ping);
 
-			if (linkMorto(vivo))
+			if (linkMorto(predecessor_vivo))
 				setPredecessor(null);
 		}
 	}
 
+	// called periodically. handoff my data to the correct peer
 	private void handoff()
 	{
 		var daRimuovere = new ArrayList<BigInteger>();
@@ -418,9 +428,9 @@ public class Chord implements AutoCloseable
 
 			if (n_ != null && !n.equals(n_))
 			{
-				final var dL = gRPC_Client.gRPC(n_, RichiestaDHT.put, e.getKey(), e.getValue());
+				final var n_vivo = gRPC_Client.gRPC(n_, RichiestaDHT.put, e.getKey(), e.getValue());
 
-				if (!linkMorto(dL))
+				if (!linkMorto(n_vivo))
 					daRimuovere.add(e.getKey());
 			}
 		}, daRimuovere);
