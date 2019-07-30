@@ -8,6 +8,9 @@ package OhmOMatic.Chord.FN;
 
 public enum RichiestaDHT
 {
+	addToPeerList,
+	getPeerList,
+
 	get,
 	put,
 	transfer,

@@ -138,6 +138,22 @@ public class gRPC_Server
 				responseObserver.onCompleted();
 			}
 
+
+			@Override
+			public void getPeerList(Home.oggetto request, StreamObserver<Home.oggettoRes> responseObserver)
+			{
+				elaboraDHT(request, responseObserver, e ->
+						local.getPeerList());
+			}
+
+			@Override
+			public void addToPeerList(Home.oggetto request, StreamObserver<Home.oggettoRes> responseObserver)
+			{
+				elaboraDHT(request, responseObserver, e ->
+						local.addToPeerList(e.getKey(), e.getValue()));
+			}
+
+
 			@Override
 			public void get(Home.oggetto request, StreamObserver<Home.oggettoRes> responseObserver)
 			{

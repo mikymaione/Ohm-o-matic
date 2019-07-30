@@ -23,6 +23,7 @@ import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 //endregion
 
@@ -41,6 +42,7 @@ public class Chord implements AutoCloseable
 	private static final Integer _successorNumber = 1;
 	private Integer next = 1;
 
+	private final BigInteger keyListaPeers;
 	private final NodeLink n;
 	private NodeLink _predecessor;
 
@@ -65,6 +67,8 @@ public class Chord implements AutoCloseable
 
 	public Chord(final NodeLink address) throws IOException
 	{
+		keyListaPeers = new BigInteger(GB.SHA1("ListaPeer"));
+
 		n = address;
 
 		_fingerTable = new HashMap<>(mBit);
@@ -95,6 +99,18 @@ public class Chord implements AutoCloseable
 	//endregion
 
 	//region Proprietà
+	public Serializable addToPeerList(final BigInteger key, final Serializable object)
+	{
+		return _functionDHT(RichiestaDHT.addToPeerList, key, object);
+	}
+
+	public HashSet<BigInteger> getPeerList()
+	{
+		var s = _functionDHT(RichiestaDHT.getPeerList, keyListaPeers, null);
+
+		return (s instanceof HashSet ? (HashSet<BigInteger>) s : new HashSet<>());
+	}
+
 	public BigInteger getID()
 	{
 		return n.ID;
@@ -172,7 +188,7 @@ public class Chord implements AutoCloseable
 		join(new NodeLink(_ip, _port));
 	}
 
-	public void join(final NodeLink n_) throws Exception
+	private void join(final NodeLink n_) throws Exception
 	{
 		if (!n.equals(n_))
 		{
@@ -186,6 +202,8 @@ public class Chord implements AutoCloseable
 
 			setSuccessor(successor);
 		}
+
+		addToPeerList(keyListaPeers, n.ID);
 
 		startStabilizingRoutines();
 	}
@@ -270,12 +288,18 @@ public class Chord implements AutoCloseable
 		else
 			switch (req)
 			{
+				case getPeerList:
+					return dht.getPeerList(key);
+				case addToPeerList:
+					return dht.addToPeerList(key, object);
+
 				case get:
 					return dht.get(key);
 				case put:
 					return dht.put(key, object);
 				case remove:
 					return dht.remove(key);
+
 				default:
 					return null;
 			}

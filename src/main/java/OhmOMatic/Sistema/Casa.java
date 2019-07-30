@@ -7,7 +7,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package OhmOMatic.Sistema;
 
 import OhmOMatic.Chord.Chord;
-import OhmOMatic.Global.GB;
 import OhmOMatic.ProtoBuffer.Common.standardRes;
 import OhmOMatic.ProtoBuffer.Home.casa;
 import OhmOMatic.ProtoBuffer.Home.listaCase;
@@ -20,7 +19,6 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import java.io.IOException;
-import java.math.BigInteger;
 
 public class Casa implements MeanListener, AutoCloseable
 {
@@ -135,21 +133,28 @@ public class Casa implements MeanListener, AutoCloseable
 	{
 		chord.put(chord.getID(), mean);
 
-		System.out.println("Consumo mio: " + mean);
-		calcolaConsumoEnergeticoComplessivo();
+		var cec = calcolaConsumoEnergeticoComplessivo();
+
+		System.out.println(
+				"Consumo mio: " +
+						System.lineSeparator() +
+						mean +
+						System.lineSeparator() +
+						"Consummo energetico del condominio: " +
+						System.lineSeparator() +
+						cec
+		);
 	}
 	//endregion
 
 	//region Funzioni sul calcolo del consumo energetico
-	public void calcolaConsumoEnergeticoComplessivo()
+	public Double calcolaConsumoEnergeticoComplessivo()
 	{
 		Double consumo = 0d;
 
-		for (var porta = 9000; porta < 9006; porta++)
+		for (var peer : chord.getPeerList())
 		{
-			var i = GB.SHA1(myAddress + ":" + porta);
-			var k = new BigInteger(i);
-			var s = chord.get(k);
+			var s = chord.get(peer);
 
 			if (s instanceof Double)
 			{
@@ -158,7 +163,7 @@ public class Casa implements MeanListener, AutoCloseable
 			}
 		}
 
-		System.out.println("Consummo energetico del condominio: " + consumo);
+		return consumo;
 	}
 
 	public void richiediAlCondominioDiPoterConsumareOltreLaMedia()

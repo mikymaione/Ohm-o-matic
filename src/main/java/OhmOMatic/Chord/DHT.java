@@ -13,8 +13,8 @@ package OhmOMatic.Chord;
 
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -25,13 +25,35 @@ class DHT
 	private final HashMap<BigInteger, Serializable> _data = new HashMap<>();
 
 
-	synchronized Serializable popAll()
+	private HashSet<BigInteger> _getPeerList(BigInteger keyListaPeers)
 	{
-		var al = new ArrayList<>(_data.values());
-		_data.clear();
+		var s = _data.get(keyListaPeers);
 
-		return al;
+		return (s instanceof HashSet ? (HashSet<BigInteger>) s : new HashSet<>());
 	}
+
+	synchronized Serializable getPeerList(BigInteger keyListaPeers)
+	{
+		return _getPeerList(keyListaPeers);
+	}
+
+	synchronized Serializable addToPeerList(final BigInteger keyListaPeers, final Serializable ID)
+	{
+		if (ID instanceof BigInteger)
+		{
+			var n_ = (BigInteger) ID;
+			var HS = _getPeerList(keyListaPeers);
+
+			HS.add(n_);
+
+			_data.put(keyListaPeers, HS);
+
+			return true;
+		}
+
+		return false;
+	}
+
 
 	synchronized Serializable get(BigInteger key)
 	{

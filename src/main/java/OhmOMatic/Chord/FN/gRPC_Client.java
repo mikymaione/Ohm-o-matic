@@ -142,6 +142,11 @@ public class gRPC_Client
 
 		switch (req)
 		{
+			case getPeerList:
+				return stub.getPeerList(o);
+			case addToPeerList:
+				return stub.addToPeerList(o);
+
 			case transfer:
 				return stub.transfer(o);
 			case put:
