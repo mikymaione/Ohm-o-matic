@@ -153,6 +153,13 @@ public class gRPC_Server
 						local.addToPeerList(e.getKey(), e.getValue()));
 			}
 
+			@Override
+			public void removeFromPeerList(Home.oggetto request, StreamObserver<Home.oggettoRes> responseObserver)
+			{
+				elaboraDHT(request, responseObserver, e ->
+						local.removeFromPeerList(e.getKey(), e.getValue()));
+			}
+
 
 			@Override
 			public void get(Home.oggetto request, StreamObserver<Home.oggettoRes> responseObserver)

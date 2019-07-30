@@ -10,6 +10,7 @@ public enum RichiestaDHT
 {
 	addToPeerList,
 	getPeerList,
+	removeFromPeerList,
 
 	get,
 	put,

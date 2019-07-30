@@ -89,6 +89,9 @@ public class Chord implements AutoCloseable
 	@Override
 	public void close()
 	{
+		removeFromPeerList(keyListaPeers, n.ID);
+		remove(n.ID);
+
 		for (var t : stabilizingRoutines)
 			t.stopMeGently();
 
@@ -99,6 +102,11 @@ public class Chord implements AutoCloseable
 	//endregion
 
 	//region Proprietà
+	public Serializable removeFromPeerList(final BigInteger key, final Serializable object)
+	{
+		return _functionDHT(RichiestaDHT.removeFromPeerList, key, object);
+	}
+
 	public Serializable addToPeerList(final BigInteger key, final Serializable object)
 	{
 		return _functionDHT(RichiestaDHT.addToPeerList, key, object);
@@ -292,6 +300,8 @@ public class Chord implements AutoCloseable
 					return dht.getPeerList(key);
 				case addToPeerList:
 					return dht.addToPeerList(key, object);
+				case removeFromPeerList:
+					return dht.removeFromPeerList(key, object);
 
 				case get:
 					return dht.get(key);

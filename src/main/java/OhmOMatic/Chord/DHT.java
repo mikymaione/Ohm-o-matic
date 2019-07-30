@@ -54,6 +54,22 @@ class DHT
 		return false;
 	}
 
+	synchronized Serializable removeFromPeerList(BigInteger keyListaPeers, Serializable ID)
+	{
+		if (ID instanceof BigInteger)
+		{
+			var n_ = (BigInteger) ID;
+			var HS = _getPeerList(keyListaPeers);
+
+			HS.remove(n_);
+
+			_data.put(keyListaPeers, HS);
+
+			return true;
+		}
+
+		return false;
+	}
 
 	synchronized Serializable get(BigInteger key)
 	{

@@ -146,6 +146,8 @@ public class gRPC_Client
 				return stub.getPeerList(o);
 			case addToPeerList:
 				return stub.addToPeerList(o);
+			case removeFromPeerList:
+				return stub.removeFromPeerList(o);
 
 			case transfer:
 				return stub.transfer(o);
