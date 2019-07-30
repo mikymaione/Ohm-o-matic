@@ -25,25 +25,21 @@ class DHT
 	private final HashMap<BigInteger, Serializable> _data = new HashMap<>();
 
 
-	private HashSet<BigInteger> _getPeerList(BigInteger keyListaPeers)
+	synchronized Serializable getPeerList(final BigInteger keyListaPeers)
 	{
 		var s = _data.get(keyListaPeers);
 
 		return (s instanceof HashSet ? (HashSet<BigInteger>) s : new HashSet<>());
 	}
 
-	synchronized Serializable getPeerList(BigInteger keyListaPeers)
-	{
-		return _getPeerList(keyListaPeers);
-	}
-
 	synchronized Serializable addToPeerList(final BigInteger keyListaPeers, final Serializable ID)
 	{
 		if (ID instanceof BigInteger)
 		{
-			var n_ = (BigInteger) ID;
-			var HS = _getPeerList(keyListaPeers);
+			final var n_ = (BigInteger) ID;
 
+			var s = _data.get(keyListaPeers);
+			var HS = (s instanceof HashSet ? (HashSet<BigInteger>) s : new HashSet<BigInteger>());
 			HS.add(n_);
 
 			_data.put(keyListaPeers, HS);
@@ -54,13 +50,14 @@ class DHT
 		return false;
 	}
 
-	synchronized Serializable removeFromPeerList(BigInteger keyListaPeers, Serializable ID)
+	synchronized Serializable removeFromPeerList(final BigInteger keyListaPeers, final Serializable ID)
 	{
 		if (ID instanceof BigInteger)
 		{
-			var n_ = (BigInteger) ID;
-			var HS = _getPeerList(keyListaPeers);
+			final var n_ = (BigInteger) ID;
 
+			var s = _data.get(keyListaPeers);
+			var HS = (s instanceof HashSet ? (HashSet<BigInteger>) s : new HashSet<BigInteger>());
 			HS.remove(n_);
 
 			_data.put(keyListaPeers, HS);
@@ -71,7 +68,7 @@ class DHT
 		return false;
 	}
 
-	synchronized Serializable get(BigInteger key)
+	synchronized Serializable get(final BigInteger key)
 	{
 		return _data.get(key);
 	}
@@ -94,7 +91,7 @@ class DHT
 		_data.clear();
 	}
 
-	synchronized void forEachAndRemoveAll(Consumer<Map.Entry<BigInteger, Serializable>> callback, List<BigInteger> daRimuovere)
+	synchronized void forEachAndRemoveAll(Consumer<Map.Entry<BigInteger, Serializable>> callback, final List<BigInteger> daRimuovere)
 	{
 		for (var e : _data.entrySet())
 			callback.accept(e);

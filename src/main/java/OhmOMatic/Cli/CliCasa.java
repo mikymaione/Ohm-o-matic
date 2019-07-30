@@ -89,10 +89,6 @@ public final class CliCasa extends BaseCommandLineApplication
 		{
 			return false;
 		}
-		else if (inpts.hasOption("c"))
-		{
-			casa.calcolaConsumoEnergeticoComplessivo();
-		}
 		else if (inpts.hasOption("i"))
 		{
 			chord.stampaTutto();
@@ -148,11 +144,6 @@ public final class CliCasa extends BaseCommandLineApplication
 				.hasArg(false)
 				.build();
 
-		final var consumoComplessivo = Option.builder("c")
-				.desc("Calcola consumo complessivo")
-				.hasArg(false)
-				.build();
-
 		final var get = Option.builder("g")
 				.desc("Get")
 				.hasArg()
@@ -175,7 +166,6 @@ public final class CliCasa extends BaseCommandLineApplication
 		final var options = new Options()
 				.addOption(quit)
 				.addOption(info)
-				.addOption(consumoComplessivo)
 				.addOption(get)
 				.addOption(put)
 				.addOption(remove);

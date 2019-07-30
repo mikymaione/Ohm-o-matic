@@ -67,7 +67,7 @@ public class Chord implements AutoCloseable
 
 	public Chord(final NodeLink address) throws IOException
 	{
-		keyListaPeers = new BigInteger(GB.SHA1("ListaPeer"));
+		keyListaPeers = new BigInteger(GB.SHA1("Chiave speciale per lista dei peer"));
 
 		n = address;
 
@@ -102,23 +102,6 @@ public class Chord implements AutoCloseable
 	//endregion
 
 	//region Proprietà
-	public Serializable removeFromPeerList(final BigInteger key, final Serializable object)
-	{
-		return _functionDHT(RichiestaDHT.removeFromPeerList, key, object);
-	}
-
-	public Serializable addToPeerList(final BigInteger key, final Serializable object)
-	{
-		return _functionDHT(RichiestaDHT.addToPeerList, key, object);
-	}
-
-	public HashSet<BigInteger> getPeerList()
-	{
-		var s = _functionDHT(RichiestaDHT.getPeerList, keyListaPeers, null);
-
-		return (s instanceof HashSet ? (HashSet<BigInteger>) s : new HashSet<>());
-	}
-
 	public BigInteger getID()
 	{
 		return n.ID;
@@ -217,6 +200,25 @@ public class Chord implements AutoCloseable
 	}
 	//endregion
 
+	//region Peer List
+	public Serializable removeFromPeerList(final BigInteger key, final Serializable object)
+	{
+		return _functionDHT(RichiestaDHT.removeFromPeerList, key, object);
+	}
+
+	public Serializable addToPeerList(final BigInteger key, final Serializable object)
+	{
+		return _functionDHT(RichiestaDHT.addToPeerList, key, object);
+	}
+
+	public HashSet<BigInteger> getPeerList()
+	{
+		var s = _functionDHT(RichiestaDHT.getPeerList, keyListaPeers, null);
+
+		return (s instanceof HashSet ? (HashSet<BigInteger>) s : new HashSet<>());
+	}
+	//endregion
+
 	//region DHT
 	public Serializable remove(final BigInteger key)
 	{
@@ -238,24 +240,6 @@ public class Chord implements AutoCloseable
 		return dht.put(key, object);
 	}
 
-	private void handoff()
-	{
-		var daRimuovere = new ArrayList<BigInteger>();
-
-		dht.forEachAndRemoveAll(e ->
-		{
-			final var n_ = find_successor(e.getKey());
-
-			if (n_ != null && !n.equals(n_))
-			{
-				final var dL = gRPC_Client.gRPC(n_, RichiestaDHT.put, e.getKey(), e.getValue());
-
-				if (!linkMorto(dL))
-					daRimuovere.add(e.getKey());
-			}
-		}, daRimuovere);
-	}
-
 	private boolean linkMorto(Serializable dL)
 	{
 		return (dL instanceof DeadLink && ((DeadLink) dL).isDead);
@@ -270,9 +254,9 @@ public class Chord implements AutoCloseable
 			final var s = getSuccessor();
 			final var p = getPredecessor();
 
-			final var ping = gRPC_Client.gRPC(s, RichiestaChord.ping);
+			final var vivo = gRPC_Client.gRPC(s, RichiestaChord.ping);
 
-			if (ping == null)
+			if (linkMorto(vivo))
 			{
 				stabilize();
 			}
@@ -287,7 +271,7 @@ public class Chord implements AutoCloseable
 		}
 	}
 
-	private Serializable _functionDHT(RichiestaDHT req, final BigInteger key, final Serializable object)
+	private Serializable _functionDHT(final RichiestaDHT req, final BigInteger key, final Serializable object)
 	{
 		final var n_ = find_successor(key);
 
@@ -297,6 +281,7 @@ public class Chord implements AutoCloseable
 			switch (req)
 			{
 				case getPeerList:
+					System.out.println("Peer list in " + n);
 					return dht.getPeerList(key);
 				case addToPeerList:
 					return dht.addToPeerList(key, object);
@@ -341,13 +326,26 @@ public class Chord implements AutoCloseable
 			successor = find_successor(n.ID);
 			setSuccessor(successor);
 		}
-
-		if (x != null)
-			if (GB.incluso(x, n, successor))
+		else
+		{
+			if (x != null && GB.incluso(x, n, successor))
 			{
-				successor = x;
-				setSuccessor(successor);
+				final var vivo = gRPC_Client.gRPC(x, RichiestaChord.ping);
+
+				if (linkMorto(vivo))
+				{
+					removeFinger(x);
+
+					successor = find_successor(n.ID);
+					setSuccessor(successor);
+				}
+				else
+				{
+					successor = x;
+					setSuccessor(successor);
+				}
 			}
+		}
 
 		if (successor != null && !n.equals(successor))
 			//successor.notify(n);
@@ -405,9 +403,27 @@ public class Chord implements AutoCloseable
 		{
 			final var vivo = gRPC_Client.gRPC(predecessor, RichiestaChord.ping);
 
-			if (vivo == null)
+			if (linkMorto(vivo))
 				setPredecessor(null);
 		}
+	}
+
+	private void handoff()
+	{
+		var daRimuovere = new ArrayList<BigInteger>();
+
+		dht.forEachAndRemoveAll(e ->
+		{
+			final var n_ = find_successor(e.getKey());
+
+			if (n_ != null && !n.equals(n_))
+			{
+				final var dL = gRPC_Client.gRPC(n_, RichiestaDHT.put, e.getKey(), e.getValue());
+
+				if (!linkMorto(dL))
+					daRimuovere.add(e.getKey());
+			}
+		}, daRimuovere);
 	}
 
 	public NodeLink ping()

@@ -129,11 +129,11 @@ public class Casa implements MeanListener, AutoCloseable
 		}
 	}
 
-	public void inviaStatistiche(Double mean)
+	private void inviaStatistiche(final Double mean)
 	{
 		chord.put(chord.getID(), mean);
 
-		var cec = calcolaConsumoEnergeticoComplessivo();
+		final var cec = calcolaConsumoEnergeticoComplessivo();
 
 		System.out.println(
 				"Consumo mio: " +
@@ -148,13 +148,17 @@ public class Casa implements MeanListener, AutoCloseable
 	//endregion
 
 	//region Funzioni sul calcolo del consumo energetico
-	public Double calcolaConsumoEnergeticoComplessivo()
+	private Double calcolaConsumoEnergeticoComplessivo()
 	{
 		Double consumo = 0d;
 
-		for (var peer : chord.getPeerList())
+		var Lista = "Lista peer:";
+
+		for (final var peer : chord.getPeerList())
 		{
-			var s = chord.get(peer);
+			Lista += System.lineSeparator() + peer;
+
+			final var s = chord.get(peer);
 
 			if (s instanceof Double)
 			{
@@ -162,6 +166,8 @@ public class Casa implements MeanListener, AutoCloseable
 				consumo += c;
 			}
 		}
+
+		System.out.println(Lista);
 
 		return consumo;
 	}
