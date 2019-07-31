@@ -95,9 +95,9 @@ public class Chord implements AutoCloseable
 		for (var routine : stabilizingRoutines)
 			routine.stopMeGently();
 
-		leave();
-
 		gRPC_listner.shutdown();
+
+		leave();
 	}
 	//endregion
 
