@@ -23,46 +23,33 @@ class DHT
 {
 
 	private final HashMap<BigInteger, Serializable> _data = new HashMap<>();
+	private final HashSet<BigInteger> _peerList = new HashSet<>();
 
 
-	private HashSet<BigInteger> _getPeerList(final BigInteger keyListaPeers)
-	{
-		synchronized (_data)
-		{
-			var HS = _data.get(keyListaPeers);
-
-			return (HS instanceof HashSet ? (HashSet<BigInteger>) HS : null);
-		}
-	}
-
-	BigInteger[] getPeerList(final BigInteger keyListaPeers)
+	BigInteger[] getPeerList()
 	{
 		var i = -1;
 
-		synchronized (_data)
+		synchronized (_peerList)
 		{
-			var HS = _getPeerList(keyListaPeers);
-			var ARR = new BigInteger[HS.size()];
+			var ARR = new BigInteger[_peerList.size()];
 
-			for (var peer : HS)
+			for (var peer : _peerList)
 				ARR[i += 1] = peer;
 
 			return ARR;
 		}
 	}
 
-	Boolean addToPeerList(final BigInteger keyListaPeers, final Serializable ID)
+	Boolean addToPeerList(final Serializable ID)
 	{
 		if (ID instanceof BigInteger)
 		{
 			final var n_ = (BigInteger) ID;
 
-			synchronized (_data)
+			synchronized (_peerList)
 			{
-				var HS = (_data.containsKey(keyListaPeers) ? _getPeerList(keyListaPeers) : new HashSet<BigInteger>());
-				HS.add(n_);
-
-				_data.put(keyListaPeers, HS);
+				_peerList.add(n_);
 			}
 
 			return true;
@@ -71,18 +58,15 @@ class DHT
 		return false;
 	}
 
-	Boolean removeFromPeerList(final BigInteger keyListaPeers, final Serializable ID)
+	Boolean removeFromPeerList(final Serializable ID)
 	{
 		if (ID instanceof BigInteger)
 		{
 			final var n_ = (BigInteger) ID;
 
-			synchronized (_data)
+			synchronized (_peerList)
 			{
-				var HS = _getPeerList(keyListaPeers);
-				HS.remove(n_);
-
-				_data.put(keyListaPeers, HS);
+				_peerList.remove(n_);
 			}
 
 			return true;
@@ -90,6 +74,7 @@ class DHT
 
 		return false;
 	}
+
 
 	Serializable get(final BigInteger key)
 	{

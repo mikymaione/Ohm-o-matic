@@ -307,11 +307,11 @@ public class Chord implements AutoCloseable
 			switch (req)
 			{
 				case getPeerList:
-					return dht.getPeerList(key);
+					return dht.getPeerList();
 				case addToPeerList:
-					return dht.addToPeerList(key, object);
+					return dht.addToPeerList(object);
 				case removeFromPeerList:
-					return dht.removeFromPeerList(key, object);
+					return dht.removeFromPeerList(object);
 
 				case get:
 					return dht.get(key);
