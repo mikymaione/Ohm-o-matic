@@ -11,6 +11,8 @@ Implementazione in Java di Chord:
 */
 package OhmOMatic.Chord;
 
+import OhmOMatic.Chord.FN.NodeLink;
+
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.HashMap;
@@ -22,16 +24,32 @@ import java.util.function.Consumer;
 class DHT
 {
 
+	private final BigInteger keyListaPeers;
 	private final HashMap<BigInteger, Serializable> _data = new HashMap<>();
-	private final HashSet<BigInteger> _peerList = new HashSet<>();
+	private final NodeLink debug_nodelink;
 
+
+	DHT(NodeLink debug_nodelink, BigInteger keyListaPeers)
+	{
+		this.debug_nodelink = debug_nodelink;
+		this.keyListaPeers = keyListaPeers;
+	}
+
+	private HashSet<BigInteger> _getPeerList()
+	{
+		synchronized (_data)
+		{
+			return (HashSet<BigInteger>) _data.get(keyListaPeers);
+		}
+	}
 
 	BigInteger[] getPeerList()
 	{
 		var i = -1;
 
-		synchronized (_peerList)
+		synchronized (_data)
 		{
+			var _peerList = _getPeerList();
 			var ARR = new BigInteger[_peerList.size()];
 
 			for (var peer : _peerList)
@@ -47,8 +65,12 @@ class DHT
 		{
 			final var n_ = (BigInteger) ID;
 
-			synchronized (_peerList)
+			synchronized (_data)
 			{
+				if (!_data.containsKey(keyListaPeers))
+					_data.put(keyListaPeers, new HashSet<BigInteger>());
+
+				var _peerList = _getPeerList();
 				_peerList.add(n_);
 			}
 
@@ -64,8 +86,9 @@ class DHT
 		{
 			final var n_ = (BigInteger) ID;
 
-			synchronized (_peerList)
+			synchronized (_data)
 			{
+				var _peerList = _getPeerList();
 				_peerList.remove(n_);
 			}
 
@@ -100,18 +123,7 @@ class DHT
 		}
 	}
 
-	void forEachAndClearAll(Consumer<Map.Entry<BigInteger, Serializable>> callback)
-	{
-		synchronized (_data)
-		{
-			for (var e : _data.entrySet())
-				callback.accept(e);
-
-			_data.clear();
-		}
-	}
-
-	void forEachAndRemoveAll(Consumer<Map.Entry<BigInteger, Serializable>> callback, final List<BigInteger> daRimuovere)
+	int forEachAndRemoveAll(Consumer<Map.Entry<BigInteger, Serializable>> callback, final List<BigInteger> daRimuovere)
 	{
 		synchronized (_data)
 		{
@@ -120,6 +132,8 @@ class DHT
 
 			for (var del : daRimuovere)
 				_data.remove(del);
+
+			return _data.size();
 		}
 	}
 

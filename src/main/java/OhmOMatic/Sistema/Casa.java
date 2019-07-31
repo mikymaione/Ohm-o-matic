@@ -156,13 +156,10 @@ public class Casa implements MeanListener, AutoCloseable
 
 		for (final var peer : chord.getPeerList())
 		{
-			final var serialized_consumo = chord.get(peer);
+			final var consumo = chord.get(peer);
 
-			if (serialized_consumo instanceof Double)
-			{
-				var consumo = (Double) serialized_consumo;
-				consumoEnergeticoComplessivo += consumo;
-			}
+			if (consumo instanceof Double)
+				consumoEnergeticoComplessivo += (Double) consumo;
 		}
 
 		return consumoEnergeticoComplessivo;
