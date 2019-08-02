@@ -57,7 +57,7 @@ public final class CliCasa extends BaseCommandLineApplication
 
 					try (var scanner = new Scanner(System.in))
 					{
-						while (LeggiComandiInterattivi(casa, chord, scanner)) ;
+						LeggiComandiInterattivi(casa, chord, scanner);
 					}
 
 					casa.fermaSmartMeter();
@@ -77,7 +77,7 @@ public final class CliCasa extends BaseCommandLineApplication
 	}
 
 	//region Opzioni command line
-	private static boolean LeggiComandiInterattivi(Casa casa, Chord chord, Scanner scanner) throws ParseException
+	private static void LeggiComandiInterattivi(Casa casa, Chord chord, Scanner scanner) throws ParseException
 	{
 		final var commands = createOptionsInteractiveProgram();
 		printOptions("", commands);
@@ -87,7 +87,8 @@ public final class CliCasa extends BaseCommandLineApplication
 
 		if (inpts.hasOption("q"))
 		{
-			return false;
+			// quit
+			return;
 		}
 		else if (inpts.hasOption("i"))
 		{
@@ -129,7 +130,7 @@ public final class CliCasa extends BaseCommandLineApplication
 				System.out.println("-Sostituito oggetto con chiave " + key);
 		}
 
-		return true;
+		LeggiComandiInterattivi(casa, chord, scanner);
 	}
 
 	private static Options createOptionsInteractiveProgram()

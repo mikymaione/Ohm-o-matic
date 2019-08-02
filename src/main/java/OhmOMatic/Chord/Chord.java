@@ -287,9 +287,11 @@ public class Chord implements AutoCloseable
 			final var successor = getSuccessor();
 			final var predecessor = getPredecessor();
 
-			final var successor_vivo = gRPC_Client.gRPC(successor, RichiestaChord.ping);
+			final var stabilizzazioneNecessaria =
+					!n.equals(successor) &&
+							linkMorto(gRPC_Client.gRPC(successor, RichiestaChord.ping));
 
-			if (linkMorto(successor_vivo))
+			if (stabilizzazioneNecessaria)
 			{
 				stabilize();
 			}
