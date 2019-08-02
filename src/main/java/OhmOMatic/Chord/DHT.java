@@ -11,7 +11,7 @@ Implementazione in Java di Chord:
 */
 package OhmOMatic.Chord;
 
-import OhmOMatic.Chord.FN.NodeLink;
+import OhmOMatic.Chord.Link.NodeLink;
 
 import java.io.Serializable;
 import java.math.BigInteger;

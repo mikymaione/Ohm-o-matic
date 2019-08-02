@@ -9,7 +9,7 @@ Implementazione in Java di Chord:
 -Chord is one of the four original distributed hash table protocols, along with CAN, Tapestry, and Pastry. It was introduced in 2001 by Ion Stoica, Robert Morris, David Karger, Frans Kaashoek, and Hari Balakrishnan, and was developed at MIT.
 -Fonte: https://en.wikipedia.org/wiki/Chord_(peer-to-peer)
 */
-package OhmOMatic.Chord.FN;
+package OhmOMatic.Chord.Link;
 
 import OhmOMatic.Global.GB;
 

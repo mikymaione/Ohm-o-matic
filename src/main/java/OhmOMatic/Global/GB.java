@@ -6,7 +6,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Global;
 
-import OhmOMatic.Chord.FN.NodeLink;
+import OhmOMatic.Chord.Link.NodeLink;
 
 import java.io.*;
 import java.math.BigInteger;
