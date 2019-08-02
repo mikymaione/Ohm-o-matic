@@ -280,7 +280,7 @@ public class Chord implements AutoCloseable
 
 	private void leave()
 	{
-		var rimasti = 0;
+		var elementiRimastiDaTrasferire = 0;
 
 		do
 		{
@@ -302,16 +302,16 @@ public class Chord implements AutoCloseable
 			{
 				final var daRimuovere = new ArrayList<BigInteger>();
 
-				rimasti = dht.forEachAndRemoveAll(i ->
+				elementiRimastiDaTrasferire = dht.forEachAndRemoveAll(i ->
 				{
-					var R = gRPC_Client.gRPC(successor, RichiestaDHT.transfer, i.getKey(), i.getValue());
+					final var risultatoTrasferimento = gRPC_Client.gRPC(successor, RichiestaDHT.transfer, i.getKey(), i.getValue());
 
-					if (Boolean.TRUE.equals(R))
+					if (Boolean.TRUE.equals(risultatoTrasferimento))
 						daRimuovere.add(i.getKey());
 				}, daRimuovere);
 			}
 		}
-		while (rimasti > 0);
+		while (elementiRimastiDaTrasferire > 0);
 	}
 
 	private Serializable _functionDHT(final RichiestaDHT req, final BigInteger key, final Serializable object)
@@ -434,7 +434,6 @@ public class Chord implements AutoCloseable
 		var i = GB.getPowerOfTwo(next - 1, mBit);
 		i = n.ID.add(i);
 		i = i.mod(GB.getPowerOfTwo(mBit, mBit));
-		// n + 2^(next - 1)
 
 		setFinger(next, find_successor(i));
 	}
