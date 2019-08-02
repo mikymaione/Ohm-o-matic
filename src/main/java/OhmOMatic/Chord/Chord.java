@@ -280,41 +280,38 @@ public class Chord implements AutoCloseable
 
 	private void leave()
 	{
-		var cercandoDestinatario = true;
+		var rimasti = 0;
 
-		while (cercandoDestinatario)
+		do
 		{
 			final var successor = getSuccessor();
 			final var predecessor = getPredecessor();
 
-			final var stabilizzazioneNecessaria =
-					!n.equals(successor) &&
-							linkMorto(gRPC_Client.gRPC(successor, RichiestaChord.ping));
-
-			if (stabilizzazioneNecessaria)
+			if (!n.equals(successor))
 			{
-				stabilize();
-			}
-			else
-			{
-				cercandoDestinatario = false;
+				final var successor_vivo = gRPC_Client.gRPC(successor, RichiestaChord.ping);
 
-				if (successor != null && !n.equals(successor) && predecessor != null)
+				if (linkMorto(successor_vivo))
 				{
-					final var daRimuovere = new ArrayList<BigInteger>();
-
-					final var rimasti = dht.forEachAndRemoveAll(i ->
-					{
-						var R = gRPC_Client.gRPC(successor, RichiestaDHT.transfer, i.getKey(), i.getValue());
-
-						if (Boolean.TRUE.equals(R))
-							daRimuovere.add(i.getKey());
-					}, daRimuovere);
-
-					cercandoDestinatario = (rimasti > 0);
+					stabilize();
+					continue;
 				}
 			}
+
+			if (successor != null && !n.equals(successor) && predecessor != null)
+			{
+				final var daRimuovere = new ArrayList<BigInteger>();
+
+				rimasti = dht.forEachAndRemoveAll(i ->
+				{
+					var R = gRPC_Client.gRPC(successor, RichiestaDHT.transfer, i.getKey(), i.getValue());
+
+					if (Boolean.TRUE.equals(R))
+						daRimuovere.add(i.getKey());
+				}, daRimuovere);
+			}
 		}
+		while (rimasti > 0);
 	}
 
 	private Serializable _functionDHT(final RichiestaDHT req, final BigInteger key, final Serializable object)
