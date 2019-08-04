@@ -11,28 +11,32 @@ Implementazione in Java di Chord:
 */
 package OhmOMatic.Chord;
 
-import OhmOMatic.Chord.Link.NodeLink;
+import OhmOMatic.Global.Pair;
 
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
+import java.util.Stack;
 
 class DHT
 {
 
 	private final BigInteger keyListaPeers;
 	private final HashMap<BigInteger, Serializable> _data = new HashMap<>();
-	private final NodeLink debug_nodelink;
 
 
-	DHT(NodeLink debug_nodelink, BigInteger keyListaPeers)
+	DHT(BigInteger keyListaPeers)
 	{
-		this.debug_nodelink = debug_nodelink;
 		this.keyListaPeers = keyListaPeers;
+	}
+
+	void createPeerList()
+	{
+		synchronized (_data)
+		{
+			_data.put(keyListaPeers, new HashSet<BigInteger>());
+		}
 	}
 
 	private HashSet<BigInteger> _getPeerList()
@@ -45,13 +49,12 @@ class DHT
 
 	BigInteger[] getPeerList()
 	{
-		var i = -1;
-
 		synchronized (_data)
 		{
 			var _peerList = _getPeerList();
 			var ARR = new BigInteger[_peerList.size()];
 
+			var i = -1;
 			for (var peer : _peerList)
 				ARR[i += 1] = peer;
 
@@ -67,9 +70,6 @@ class DHT
 
 			synchronized (_data)
 			{
-				if (!_data.containsKey(keyListaPeers))
-					_data.put(keyListaPeers, new HashSet<BigInteger>());
-
 				var _peerList = _getPeerList();
 				_peerList.add(n_);
 			}
@@ -111,7 +111,8 @@ class DHT
 	{
 		synchronized (_data)
 		{
-			return _data.put(key, value);
+			_data.put(key, value);
+			return true;
 		}
 	}
 
@@ -123,17 +124,28 @@ class DHT
 		}
 	}
 
-	int forEachAndRemoveAll(Consumer<Map.Entry<BigInteger, Serializable>> callback, final List<BigInteger> daRimuovere)
+	Serializable removeAll(Stack<BigInteger> daRimuovere)
 	{
 		synchronized (_data)
 		{
-			for (var e : _data.entrySet())
-				callback.accept(e);
+			while (daRimuovere.size() > 0)
+				_data.remove(daRimuovere.pop());
 
-			for (var del : daRimuovere)
-				_data.remove(del);
+			return true;
+		}
+	}
 
-			return _data.size();
+	Pair<BigInteger, Serializable>[] getData()
+	{
+		synchronized (_data)
+		{
+			Pair<BigInteger, Serializable>[] ARR = new Pair[_data.size()];
+
+			var i = -1;
+			for (var d : _data.entrySet())
+				ARR[i += 1] = new Pair<>(d.getKey(), d.getValue());
+
+			return ARR;
 		}
 	}
 

@@ -8,13 +8,13 @@ package OhmOMatic.Chord.gRPC;
 
 import OhmOMatic.Chord.Enums.RichiestaChord;
 import OhmOMatic.Chord.Enums.RichiestaDHT;
-import OhmOMatic.Chord.Link.DeadLink;
 import OhmOMatic.Chord.Link.NodeLink;
 import OhmOMatic.Global.GB;
 import OhmOMatic.ProtoBuffer.Home;
 import com.google.protobuf.ByteString;
 import io.grpc.StatusRuntimeException;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigInteger;
 
@@ -39,11 +39,11 @@ public class gRPC_Client
 
 	private static NodeLink gRPC(NodeLink server, RichiestaChord req, BigInteger _id, NodeLink setNode)
 	{
+		if (server == null)
+			return null;
+
 		try (var hfs = new HomeFastStub())
 		{
-			if (server == null)
-				return null;
-
 			var _casa = Home.casa.newBuilder();
 
 			if (_id != null)
@@ -78,7 +78,7 @@ public class gRPC_Client
 		}
 		catch (StatusRuntimeException sre)
 		{
-			return new DeadLink(server);
+			System.out.println(req + ": Nodo " + server + " non raggiungibile!");
 		}
 		catch (Exception er)
 		{
@@ -109,8 +109,11 @@ public class gRPC_Client
 	//endregion
 
 	//region DHT gRPC
-	public static Serializable gRPC(NodeLink server, RichiestaDHT req, BigInteger key, Serializable object)
+	public static Serializable gRPC(NodeLink server, RichiestaDHT req, BigInteger key, Serializable object) throws StatusRuntimeException, IOException, ClassNotFoundException
 	{
+		if (server == null)
+			return null;
+
 		try (var hfs = new HomeFastStub())
 		{
 			var _oggetto = Home.oggetto.newBuilder()
@@ -127,21 +130,16 @@ public class gRPC_Client
 
 				return GB.deserialize(_bytes);
 			}
-		}
-		catch (StatusRuntimeException sre)
-		{
-			return new DeadLink(server);
-		}
-		catch (Exception er)
-		{
-			er.printStackTrace();
-		}
 
-		return null;
+			return null;
+		}
 	}
 
 	private static Home.oggettoRes doRequestDHT(NodeLink server, HomeFastStub hfs, RichiestaDHT req, Home.oggetto o)
 	{
+		if (server == null)
+			return null;
+
 		var stub = hfs.getStub(server);
 
 		switch (req)
@@ -161,6 +159,7 @@ public class gRPC_Client
 				return stub.get(o);
 			case remove:
 				return stub.remove(o);
+
 			default:
 				throw new UnsupportedOperationException("Switch non implementato!");
 		}

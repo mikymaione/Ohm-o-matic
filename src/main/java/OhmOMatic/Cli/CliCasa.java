@@ -44,15 +44,13 @@ public final class CliCasa extends BaseCommandLineApplication
 					else
 						chord.join(mio_peer_address, mio_peer_port);
 
-					chord.stampaTutto();
-
 					//casa.iscriviCasa();
 					System.out.println("Casa iscritta sul server!");
 
 					//casa.entraNelCondominio();
 					System.out.println("Casa nel condominio!");
 
-					casa.avviaSmartMeter();
+					//casa.avviaSmartMeter();
 					System.out.println("Smart meter avviato!");
 
 					try (var scanner = new Scanner(System.in))
@@ -60,7 +58,7 @@ public final class CliCasa extends BaseCommandLineApplication
 						LeggiComandiInterattivi(casa, chord, scanner);
 					}
 
-					casa.fermaSmartMeter();
+					//casa.fermaSmartMeter();
 					System.out.println("Smart meter fermato!");
 
 					//casa.disiscriviCasa();

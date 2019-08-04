@@ -8,6 +8,61 @@ Implementazione in Java di Chord:
 -In computing, Chord is a protocol and algorithm for a peer-to-peer distributed hash table. A distributed hash table stores key-value pairs by assigning keys to different computers (known as "nodes"); a node will store the values for all the keys for which it is responsible. Chord specifies how keys are assigned to nodes, and how a node can discover the value for a given key by first locating the node responsible for that key.
 -Chord is one of the four original distributed hash table protocols, along with CAN, Tapestry, and Pastry. It was introduced in 2001 by Ion Stoica, Robert Morris, David Karger, Frans Kaashoek, and Hari Balakrishnan, and was developed at MIT.
 -Fonte: https://en.wikipedia.org/wiki/Chord_(peer-to-peer)
+
+// ask node n to find the successor of id
+n.find_successor(id)
+	//Yes, that should be a closing square bracket to match the opening parenthesis.
+	//It is a half closed interval.
+	if (id ∈ (n, successor])
+		return successor;
+	else
+		// forward the query around the circle
+		n0 = closest_preceding_node(id);
+	return n0.find_successor(id);
+
+// search the local table for the highest predecessor of id
+n.closest_preceding_node(id)
+	for i = m downto 1
+		if (finger[i] ∈ (n,id))
+			return finger[i];
+	return n;
+
+// create a new Chord ring.
+n.create()
+	predecessor = nil;
+	successor = n;
+
+// join a Chord ring containing node n'.
+n.join(n')
+	predecessor = nil;
+	successor = n'.find_successor(n);
+
+// called periodically. n asks the successor
+// about its predecessor, verifies if n's immediate
+// successor is consistent, and tells the successor about n
+n.stabilize()
+	x = successor.predecessor;
+	if (x ∈ (n, successor))
+		successor = x;
+	successor.notify(n);
+
+// n' thinks it might be our predecessor.
+n.notify(n')
+	if (predecessor is nil or n' ∈ (predecessor, n))
+		predecessor = n';
+
+// called periodically. refreshes finger table entries.
+// next stores the index of the finger to fix
+n.fix_fingers()
+	next = next + 1;
+	if (next > m)
+		next = 1;
+	finger[next] = find_successor(n + 2^(next - 1));
+
+// called periodically. checks whether predecessor has failed.
+n.check_predecessor()
+	if (predecessor has failed)
+		predecessor = nil;
 */
 package OhmOMatic.Chord;
 
@@ -15,7 +70,6 @@ package OhmOMatic.Chord;
 
 import OhmOMatic.Chord.Enums.RichiestaChord;
 import OhmOMatic.Chord.Enums.RichiestaDHT;
-import OhmOMatic.Chord.Link.DeadLink;
 import OhmOMatic.Chord.Link.NodeLink;
 import OhmOMatic.Chord.Threads.SleepingThread;
 import OhmOMatic.Chord.gRPC.gRPC_Client;
@@ -23,13 +77,14 @@ import OhmOMatic.Chord.gRPC.gRPC_Server;
 import OhmOMatic.Global.GB;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.StatusRuntimeException;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.Stack;
 //endregion
 
 public class Chord implements AutoCloseable
@@ -43,14 +98,16 @@ public class Chord implements AutoCloseable
 
 	//===================================== Chord =====================================
 	//private static final Integer mBit = 160; //SHA1 versione normale
-	private static final Integer mBit = 4; //versione semplificata
-	private static final Integer _successorNumber = 1;
+	private static final Integer mBit = 8; //versione semplificata
 	private Integer next = 1;
 
 	private final BigInteger keyListaPeers;
 	private final NodeLink n;
+
+	private final Object _predecessorLock = new Object();
 	private NodeLink _predecessor;
 
+	private final Integer _successorFingerNumber = 1;
 	private final HashMap<Integer, NodeLink> _fingerTable;
 
 	//timer per le funzioni di stabilizzazione
@@ -60,7 +117,7 @@ public class Chord implements AutoCloseable
 
 	//============================= Comunicazione di rete =============================
 	//listner gRPC
-	private Server gRPC_listner;
+	private final Server gRPC_listner;
 	//============================= Comunicazione di rete =============================
 	//endregion
 
@@ -77,7 +134,7 @@ public class Chord implements AutoCloseable
 		_fingerTable = new HashMap<>(mBit);
 
 		keyListaPeers = new BigInteger(GB.SHA1("Chiave speciale per lista dei peer"));
-		dht = new DHT(n, keyListaPeers);
+		dht = new DHT(keyListaPeers);
 
 		stabilizingRoutines = Set.of(
 				new SleepingThread("stabilize", this::stabilize, 60),
@@ -89,7 +146,11 @@ public class Chord implements AutoCloseable
 		setPredecessor(null);
 		setSuccessor(n);
 
-		start_gRPC_listner();
+		gRPC_listner = ServerBuilder
+				.forPort(n.port)
+				.addService(gRPC_Server.getListnerServer(this))
+				.build()
+				.start();
 	}
 
 	@Override
@@ -115,22 +176,28 @@ public class Chord implements AutoCloseable
 
 	private NodeLink getSuccessor()
 	{
-		return getFinger(_successorNumber);
+		return getFinger(_successorFingerNumber);
 	}
 
 	private void setSuccessor(final NodeLink n_)
 	{
-		setFinger(_successorNumber, n_);
+		setFinger(_successorFingerNumber, n_);
 	}
 
-	public synchronized NodeLink getPredecessor()
+	public NodeLink getPredecessor()
 	{
-		return _predecessor;
+		synchronized (_predecessorLock)
+		{
+			return _predecessor;
+		}
 	}
 
-	private synchronized void setPredecessor(final NodeLink n_)
+	private void setPredecessor(final NodeLink n_)
 	{
-		_predecessor = n_;
+		synchronized (_predecessorLock)
+		{
+			_predecessor = n_;
+		}
 	}
 
 	private NodeLink getFinger(final Integer i)
@@ -154,57 +221,35 @@ public class Chord implements AutoCloseable
 	// ask node n to find the successor of id
 	public NodeLink find_successor(final BigInteger id)
 	{
-		final var successor = getSuccessor();
+		var successor = getSuccessor();
 
-		if (successor != null && GB.incluso(id, n, successor))
-		{
-			final var s_vivo = gRPC_Client.gRPC(successor, RichiestaChord.ping);
-
-			if (!linkMorto(s_vivo))
-				return successor;
-		}
+		//if (id ∈ (n, successor])
+		if (GB.inclusoR(id, n, successor))
+			return successor;
 
 		// forward the query around the circle
-		while (true)
-		{
-			final var n0 = closest_preceding_node(id);
+		var n0 = closest_preceding_node(id);
 
-			if (n.equals(n0))
-				return n;
-
-			//return n0.find_successor(id);
-			final var n0_successor = gRPC_Client.gRPC(n0, RichiestaChord.findSuccessor, id);
-
-			if (!linkMorto(n0_successor))
-				return n0_successor;
-		}
+		//return n0.find_successor(id);
+		return gRPC_Client.gRPC(n0, RichiestaChord.findSuccessor, id);
 	}
 
 	// search the local table for the highest predecessor of id
 	private NodeLink closest_preceding_node(final BigInteger id)
 	{
-		for (Integer i = mBit; i > 0; i--)
+		synchronized (_fingerTable)
 		{
-			final var iThFinger = getFinger(i);
+			for (Integer i = mBit; i > 0; i--)
+			{
+				var iThFinger = _fingerTable.get(i);
 
-			if (iThFinger != null)
-				if (GB.incluso(iThFinger, n, id))
-				{
-					var iThFinger_vivo = gRPC_Client.gRPC(iThFinger, RichiestaChord.ping);
-
-					if (linkMorto(iThFinger_vivo))
-					{
-						if (i.equals(_successorNumber))
-							setFinger(i, n);
-						else
-							setFinger(i, null);
-					}
-					else
+				if (iThFinger != null)
+					if (GB.incluso(iThFinger, n, id))
 						return iThFinger;
-				}
-		}
+			}
 
-		return n;
+			return n;
+		}
 	}
 
 	// join a Chord ring containing node n_
@@ -215,7 +260,12 @@ public class Chord implements AutoCloseable
 
 	private void join(final NodeLink n_) throws Exception
 	{
-		if (!n.equals(n_))
+		if (n.equals(n_))
+		{
+			dht.createPeerList();
+			System.out.println("Creata peer list");
+		}
+		else
 		{
 			setPredecessor(null);
 
@@ -228,7 +278,8 @@ public class Chord implements AutoCloseable
 			setSuccessor(successor);
 		}
 
-		addToPeerList(keyListaPeers, n.ID);
+		var addedToPeerList = addToPeerList(keyListaPeers, n.ID);
+		System.out.println("Aggiunta a lista peer: " + addedToPeerList);
 
 		startStabilizingRoutines();
 	}
@@ -269,54 +320,53 @@ public class Chord implements AutoCloseable
 
 	public Serializable transfer(final BigInteger key, final Serializable object)
 	{
-		dht.put(key, object);
-		return true;
-	}
-
-	private boolean linkMorto(Serializable n_)
-	{
-		return (n_ == null || (n_ instanceof DeadLink && ((DeadLink) n_).isDead));
+		return dht.put(key, object);
 	}
 
 	private void leave()
 	{
-		var elementiRimastiDaTrasferire = 0;
+		var ciSonoElementiDaTrasferire = false;
 
 		do
 		{
 			final var successor = getSuccessor();
 			final var predecessor = getPredecessor();
 
-			if (!n.equals(successor))
+			if (!n.equals(successor) && predecessor != null)
 			{
-				final var successor_vivo = gRPC_Client.gRPC(successor, RichiestaChord.ping);
+				final var data = dht.getData();
 
-				if (linkMorto(successor_vivo))
-				{
-					stabilize();
-					continue;
-				}
-			}
+				ciSonoElementiDaTrasferire = (data.length > 0);
 
-			if (successor != null && !n.equals(successor) && predecessor != null)
-			{
-				final var daRimuovere = new ArrayList<BigInteger>();
-
-				elementiRimastiDaTrasferire = dht.forEachAndRemoveAll(i ->
-				{
-					final var risultatoTrasferimento = gRPC_Client.gRPC(successor, RichiestaDHT.transfer, i.getKey(), i.getValue());
-
-					if (Boolean.TRUE.equals(risultatoTrasferimento))
-						daRimuovere.add(i.getKey());
-				}, daRimuovere);
+				for (var i : data)
+					try
+					{
+						gRPC_Client.gRPC(successor, RichiestaDHT.transfer, i.getKey(), i.getValue());
+					}
+					catch (StatusRuntimeException e)
+					{
+						System.out.println("leave: Nodo " + successor + " non raggiungibile!");
+					}
+					catch (IOException e)
+					{
+						System.out.println("Errore serializzazione oggetto!");
+						e.printStackTrace();
+					}
+					catch (ClassNotFoundException e)
+					{
+						System.out.println("Classe SHA1 non trovata!");
+						e.printStackTrace();
+					}
 			}
 		}
-		while (elementiRimastiDaTrasferire > 0);
+		while (ciSonoElementiDaTrasferire);
 	}
 
 	private Serializable _functionDHT(final RichiestaDHT req, final BigInteger key, final Serializable object)
 	{
 		final var n_ = find_successor(key);
+
+		System.out.println("[" + GB.DateToString() + "] " + n_ + " > DHT." + req + ": " + key + "=" + object);
 
 		if (n_ == null || n.equals(n_))
 			switch (req)
@@ -334,12 +384,29 @@ public class Chord implements AutoCloseable
 					return dht.put(key, object);
 				case remove:
 					return dht.remove(key);
-
-				default:
-					return null;
 			}
 		else
-			return gRPC_Client.gRPC(n_, req, key, object);
+			try
+			{
+				return gRPC_Client.gRPC(n_, req, key, object);
+			}
+			catch (StatusRuntimeException e)
+			{
+				System.out.println("DHT: Nodo " + n_ + " non raggiungibile!");
+				return _functionDHT(req, key, object);
+			}
+			catch (IOException e)
+			{
+				System.out.println("Errore serializzazione oggetto!");
+				e.printStackTrace();
+			}
+			catch (ClassNotFoundException e)
+			{
+				System.out.println("Classe SHA1 non trovata!");
+				e.printStackTrace();
+			}
+
+		return null;
 	}
 	//endregion
 
@@ -358,50 +425,15 @@ public class Chord implements AutoCloseable
 	private void stabilize()
 	{
 		//var x = successor.predecessor;
-		var successor = getSuccessor();
-		final var x = gRPC_Client.gRPC(successor, RichiestaChord.predecessor);
+		var x = gRPC_Client.gRPC(getSuccessor(), RichiestaChord.predecessor);
 
-		if (linkMorto(x))
-		{
-			removeFinger(successor);
+		if (x != null)
+			//x ∈ (n, successor)
+			if (GB.incluso(x, n, getSuccessor()))
+				setSuccessor(x);
 
-			successor = find_successor(n.ID);
-			setSuccessor(successor);
-		}
-		else
-		{
-			if (GB.incluso(x, n, successor))
-			{
-				final var x_vivo = gRPC_Client.gRPC(x, RichiestaChord.ping);
-
-				if (linkMorto(x_vivo))
-				{
-					removeFinger(x);
-
-					successor = find_successor(n.ID);
-					setSuccessor(successor);
-				}
-				else
-				{
-					successor = x;
-					setSuccessor(successor);
-				}
-			}
-		}
-
-		if (successor != null && !n.equals(successor))
-			//successor.notify(n);
-			gRPC_Client.gRPC(successor, RichiestaChord.notify, n);
-	}
-
-	private void removeFinger(NodeLink finger)
-	{
-		synchronized (_fingerTable)
-		{
-			for (var e : _fingerTable.entrySet())
-				if (finger.equals(e.getValue()))
-					e.setValue(null);
-		}
+		//successor.notify(n);
+		gRPC_Client.gRPC(getSuccessor(), RichiestaChord.notify, n);
 	}
 
 	// n_ thinks it might be our predecessor.
@@ -412,13 +444,10 @@ public class Chord implements AutoCloseable
 		if (predecessor == null || (GB.incluso(n_, predecessor, n)))
 		{
 			setPredecessor(n_);
-
 			return n_;
 		}
-		else
-		{
-			return null;
-		}
+
+		return null;
 	}
 
 	// called periodically. refreshes finger table entries.
@@ -428,56 +457,71 @@ public class Chord implements AutoCloseable
 		next++;
 
 		if (next > mBit)
-			next = 2;
+			next = 1;
 
 		// n + 2^(next - 1)
 		var i = GB.getPowerOfTwo(next - 1, mBit);
 		i = n.ID.add(i);
 		i = i.mod(GB.getPowerOfTwo(mBit, mBit));
 
-		setFinger(next, find_successor(i));
+		//final var successor = gRPC_Client.gRPC(find_successor(i), RichiestaChord.ping);
+		final var successor = find_successor(i);
+		setFinger(next, successor);
 	}
 
 	// called periodically. checks whether predecessor has failed.
 	private void check_predecessor()
 	{
-		final var predecessor = getPredecessor();
+		final var predecessor_vivo = gRPC_Client.gRPC(getPredecessor(), RichiestaChord.ping);
 
-		if (predecessor != null)
-		{
-			final var predecessor_vivo = gRPC_Client.gRPC(predecessor, RichiestaChord.ping);
-
-			if (linkMorto(predecessor_vivo))
-				setPredecessor(null);
-		}
+		if (predecessor_vivo == null)
+			setPredecessor(null);
 	}
 
 	// called periodically. handoff my data to the correct peer
 	private void handoff()
 	{
-		final var daFare = new Integer[1];
-		final var daRimuovere = new ArrayList<BigInteger>();
+		final var daFare = new Stack<BigInteger>();
+		final var daRimuovere = new Stack<BigInteger>();
 
 		do
 		{
-			daFare[0] = 0;
-			daRimuovere.clear();
+			daFare.clear();
+			final var data = dht.getData();
 
-			dht.forEachAndRemoveAll(e ->
+			for (var e : data)
 			{
 				final var n_ = find_successor(e.getKey());
 
 				if (n_ != null && !n.equals(n_))
-				{
-					daFare[0]++;
-					final var n_vivo = gRPC_Client.gRPC(n_, RichiestaDHT.put, e.getKey(), e.getValue());
+					try
+					{
+						daFare.push(e.getKey());
 
-					if (!linkMorto(n_vivo))
-						daRimuovere.add(e.getKey());
-				}
-			}, daRimuovere);
+						final var risultatoTrasferimento = gRPC_Client.gRPC(n_, RichiestaDHT.put, e.getKey(), e.getValue());
+
+						if (Boolean.TRUE.equals(risultatoTrasferimento))
+							daRimuovere.push(e.getKey());
+					}
+					catch (StatusRuntimeException ex)
+					{
+						System.out.println("Handoff: Nodo " + n_ + " non raggiungibile!");
+					}
+					catch (IOException ex)
+					{
+						System.out.println("Errore serializzazione oggetto!");
+						ex.printStackTrace();
+					}
+					catch (ClassNotFoundException ex)
+					{
+						System.out.println("Classe SHA1 non trovata!");
+						ex.printStackTrace();
+					}
+			}
 		}
-		while (daFare[0] > daRimuovere.size());
+		while (daFare.size() > daRimuovere.size());
+
+		dht.removeAll(daRimuovere);
 	}
 
 	public NodeLink ping()
@@ -486,22 +530,34 @@ public class Chord implements AutoCloseable
 	}
 	//endregion
 
-	//region Server
-	private void start_gRPC_listner() throws IOException
-	{
-		gRPC_listner = ServerBuilder
-				.forPort(n.port)
-				.addService(gRPC_Server.getListnerServer(this))
-				.build()
-				.start();
-	}
-	//endregion
-
 	//region Print
 	public void stampaTutto()
 	{
 		stampaStato();
 		stampaFingerTable();
+		stampaData();
+		stampaPeerList();
+	}
+
+	private void stampaData()
+	{
+		System.out.println("My data:");
+
+		for (var data : dht.getData())
+			System.out.println(data.getKey() + " > " + data.getValue());
+	}
+
+	private void stampaPeerList()
+	{
+		final var peerList = getPeerList();
+
+		if (peerList != null)
+		{
+			System.out.println("Peer list:");
+
+			for (var peer : peerList)
+				System.out.println(peer);
+		}
 	}
 
 	private void stampaFingerTable()

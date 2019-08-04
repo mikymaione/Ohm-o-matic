@@ -10,8 +10,10 @@ import OhmOMatic.Chord.Link.NodeLink;
 
 import java.io.*;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Random;
@@ -42,37 +44,48 @@ public final class GB
 		return _powerOfTwo.get(k);
 	}
 
-	public static boolean incluso(NodeLink id, NodeLink x, BigInteger y)
+	public static boolean incluso(NodeLink id, NodeLink a, BigInteger b)
 	{
-		return incluso(id.ID, x.ID, y);
+		return incluso(id.ID, a.ID, b);
 	}
 
-	public static boolean incluso(NodeLink id, NodeLink x, NodeLink y)
+	public static boolean incluso(NodeLink id, NodeLink a, NodeLink b)
 	{
-		return incluso(id.ID, x.ID, y.ID);
+		return incluso(id.ID, a.ID, b.ID);
 	}
 
-	public static boolean incluso(BigInteger id, NodeLink x, NodeLink y)
+	public static boolean inclusoR(BigInteger id, NodeLink a, NodeLink b)
 	{
-		return incluso(id, x.ID, y.ID);
+		return inclusoR(id, a.ID, b.ID);
 	}
 
-	public static boolean incluso(BigInteger id, BigInteger x, BigInteger y)
+	private static boolean inclusoR(BigInteger id, BigInteger a, BigInteger b)
 	{
-		//5.compareTo(3) == 1
-		//5.compareTo(5) == 0
-		//5.compareTo(8) == -1
+		return incluso(id, a, b) || id.equals(b);
+	}
 
-		//x < id < y
-		//id > x && id <= y
+	private static boolean incluso(BigInteger id, BigInteger x, BigInteger y)
+	{
+		switch (BigIntegerCompare(x, y))
+		{
+			case 1:
+				return BigIntegerCompare(x, id) == -1 || BigIntegerCompare(y, id) >= 0;
+			case -1:
+				return BigIntegerCompare(x, id) == -1 && BigIntegerCompare(y, id) >= 0;
+			case 0:
+				return BigIntegerCompare(x, id) != 0;
+			default:
+				return false;
+		}
+	}
 
-		if (x.equals(y))
-			return true;
+	private static int BigIntegerCompare(BigInteger a, BigInteger b)
+	{
+		//This method returns the value zero if (a == b),
+		//if (a < b) then it returns a value less than zero
+		//and if (a > b) then it returns a value greater than zero.
 
-		if (y.compareTo(id) < 0)
-			return x.compareTo(y) > 0 && x.compareTo(id) < 0;
-		else
-			return x.compareTo(y) < 0 && x.compareTo(id) < 0 || x.compareTo(y) > 0 && x.compareTo(id) > 0;
+		return a.compareTo(b);
 	}
 
 	public static byte[] SHA1(String s)
@@ -82,15 +95,11 @@ public final class GB
 			var sha1 = MessageDigest.getInstance("SHA-1");
 
 			sha1.reset();
-			sha1.update(s.getBytes("UTF-8"));
+			sha1.update(s.getBytes(StandardCharsets.UTF_8));
 
 			return sha1.digest();
 		}
 		catch (NoSuchAlgorithmException e)
-		{
-			e.printStackTrace();
-		}
-		catch (UnsupportedEncodingException e)
 		{
 			e.printStackTrace();
 		}
@@ -130,6 +139,18 @@ public final class GB
 	public static int randomInt(final int da, final int a)
 	{
 		return randomFN.nextInt(a) + da;
+	}
+
+	public static String DateToString()
+	{
+		return DateToString(new Date());
+	}
+
+	private static String DateToString(Date d)
+	{
+		var sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss.SSS");
+
+		return sdf.format(d);
 	}
 
 
