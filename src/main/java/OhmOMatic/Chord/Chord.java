@@ -283,6 +283,44 @@ public class Chord implements AutoCloseable
 
 		startStabilizingRoutines();
 	}
+
+	private void leave()
+	{
+		var ciSonoElementiDaTrasferire = false;
+
+		do
+		{
+			final var successor = getSuccessor();
+
+			if (!n.equals(successor))
+			{
+				final var data = dht.getData();
+
+				ciSonoElementiDaTrasferire = (data.length > 0);
+
+				for (var i : data)
+					try
+					{
+						gRPC_Client.gRPC(successor, RichiestaDHT.put, i.getKey(), i.getValue());
+					}
+					catch (StatusRuntimeException e)
+					{
+						System.out.println("leave: Nodo " + successor + " non raggiungibile!");
+					}
+					catch (IOException e)
+					{
+						System.out.println("Errore serializzazione oggetto!");
+						e.printStackTrace();
+					}
+					catch (ClassNotFoundException e)
+					{
+						System.out.println("Classe SHA1 non trovata!");
+						e.printStackTrace();
+					}
+			}
+		}
+		while (ciSonoElementiDaTrasferire);
+	}
 	//endregion
 
 	//region Peer List
@@ -316,50 +354,6 @@ public class Chord implements AutoCloseable
 	public Serializable put(final BigInteger key, final Serializable object)
 	{
 		return _functionDHT(RichiestaDHT.put, key, object);
-	}
-
-	public Serializable transfer(final BigInteger key, final Serializable object)
-	{
-		return dht.put(key, object);
-	}
-
-	private void leave()
-	{
-		var ciSonoElementiDaTrasferire = false;
-
-		do
-		{
-			final var successor = getSuccessor();
-			final var predecessor = getPredecessor();
-
-			if (!n.equals(successor) && predecessor != null)
-			{
-				final var data = dht.getData();
-
-				ciSonoElementiDaTrasferire = (data.length > 0);
-
-				for (var i : data)
-					try
-					{
-						gRPC_Client.gRPC(successor, RichiestaDHT.transfer, i.getKey(), i.getValue());
-					}
-					catch (StatusRuntimeException e)
-					{
-						System.out.println("leave: Nodo " + successor + " non raggiungibile!");
-					}
-					catch (IOException e)
-					{
-						System.out.println("Errore serializzazione oggetto!");
-						e.printStackTrace();
-					}
-					catch (ClassNotFoundException e)
-					{
-						System.out.println("Classe SHA1 non trovata!");
-						e.printStackTrace();
-					}
-			}
-		}
-		while (ciSonoElementiDaTrasferire);
 	}
 
 	private Serializable _functionDHT(final RichiestaDHT req, final BigInteger key, final Serializable object)
@@ -536,7 +530,6 @@ public class Chord implements AutoCloseable
 		stampaStato();
 		stampaFingerTable();
 		stampaData();
-		stampaPeerList();
 	}
 
 	private void stampaData()
@@ -545,19 +538,6 @@ public class Chord implements AutoCloseable
 
 		for (var data : dht.getData())
 			System.out.println(data.getKey() + " > " + data.getValue());
-	}
-
-	private void stampaPeerList()
-	{
-		final var peerList = getPeerList();
-
-		if (peerList != null)
-		{
-			System.out.println("Peer list:");
-
-			for (var peer : peerList)
-				System.out.println(peer);
-		}
 	}
 
 	private void stampaFingerTable()

@@ -169,13 +169,6 @@ public class gRPC_Server
 			}
 
 			@Override
-			public void transfer(Home.oggetto request, StreamObserver<Home.oggettoRes> responseObserver)
-			{
-				elaboraDHT(request, responseObserver, e ->
-						local.transfer(e.getKey(), e.getValue()));
-			}
-
-			@Override
 			public void put(Home.oggetto request, StreamObserver<Home.oggettoRes> responseObserver)
 			{
 				elaboraDHT(request, responseObserver, e ->

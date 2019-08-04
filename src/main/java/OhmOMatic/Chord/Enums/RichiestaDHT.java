@@ -14,6 +14,5 @@ public enum RichiestaDHT
 
 	get,
 	put,
-	transfer,
 	remove;
 }
