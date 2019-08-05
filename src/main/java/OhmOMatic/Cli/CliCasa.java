@@ -92,6 +92,10 @@ public final class CliCasa extends BaseCommandLineApplication
 		{
 			chord.stampaTutto();
 		}
+		else if (inpts.hasOption("l"))
+		{
+			chord.stampaListaPeer();
+		}
 		else if (inpts.hasOption("r"))
 		{
 			final var key = stringToBigInteger(inpts.getOptionValue("r"), -1);
@@ -143,6 +147,11 @@ public final class CliCasa extends BaseCommandLineApplication
 				.hasArg(false)
 				.build();
 
+		final var list = Option.builder("l")
+				.desc("List peer")
+				.hasArg(false)
+				.build();
+
 		final var get = Option.builder("g")
 				.desc("Get")
 				.hasArg()
@@ -165,6 +174,7 @@ public final class CliCasa extends BaseCommandLineApplication
 		final var options = new Options()
 				.addOption(quit)
 				.addOption(info)
+				.addOption(list)
 				.addOption(get)
 				.addOption(put)
 				.addOption(remove);

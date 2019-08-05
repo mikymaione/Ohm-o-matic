@@ -125,11 +125,14 @@ class DHT
 	{
 		synchronized (_data)
 		{
-			var ks = _data.keySet();
-			var ar = ks.toArray();
-			var bi = (BigInteger[]) ar;
+			var _peerList = (HashSet<BigInteger>) _data.get(keyListaPeers);
+			var a = _peerList.toArray();
+			var b = new BigInteger[a.length];
 
-			return bi;
+			for (var i = 0; i < a.length; i++)
+				b[i] = (BigInteger) a[i];
+
+			return b;
 		}
 	}
 

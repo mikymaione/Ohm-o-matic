@@ -569,6 +569,15 @@ public class Chord implements AutoCloseable
 			System.out.println(i + ": " + getFinger(i));
 	}
 
+	public void stampaListaPeer()
+	{
+		var lista = getPeerList();
+
+		System.out.println("Lista peers:");
+		for (var peer : lista)
+			System.out.println("Peer: " + peer);
+	}
+
 	private void stampaStato()
 	{
 		System.out.println("Nodo: " + n);
