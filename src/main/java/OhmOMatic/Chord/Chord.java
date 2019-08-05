@@ -313,7 +313,9 @@ public class Chord implements AutoCloseable
 				daFare.clear();
 				daRimuovere.clear();
 
-				dht.forEachAndRemoveAll(e ->
+				var data = dht.getData();
+
+				for (var e : data)
 				{
 					var n_ = find_successor(e.getKey());
 
@@ -326,7 +328,6 @@ public class Chord implements AutoCloseable
 						final var risultatoTrasferimento = gRPC_Client.gRPC(n_, RichiestaDHT.put, e.getKey(), e.getValue());
 
 						if (Boolean.TRUE.equals(risultatoTrasferimento))
-
 							daRimuovere.add(e.getKey());
 					}
 					catch (StatusRuntimeException ex)
@@ -343,7 +344,9 @@ public class Chord implements AutoCloseable
 						System.out.println("Classe SHA1 non trovata!");
 						ex.printStackTrace();
 					}
-				}, daRimuovere);
+				}
+
+				dht.removeAll(daRimuovere);
 			}
 			while (daFare.size() > 0);
 	}
@@ -509,7 +512,9 @@ public class Chord implements AutoCloseable
 			daFare.clear();
 			daRimuovere.clear();
 
-			dht.forEachAndRemoveAll(e ->
+			var data = dht.getData();
+
+			for (var e : data)
 			{
 				final var n_ = find_successor(e.getKey());
 
@@ -536,7 +541,9 @@ public class Chord implements AutoCloseable
 						System.out.println("Classe SHA1 non trovata!");
 						ex.printStackTrace();
 					}
-			}, daRimuovere);
+			}
+
+			dht.removeAll(daRimuovere);
 		}
 		while (daFare.size() > 0);
 	}
@@ -558,7 +565,11 @@ public class Chord implements AutoCloseable
 	private void stampaData()
 	{
 		System.out.println("My data:");
-		dht.getData(e -> System.out.println(e.getKey() + " > " + e.getValue()));
+
+		var data = dht.getData();
+
+		for (var e : data)
+			System.out.println(e.getKey() + " > " + e.getValue());
 	}
 
 	private void stampaFingerTable()

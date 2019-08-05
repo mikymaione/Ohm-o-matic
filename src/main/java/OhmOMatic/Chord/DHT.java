@@ -11,12 +11,12 @@ Implementazione in Java di Chord:
 */
 package OhmOMatic.Chord;
 
+import OhmOMatic.Global.Pair;
+
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.function.Consumer;
 
 class DHT
 {
@@ -100,24 +100,18 @@ class DHT
 		}
 	}
 
-	void forEachAndRemoveAll(Consumer<Map.Entry<BigInteger, Serializable>> callback, final HashSet<BigInteger> daRimuovere)
+	Pair<BigInteger, Serializable>[] getData()
 	{
 		synchronized (_data)
 		{
-			for (var e : _data.entrySet())
-				callback.accept(e);
+			var entrySet = _data.entrySet();
+			Pair<BigInteger, Serializable>[] data = new Pair[entrySet.size()];
 
-			for (var del : daRimuovere)
-				_data.remove(del);
-		}
-	}
+			var x = -1;
+			for (var e : entrySet)
+				data[x += 1] = new Pair<>(e.getKey(), e.getValue());
 
-	void getData(Consumer<Map.Entry<BigInteger, Serializable>> callback)
-	{
-		synchronized (_data)
-		{
-			for (var e : _data.entrySet())
-				callback.accept(e);
+			return data;
 		}
 	}
 
@@ -133,6 +127,16 @@ class DHT
 				b[i] = (BigInteger) a[i];
 
 			return b;
+		}
+	}
+
+	void removeAll(HashSet<BigInteger> daRimuovere)
+	{
+		synchronized (_data)
+		{
+			for (var r : daRimuovere)
+				if (_data.containsKey(r))
+					_data.remove(r);
 		}
 	}
 
