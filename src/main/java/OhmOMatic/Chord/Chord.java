@@ -83,8 +83,8 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.Stack;
 //endregion
 
 public class Chord implements AutoCloseable
@@ -139,8 +139,8 @@ public class Chord implements AutoCloseable
 		stabilizingRoutines = Set.of(
 				new SleepingThread("stabilize", this::stabilize, 60),
 				new SleepingThread("fix_fingers", this::fix_fingers, 500),
-				new SleepingThread("check_predecessor", this::check_predecessor, 500),
-				new SleepingThread("handoff", this::handoff, 1000)
+				new SleepingThread("check_predecessor", this::check_predecessor, 500)//,
+				//new SleepingThread("handoff", this::handoff, 1000)
 		);
 
 		setPredecessor(null);
@@ -224,11 +224,15 @@ public class Chord implements AutoCloseable
 		var successor = getSuccessor();
 
 		//if (id ∈ (n, successor])
-		if (GB.inclusoR(id, n, successor))
-			return successor;
+		if (successor != null)
+			if (GB.incluso(id, n, successor))
+				return successor;
 
 		// forward the query around the circle
 		var n0 = closest_preceding_node(id);
+
+		if (n.equals(n0))
+			return n;
 
 		//return n0.find_successor(id);
 		return gRPC_Client.gRPC(n0, RichiestaChord.findSuccessor, id);
@@ -243,9 +247,19 @@ public class Chord implements AutoCloseable
 			{
 				var iThFinger = _fingerTable.get(i);
 
-				if (iThFinger != null)
-					if (GB.incluso(iThFinger, n, id))
+				if (iThFinger != null && !n.equals(iThFinger))
+					if (GB.finger_incluso(iThFinger, n, id))
+					{
+						final var vivo = gRPC_Client.gRPC(iThFinger, RichiestaChord.ping);
+
+						if (vivo == null)
+						{
+							_fingerTable.put(i, null);
+							continue;
+						}
+
 						return iThFinger;
+					}
 			}
 
 			return n;
@@ -286,40 +300,57 @@ public class Chord implements AutoCloseable
 
 	private void leave()
 	{
-		var ciSonoElementiDaTrasferire = false;
+		final var daFare = new HashSet<BigInteger>();
+		final var daRimuovere = new HashSet<BigInteger>();
+		final var successor = getSuccessor();
 
-		do
-		{
-			final var successor = getSuccessor();
-
-			if (!n.equals(successor))
+		if (!n.equals(successor))
+			do
 			{
-				final var data = dht.getData();
+				daFare.clear();
+				daRimuovere.clear();
 
-				ciSonoElementiDaTrasferire = (data.length > 0);
+				dht.forEachAndRemoveAll(e ->
+				{
+					var n_ = find_successor(e.getKey());
 
-				for (var i : data)
+					if (n.equals(n_))
+						n_ = successor;
+
 					try
 					{
-						gRPC_Client.gRPC(successor, RichiestaDHT.put, i.getKey(), i.getValue());
+						daFare.add(e.getKey());
+						System.out.println("Leave " + e.getKey() + ": " + e.getValue() + " to " + n_);
+
+						final var risultatoTrasferimento = gRPC_Client.gRPC(n_, RichiestaDHT.put, e.getKey(), e.getValue());
+
+						if (Boolean.TRUE.equals(risultatoTrasferimento))
+						{
+							daRimuovere.add(e.getKey());
+							System.out.println("Leave " + e.getKey() + ": " + e.getValue() + " to " + n_ + " OK!");
+						}
+						else
+						{
+							System.out.println("Leave " + e.getKey() + ": " + e.getValue() + " to " + n_ + " FALLITO!");
+						}
 					}
-					catch (StatusRuntimeException e)
+					catch (StatusRuntimeException ex)
 					{
 						System.out.println("leave: Nodo " + successor + " non raggiungibile!");
 					}
-					catch (IOException e)
+					catch (IOException ex)
 					{
 						System.out.println("Errore serializzazione oggetto!");
-						e.printStackTrace();
+						ex.printStackTrace();
 					}
-					catch (ClassNotFoundException e)
+					catch (ClassNotFoundException ex)
 					{
 						System.out.println("Classe SHA1 non trovata!");
-						e.printStackTrace();
+						ex.printStackTrace();
 					}
+				}, daRimuovere);
 			}
-		}
-		while (ciSonoElementiDaTrasferire);
+			while (daFare.size() > 0);
 	}
 	//endregion
 
@@ -362,7 +393,7 @@ public class Chord implements AutoCloseable
 
 		System.out.println("[" + GB.DateToString() + "] " + n_ + " > DHT." + req + ": " + key + "=" + object);
 
-		if (n_ == null || n.equals(n_))
+		if (n.equals(n_))
 			switch (req)
 			{
 				case getPeerList:
@@ -416,7 +447,7 @@ public class Chord implements AutoCloseable
 	// called periodically. n asks the getSuccessor
 	// about its predecessor, verifies if n's immediate
 	// getSuccessor is consistent, and tells the getSuccessor about n
-	private void stabilize()
+	private synchronized void stabilize()
 	{
 		//var x = successor.predecessor;
 		var x = gRPC_Client.gRPC(getSuccessor(), RichiestaChord.predecessor);
@@ -446,7 +477,7 @@ public class Chord implements AutoCloseable
 
 	// called periodically. refreshes finger table entries.
 	// next stores the index of the finger to fix
-	private void fix_fingers()
+	private synchronized void fix_fingers()
 	{
 		next++;
 
@@ -464,7 +495,7 @@ public class Chord implements AutoCloseable
 	}
 
 	// called periodically. checks whether predecessor has failed.
-	private void check_predecessor()
+	private synchronized void check_predecessor()
 	{
 		final var predecessor_vivo = gRPC_Client.gRPC(getPredecessor(), RichiestaChord.ping);
 
@@ -473,29 +504,37 @@ public class Chord implements AutoCloseable
 	}
 
 	// called periodically. handoff my data to the correct peer
-	private void handoff()
+	private synchronized void handoff()
 	{
-		final var daFare = new Stack<BigInteger>();
-		final var daRimuovere = new Stack<BigInteger>();
+		final var daFare = new HashSet<BigInteger>();
+		final var daRimuovere = new HashSet<BigInteger>();
 
 		do
 		{
 			daFare.clear();
-			final var data = dht.getData();
+			daRimuovere.clear();
 
-			for (var e : data)
+			dht.forEachAndRemoveAll(e ->
 			{
 				final var n_ = find_successor(e.getKey());
 
-				if (n_ != null && !n.equals(n_))
+				if (!n.equals(n_))
 					try
 					{
-						daFare.push(e.getKey());
+						daFare.add(e.getKey());
+						System.out.println("Handoff " + e.getKey() + ": " + e.getValue() + " to " + n_);
 
 						final var risultatoTrasferimento = gRPC_Client.gRPC(n_, RichiestaDHT.put, e.getKey(), e.getValue());
 
 						if (Boolean.TRUE.equals(risultatoTrasferimento))
-							daRimuovere.push(e.getKey());
+						{
+							daRimuovere.add(e.getKey());
+							System.out.println("Handoff " + e.getKey() + ": " + e.getValue() + " to " + n_ + " OK!");
+						}
+						else
+						{
+							System.out.println("Handoff " + e.getKey() + ": " + e.getValue() + " to " + n_ + " FALLITO!");
+						}
 					}
 					catch (StatusRuntimeException ex)
 					{
@@ -511,11 +550,9 @@ public class Chord implements AutoCloseable
 						System.out.println("Classe SHA1 non trovata!");
 						ex.printStackTrace();
 					}
-			}
+			}, daRimuovere);
 		}
-		while (daFare.size() > daRimuovere.size());
-
-		dht.removeAll(daRimuovere);
+		while (daFare.size() > 0);
 	}
 
 	public NodeLink ping()
@@ -535,9 +572,7 @@ public class Chord implements AutoCloseable
 	private void stampaData()
 	{
 		System.out.println("My data:");
-
-		for (var data : dht.getData())
-			System.out.println(data.getKey() + " > " + data.getValue());
+		dht.getData(e -> System.out.println(e.getKey() + " > " + e.getValue()));
 	}
 
 	private void stampaFingerTable()

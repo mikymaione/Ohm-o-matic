@@ -11,13 +11,12 @@ Implementazione in Java di Chord:
 */
 package OhmOMatic.Chord;
 
-import OhmOMatic.Global.Pair;
-
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Stack;
+import java.util.Map;
+import java.util.function.Consumer;
 
 class DHT
 {
@@ -39,29 +38,6 @@ class DHT
 		}
 	}
 
-	private HashSet<BigInteger> _getPeerList()
-	{
-		synchronized (_data)
-		{
-			return (HashSet<BigInteger>) _data.get(keyListaPeers);
-		}
-	}
-
-	BigInteger[] getPeerList()
-	{
-		synchronized (_data)
-		{
-			var _peerList = _getPeerList();
-			var ARR = new BigInteger[_peerList.size()];
-
-			var i = -1;
-			for (var peer : _peerList)
-				ARR[i += 1] = peer;
-
-			return ARR;
-		}
-	}
-
 	Boolean addToPeerList(final Serializable ID)
 	{
 		if (ID instanceof BigInteger)
@@ -70,7 +46,7 @@ class DHT
 
 			synchronized (_data)
 			{
-				var _peerList = _getPeerList();
+				var _peerList = (HashSet<BigInteger>) _data.get(keyListaPeers);
 				_peerList.add(n_);
 			}
 
@@ -88,7 +64,7 @@ class DHT
 
 			synchronized (_data)
 			{
-				var _peerList = _getPeerList();
+				var _peerList = (HashSet<BigInteger>) _data.get(keyListaPeers);
 				_peerList.remove(n_);
 			}
 
@@ -124,28 +100,36 @@ class DHT
 		}
 	}
 
-	Serializable removeAll(Stack<BigInteger> daRimuovere)
+	void forEachAndRemoveAll(Consumer<Map.Entry<BigInteger, Serializable>> callback, final HashSet<BigInteger> daRimuovere)
 	{
 		synchronized (_data)
 		{
-			while (daRimuovere.size() > 0)
-				_data.remove(daRimuovere.pop());
+			for (var e : _data.entrySet())
+				callback.accept(e);
 
-			return true;
+			for (var del : daRimuovere)
+				_data.remove(del);
 		}
 	}
 
-	Pair<BigInteger, Serializable>[] getData()
+	void getData(Consumer<Map.Entry<BigInteger, Serializable>> callback)
 	{
 		synchronized (_data)
 		{
-			Pair<BigInteger, Serializable>[] ARR = new Pair[_data.size()];
+			for (var e : _data.entrySet())
+				callback.accept(e);
+		}
+	}
 
-			var i = -1;
-			for (var d : _data.entrySet())
-				ARR[i += 1] = new Pair<>(d.getKey(), d.getValue());
+	BigInteger[] getPeerList()
+	{
+		synchronized (_data)
+		{
+			var ks = _data.keySet();
+			var ar = ks.toArray();
+			var bi = (BigInteger[]) ar;
 
-			return ARR;
+			return bi;
 		}
 	}
 

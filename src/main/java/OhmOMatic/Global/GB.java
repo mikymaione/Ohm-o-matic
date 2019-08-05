@@ -54,38 +54,52 @@ public final class GB
 		return incluso(id.ID, a.ID, b.ID);
 	}
 
-	public static boolean inclusoR(BigInteger id, NodeLink a, NodeLink b)
+	public static boolean incluso(BigInteger id, NodeLink a, NodeLink b)
 	{
-		return inclusoR(id, a.ID, b.ID);
+		return incluso(id, a.ID, b.ID);
 	}
 
-	private static boolean inclusoR(BigInteger id, BigInteger a, BigInteger b)
+	private static boolean incluso(BigInteger id, BigInteger start, BigInteger end)
 	{
-		return incluso(id, a, b) || id.equals(b);
-	}
-
-	private static boolean incluso(BigInteger id, BigInteger x, BigInteger y)
-	{
-		switch (BigIntegerCompare(x, y))
+		if (end.compareTo(start) <= 0)
 		{
-			case 1:
-				return BigIntegerCompare(x, id) == -1 || BigIntegerCompare(y, id) >= 0;
-			case -1:
-				return BigIntegerCompare(x, id) == -1 && BigIntegerCompare(y, id) >= 0;
-			case 0:
-				return BigIntegerCompare(x, id) != 0;
-			default:
-				return false;
+			if (start.compareTo(id) < 0 || id.compareTo(end) <= 0)
+				return true;
 		}
+		else
+		{
+			if (start.compareTo(id) < 0 && id.compareTo(end) <= 0)
+				return true;
+		}
+
+		return false;
 	}
 
-	private static int BigIntegerCompare(BigInteger a, BigInteger b)
+	public static boolean finger_incluso(NodeLink key, NodeLink x, BigInteger y)
 	{
-		//This method returns the value zero if (a == b),
-		//if (a < b) then it returns a value less than zero
-		//and if (a > b) then it returns a value greater than zero.
+		return finger_incluso(key.ID, x.ID, y);
+	}
 
-		return a.compareTo(b);
+	private static boolean finger_incluso(BigInteger key, BigInteger start, BigInteger end)
+	{
+		if (start.equals(end))
+		{
+			return true;
+		}
+		else if (end.compareTo(start) < 0)
+		{
+			// this handles the wraparound case - since the range includes zero, any key bigger than the start
+			// or smaller than the end will be considered in the range
+			if (start.compareTo(key) < 0 || key.compareTo(end) < 0)
+				return true;
+		}
+		else
+		{
+			if (start.compareTo(key) < 0 || key.compareTo(end) < 0)
+				return true;
+		}
+
+		return false;
 	}
 
 	public static byte[] SHA1(String s)
