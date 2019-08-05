@@ -62,17 +62,9 @@ public final class GB
 	private static boolean incluso(BigInteger id, BigInteger start, BigInteger end)
 	{
 		if (end.compareTo(start) <= 0)
-		{
-			if (start.compareTo(id) < 0 || id.compareTo(end) <= 0)
-				return true;
-		}
+			return start.compareTo(id) < 0 || id.compareTo(end) <= 0;
 		else
-		{
-			if (start.compareTo(id) < 0 && id.compareTo(end) <= 0)
-				return true;
-		}
-
-		return false;
+			return start.compareTo(id) < 0 && id.compareTo(end) <= 0;
 	}
 
 	public static boolean finger_incluso(NodeLink key, NodeLink x, BigInteger y)
@@ -83,23 +75,11 @@ public final class GB
 	private static boolean finger_incluso(BigInteger key, BigInteger start, BigInteger end)
 	{
 		if (start.equals(end))
-		{
 			return true;
-		}
 		else if (end.compareTo(start) < 0)
-		{
-			// this handles the wraparound case - since the range includes zero, any key bigger than the start
-			// or smaller than the end will be considered in the range
-			if (start.compareTo(key) < 0 || key.compareTo(end) < 0)
-				return true;
-		}
+			return start.compareTo(key) < 0 || key.compareTo(end) < 0;
 		else
-		{
-			if (start.compareTo(key) < 0 || key.compareTo(end) < 0)
-				return true;
-		}
-
-		return false;
+			return start.compareTo(key) < 0 && key.compareTo(end) < 0;
 	}
 
 	public static byte[] SHA1(String s)

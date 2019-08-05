@@ -71,10 +71,10 @@ package OhmOMatic.Chord;
 import OhmOMatic.Chord.Enums.RichiestaChord;
 import OhmOMatic.Chord.Enums.RichiestaDHT;
 import OhmOMatic.Chord.Link.NodeLink;
-import OhmOMatic.Chord.Threads.SleepingThread;
 import OhmOMatic.Chord.gRPC.gRPC_Client;
 import OhmOMatic.Chord.gRPC.gRPC_Server;
 import OhmOMatic.Global.GB;
+import OhmOMatic.Global.Waiter;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.StatusRuntimeException;
@@ -111,7 +111,7 @@ public class Chord implements AutoCloseable
 	private final HashMap<Integer, NodeLink> _fingerTable;
 
 	//timer per le funzioni di stabilizzazione
-	private final Set<SleepingThread> stabilizingRoutines;
+	private final Set<Waiter> stabilizingRoutines;
 	//===================================== Chord =====================================
 
 
@@ -137,10 +137,10 @@ public class Chord implements AutoCloseable
 		dht = new DHT(keyListaPeers);
 
 		stabilizingRoutines = Set.of(
-				new SleepingThread("stabilize", this::stabilize, 60),
-				new SleepingThread("fix_fingers", this::fix_fingers, 500),
-				new SleepingThread("check_predecessor", this::check_predecessor, 500)//,
-				//new SleepingThread("handoff", this::handoff, 1000)
+				new Waiter("stabilize", this::stabilize, 60),
+				new Waiter("fix_fingers", this::fix_fingers, 500),
+				new Waiter("check_predecessor", this::check_predecessor, 500),
+				new Waiter("handoff", this::handoff, 1000)
 		);
 
 		setPredecessor(null);
@@ -159,8 +159,11 @@ public class Chord implements AutoCloseable
 		removeFromPeerList(keyListaPeers, n.ID);
 		remove(n.ID);
 
-		for (var routine : stabilizingRoutines)
-			routine.stopMeGently();
+		for (var stabilizingRoutine : stabilizingRoutines)
+			stabilizingRoutine.stopMeGently();
+
+		for (var stabilizingRoutine : stabilizingRoutines)
+			while (stabilizingRoutine.isRunning()) ;
 
 		gRPC_listner.shutdown();
 
@@ -320,19 +323,11 @@ public class Chord implements AutoCloseable
 					try
 					{
 						daFare.add(e.getKey());
-						System.out.println("Leave " + e.getKey() + ": " + e.getValue() + " to " + n_);
-
 						final var risultatoTrasferimento = gRPC_Client.gRPC(n_, RichiestaDHT.put, e.getKey(), e.getValue());
 
 						if (Boolean.TRUE.equals(risultatoTrasferimento))
-						{
+
 							daRimuovere.add(e.getKey());
-							System.out.println("Leave " + e.getKey() + ": " + e.getValue() + " to " + n_ + " OK!");
-						}
-						else
-						{
-							System.out.println("Leave " + e.getKey() + ": " + e.getValue() + " to " + n_ + " FALLITO!");
-						}
 					}
 					catch (StatusRuntimeException ex)
 					{
@@ -440,8 +435,8 @@ public class Chord implements AutoCloseable
 	//stabilize the chord ring/circle after getNode joins and departures
 	private void startStabilizingRoutines()
 	{
-		for (var routine : stabilizingRoutines)
-			routine.start();
+		for (var stabilizingRoutine : stabilizingRoutines)
+			stabilizingRoutine.start();
 	}
 
 	// called periodically. n asks the getSuccessor
@@ -522,19 +517,10 @@ public class Chord implements AutoCloseable
 					try
 					{
 						daFare.add(e.getKey());
-						System.out.println("Handoff " + e.getKey() + ": " + e.getValue() + " to " + n_);
-
 						final var risultatoTrasferimento = gRPC_Client.gRPC(n_, RichiestaDHT.put, e.getKey(), e.getValue());
 
 						if (Boolean.TRUE.equals(risultatoTrasferimento))
-						{
 							daRimuovere.add(e.getKey());
-							System.out.println("Handoff " + e.getKey() + ": " + e.getValue() + " to " + n_ + " OK!");
-						}
-						else
-						{
-							System.out.println("Handoff " + e.getKey() + ": " + e.getValue() + " to " + n_ + " FALLITO!");
-						}
 					}
 					catch (StatusRuntimeException ex)
 					{

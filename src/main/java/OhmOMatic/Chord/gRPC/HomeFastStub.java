@@ -18,11 +18,8 @@ public class HomeFastStub implements AutoCloseable
 
 	HomeServiceGrpc.HomeServiceBlockingStub getStub(NodeLink destination)
 	{
-		final var ip = destination.IP;
-		final var port = destination.port;
-
 		chan = ManagedChannelBuilder
-				.forAddress(ip, port)
+				.forAddress(destination.IP, destination.port)
 				.usePlaintext()
 				.build();
 
