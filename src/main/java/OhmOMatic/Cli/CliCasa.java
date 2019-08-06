@@ -50,7 +50,7 @@ public final class CliCasa extends BaseCommandLineApplication
 					//casa.entraNelCondominio();
 					System.out.println("Casa nel condominio!");
 
-					//casa.avviaSmartMeter();
+					casa.avviaSmartMeter();
 					System.out.println("Smart meter avviato!");
 
 					try (var scanner = new Scanner(System.in))
@@ -58,7 +58,7 @@ public final class CliCasa extends BaseCommandLineApplication
 						LeggiComandiInterattivi(casa, chord, scanner);
 					}
 
-					//casa.fermaSmartMeter();
+					casa.fermaSmartMeter();
 					System.out.println("Smart meter fermato!");
 
 					//casa.disiscriviCasa();
@@ -75,61 +75,70 @@ public final class CliCasa extends BaseCommandLineApplication
 	}
 
 	//region Opzioni command line
-	private static void LeggiComandiInterattivi(Casa casa, Chord chord, Scanner scanner) throws ParseException
+	private static void LeggiComandiInterattivi(Casa casa, Chord chord, Scanner scanner)
 	{
 		final var commands = createOptionsInteractiveProgram();
 		printOptions("", commands);
 
 		final var line = scanner.nextLine();
-		final var inpts = getCommandLine(commands, line.split(" "));
 
-		if (inpts.hasOption("q"))
+		try
 		{
-			// quit
-			return;
+			final var inpts = getCommandLine(commands, line.split(" "));
+
+			if (inpts.hasOption("q"))
+			{
+				// quit
+				return;
+			}
+			else if (inpts.hasOption("i"))
+			{
+				chord.stampaTutto();
+				casa.stampaConsumo();
+			}
+			else if (inpts.hasOption("l"))
+			{
+				chord.stampaListaPeer();
+			}
+			else if (inpts.hasOption("r"))
+			{
+				final var key = stringToBigInteger(inpts.getOptionValue("r"), -1);
+
+				var remove = chord.remove(key);
+
+				if (remove == null)
+					System.out.println("-Nessun oggetto con chiave " + key);
+				else
+					System.out.println("-Rimosso oggetto " + key);
+			}
+			else if (inpts.hasOption("g"))
+			{
+				final var key = stringToBigInteger(inpts.getOptionValue("g"), -1);
+
+				var get = chord.get(key);
+
+				if (get == null)
+					System.out.println("-Nessun oggetto con chiave " + key);
+				else
+					System.out.println("-Ottenuto oggetto con chiave " + key + ": " + get);
+			}
+			else if (inpts.hasOption("p"))
+			{
+				final var set = inpts.getOptionValues("p");
+				final var key = stringToBigInteger(set[0], -1);
+				final var obj = set[1];
+
+				var put = chord.put(key, obj);
+
+				if (put == null)
+					System.out.println("-Inserito oggetto con chiave " + key);
+				else
+					System.out.println("-Sostituito oggetto con chiave " + key);
+			}
 		}
-		else if (inpts.hasOption("i"))
+		catch (ParseException e)
 		{
-			chord.stampaTutto();
-		}
-		else if (inpts.hasOption("l"))
-		{
-			chord.stampaListaPeer();
-		}
-		else if (inpts.hasOption("r"))
-		{
-			final var key = stringToBigInteger(inpts.getOptionValue("r"), -1);
-
-			var remove = chord.remove(key);
-
-			if (remove == null)
-				System.out.println("-Nessun oggetto con chiave " + key);
-			else
-				System.out.println("-Rimosso oggetto " + key);
-		}
-		else if (inpts.hasOption("g"))
-		{
-			final var key = stringToBigInteger(inpts.getOptionValue("g"), -1);
-
-			var get = chord.get(key);
-
-			if (get == null)
-				System.out.println("-Nessun oggetto con chiave " + key);
-			else
-				System.out.println("-Ottenuto oggetto con chiave " + key + ": " + get);
-		}
-		else if (inpts.hasOption("p"))
-		{
-			final var set = inpts.getOptionValues("p");
-			final var key = stringToBigInteger(set[0], -1);
-			final var obj = set[1];
-
-			var put = chord.put(key, obj);
-
-			if (put == null)
-				System.out.println("-Inserito oggetto con chiave " + key);
-			else
-				System.out.println("-Sostituito oggetto con chiave " + key);
+			System.out.println("Il comando " + line + " non esiste!");
 		}
 
 		LeggiComandiInterattivi(casa, chord, scanner);

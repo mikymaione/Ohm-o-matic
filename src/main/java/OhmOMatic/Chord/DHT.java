@@ -111,12 +111,15 @@ class DHT
 		}
 	}
 
-	void forEach(Consumer<Map.Entry<BigInteger, Serializable>> callback)
+	void forEachAndRemoveAll(Consumer<Map.Entry<BigInteger, Serializable>> callback, HashSet<BigInteger> daRimuovere)
 	{
 		synchronized (_data)
 		{
 			for (var e : _data.entrySet())
 				callback.accept(e);
+
+			for (var d : daRimuovere)
+				_data.remove(d);
 		}
 	}
 

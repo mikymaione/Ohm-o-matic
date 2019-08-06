@@ -36,6 +36,8 @@ public class Casa implements MeanListener, AutoCloseable
 
 	private final Chord chord;
 
+	private Double consumoEnergeticoMio;
+
 
 	public Casa(String indirizzoREST_, String mioIndirizzo_, int miaPorta_, Chord chord_) throws IOException
 	{
@@ -130,29 +132,18 @@ public class Casa implements MeanListener, AutoCloseable
 			e.printStackTrace();
 		}
 	}
-
-	private void inviaStatistiche(final Double consumo)
-	{
-		chord.put(chord.getID(), consumo);
-
-		final var consumoEnergeticoComplessivo = calcolaConsumoEnergeticoComplessivo();
-
-		System.out.println(
-				"Consumo mio: " +
-						System.lineSeparator() +
-						consumo +
-						System.lineSeparator() +
-						"Consumo energetico del condominio: " +
-						System.lineSeparator() +
-						consumoEnergeticoComplessivo
-		);
-	}
 	//endregion
 
 	//region Funzioni sul calcolo del consumo energetico
+	private void inviaStatistiche(final Double consumo)
+	{
+		chord.put(chord.getID(), consumo);
+		consumoEnergeticoMio = consumo;
+	}
+
 	private Double calcolaConsumoEnergeticoComplessivo()
 	{
-		Double consumoEnergeticoComplessivo = 0d;
+		Double consumoEnergeticoTotale = 0d;
 
 		final var peerList = chord.getPeerList();
 
@@ -162,15 +153,28 @@ public class Casa implements MeanListener, AutoCloseable
 				final var consumo = chord.get(peer);
 
 				if (consumo instanceof Double)
-					consumoEnergeticoComplessivo += (Double) consumo;
+					consumoEnergeticoTotale += (Double) consumo;
 			}
 
-		return consumoEnergeticoComplessivo;
+		return consumoEnergeticoTotale;
 	}
 
 	public void richiediAlCondominioDiPoterConsumareOltreLaMedia()
 	{
 
+	}
+
+	public void stampaConsumo()
+	{
+		System.out.println(
+				"Consumo mio: " +
+						System.lineSeparator() +
+						consumoEnergeticoMio +
+						System.lineSeparator() +
+						"Consumo energetico del condominio: " +
+						System.lineSeparator() +
+						calcolaConsumoEnergeticoComplessivo()
+		);
 	}
 	//endregion
 
