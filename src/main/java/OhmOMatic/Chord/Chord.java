@@ -320,7 +320,7 @@ public class Chord implements AutoCloseable
 
 					try
 					{
-						System.out.println("[" + GB.DateToString() + "] " + n_ + " > handoff: " + e.getKey() + "=" + e.getValue());
+						System.out.println("[" + GB.DateToString() + "] leave > " + n_ + ": " + e.getKey() + "=" + e.getValue());
 						daFare.add(e.getKey());
 						final var risultatoTrasferimento = gRPC_Client.gRPC(n_, RichiestaDHT.transfer, e.getKey(), e.getValue());
 
@@ -395,7 +395,7 @@ public class Chord implements AutoCloseable
 	{
 		final var n_ = find_successor(key);
 
-		System.out.println("[" + GB.DateToString() + "] " + n_ + " > DHT." + req + ": " + key + "=" + object);
+		System.out.println("[" + GB.DateToString() + "] DHT." + req + " > " + n_ + ": " + key + "=" + object);
 
 		if (n.equals(n_))
 			switch (req)
@@ -523,7 +523,7 @@ public class Chord implements AutoCloseable
 				if (!n.equals(n_))
 					try
 					{
-						System.out.println("[" + GB.DateToString() + "] " + n_ + " > handoff: " + e.getKey() + "=" + e.getValue());
+						System.out.println("[" + GB.DateToString() + "] handoff > " + n_ + ": " + e.getKey() + "=" + e.getValue());
 						daFare.add(e.getKey());
 						final var risultatoTrasferimento = gRPC_Client.gRPC(n_, RichiestaDHT.transfer, e.getKey(), e.getValue());
 
