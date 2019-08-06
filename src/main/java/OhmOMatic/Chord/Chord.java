@@ -351,55 +351,58 @@ public class Chord implements AutoCloseable
 	//region Peer List
 	public Boolean removeFromPeerList(final BigInteger key, final Serializable object)
 	{
-		return removeFromPeerList(0, key, object);
-	}
+		while (true)
+		{
+			var r = _functionDHT(RichiestaDHT.removeFromPeerList, key, object);
 
-	private Boolean removeFromPeerList(final int wait, final BigInteger key, final Serializable object)
-	{
-		var r = (Boolean) _functionDHT(wait, RichiestaDHT.removeFromPeerList, key, object);
-
-		return (Boolean.TRUE.equals(r) ? r : removeFromPeerList(wait + 1, key, object));
+			if (Boolean.TRUE.equals(r))
+				return true;
+			else
+				GB.Sleep(250);
+		}
 	}
 
 	public Boolean addToPeerList(final BigInteger key, final Serializable object)
 	{
-		return addToPeerList(0, key, object);
-	}
+		while (true)
+		{
+			var r = _functionDHT(RichiestaDHT.addToPeerList, key, object);
 
-	private Boolean addToPeerList(final int wait, final BigInteger key, final Serializable object)
-	{
-		var r = (Boolean) _functionDHT(wait, RichiestaDHT.addToPeerList, key, object);
-
-		return (Boolean.TRUE.equals(r) ? r : addToPeerList(wait + 1, key, object));
+			if (Boolean.TRUE.equals(r))
+				return true;
+			else
+				GB.Sleep(250);
+		}
 	}
 
 	public BigInteger[] getPeerList()
 	{
-		return getPeerList(0);
-	}
+		while (true)
+		{
+			var r = _functionDHT(RichiestaDHT.getPeerList, keyListaPeers, null);
 
-	private BigInteger[] getPeerList(final int wait)
-	{
-		var l = _functionDHT(wait, RichiestaDHT.getPeerList, keyListaPeers, null);
-
-		return (l == null ? getPeerList(wait + 1) : (BigInteger[]) l);
+			if (r == null)
+				GB.Sleep(250);
+			else
+				return (BigInteger[]) r;
+		}
 	}
 	//endregion
 
 	//region DHT
 	public Serializable remove(final BigInteger key)
 	{
-		return _functionDHT(0, RichiestaDHT.remove, key, null);
+		return _functionDHT(RichiestaDHT.remove, key, null);
 	}
 
 	public Serializable get(final BigInteger key)
 	{
-		return _functionDHT(0, RichiestaDHT.get, key, null);
+		return _functionDHT(RichiestaDHT.get, key, null);
 	}
 
 	public Serializable put(final BigInteger key, final Serializable object)
 	{
-		return _functionDHT(0, RichiestaDHT.put, key, object);
+		return _functionDHT(RichiestaDHT.put, key, object);
 	}
 
 	public Serializable transfer(final BigInteger key, final Serializable object)
@@ -407,18 +410,8 @@ public class Chord implements AutoCloseable
 		return dht.put(key, object);
 	}
 
-	private Serializable _functionDHT(final int wait, final RichiestaDHT req, final BigInteger key, final Serializable object)
+	private Serializable _functionDHT(final RichiestaDHT req, final BigInteger key, final Serializable object)
 	{
-		if (wait > 0)
-			try
-			{
-				Thread.sleep(wait * 100);
-			}
-			catch (InterruptedException e)
-			{
-				e.printStackTrace();
-			}
-
 		final var n_ = find_successor(key);
 
 		//System.out.println("[" + GB.DateToString() + "] DHT." + req + " > " + n_ + ": " + key + "=" + object);
@@ -441,25 +434,28 @@ public class Chord implements AutoCloseable
 					return dht.remove(key);
 			}
 		else
-			try
-			{
-				return gRPC_Client.gRPC(n_, req, key, object);
-			}
-			catch (StatusRuntimeException e)
-			{
-				System.out.println("DHT: Nodo " + n_ + " non raggiungibile!");
-				return _functionDHT(wait + 1, req, key, object);
-			}
-			catch (IOException e)
-			{
-				System.out.println("Errore serializzazione oggetto!");
-				e.printStackTrace();
-			}
-			catch (ClassNotFoundException e)
-			{
-				System.out.println("Classe SHA1 non trovata!");
-				e.printStackTrace();
-			}
+			while (true)
+				try
+				{
+					return gRPC_Client.gRPC(n_, req, key, object);
+				}
+				catch (StatusRuntimeException e)
+				{
+					System.out.println("DHT: Nodo " + n_ + " non raggiungibile!");
+					GB.Sleep(250);
+				}
+				catch (IOException e)
+				{
+					System.out.println("Errore serializzazione oggetto!");
+					e.printStackTrace();
+					break;
+				}
+				catch (ClassNotFoundException e)
+				{
+					System.out.println("Classe SHA1 non trovata!");
+					e.printStackTrace();
+					break;
+				}
 
 		return null;
 	}

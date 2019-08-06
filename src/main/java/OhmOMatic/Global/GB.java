@@ -147,5 +147,17 @@ public final class GB
 		return sdf.format(d);
 	}
 
+	public static void Sleep(int millisecondi)
+	{
+		try
+		{
+			Thread.sleep(millisecondi);
+		}
+		catch (InterruptedException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
 
 }
