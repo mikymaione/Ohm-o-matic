@@ -412,7 +412,7 @@ public class Chord implements AutoCloseable
 		if (wait > 0)
 			try
 			{
-				wait(wait * 100);
+				Thread.sleep(wait * 100);
 			}
 			catch (InterruptedException e)
 			{

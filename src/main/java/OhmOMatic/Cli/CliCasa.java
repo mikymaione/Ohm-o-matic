@@ -94,11 +94,14 @@ public final class CliCasa extends BaseCommandLineApplication
 			else if (inpts.hasOption("i"))
 			{
 				chord.stampaTutto();
-				casa.stampaConsumo();
 			}
 			else if (inpts.hasOption("l"))
 			{
 				chord.stampaListaPeer();
+			}
+			else if (inpts.hasOption("c"))
+			{
+				casa.stampaConsumo();
 			}
 			else if (inpts.hasOption("r"))
 			{
@@ -161,6 +164,11 @@ public final class CliCasa extends BaseCommandLineApplication
 				.hasArg(false)
 				.build();
 
+		final var consumption = Option.builder("c")
+				.desc("Energy consumption")
+				.hasArg(false)
+				.build();
+
 		final var get = Option.builder("g")
 				.desc("Get")
 				.hasArg()
@@ -184,6 +192,7 @@ public final class CliCasa extends BaseCommandLineApplication
 				.addOption(quit)
 				.addOption(info)
 				.addOption(list)
+				.addOption(consumption)
 				.addOption(get)
 				.addOption(put)
 				.addOption(remove);
