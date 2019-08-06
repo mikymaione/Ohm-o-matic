@@ -12,6 +12,7 @@ public enum RichiestaDHT
 	getPeerList,
 	removeFromPeerList,
 
+	transfer,
 	get,
 	put,
 	remove;

@@ -11,12 +11,12 @@ Implementazione in Java di Chord:
 */
 package OhmOMatic.Chord;
 
-import OhmOMatic.Global.Pair;
-
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.function.Consumer;
 
 class DHT
 {
@@ -30,11 +30,13 @@ class DHT
 		this.keyListaPeers = keyListaPeers;
 	}
 
-	void createPeerList()
+	Boolean createPeerList()
 	{
 		synchronized (_data)
 		{
 			_data.put(keyListaPeers, new HashSet<BigInteger>());
+
+			return true;
 		}
 	}
 
@@ -46,11 +48,14 @@ class DHT
 
 			synchronized (_data)
 			{
-				var _peerList = (HashSet<BigInteger>) _data.get(keyListaPeers);
-				_peerList.add(n_);
-			}
+				if (_data.containsKey(keyListaPeers))
+				{
+					var _peerList = (HashSet<BigInteger>) _data.get(keyListaPeers);
+					_peerList.add(n_);
 
-			return true;
+					return true;
+				}
+			}
 		}
 
 		return false;
@@ -64,11 +69,14 @@ class DHT
 
 			synchronized (_data)
 			{
-				var _peerList = (HashSet<BigInteger>) _data.get(keyListaPeers);
-				_peerList.remove(n_);
-			}
+				if (_data.containsKey(keyListaPeers))
+				{
+					var _peerList = (HashSet<BigInteger>) _data.get(keyListaPeers);
+					_peerList.remove(n_);
 
-			return true;
+					return true;
+				}
+			}
 		}
 
 		return false;
@@ -83,35 +91,41 @@ class DHT
 		}
 	}
 
-	Serializable put(final BigInteger key, final Serializable value)
+	Boolean put(final BigInteger key, final Serializable value)
 	{
 		synchronized (_data)
 		{
 			_data.put(key, value);
+
 			return true;
 		}
 	}
 
-	Serializable remove(BigInteger key)
+	Boolean remove(BigInteger key)
 	{
 		synchronized (_data)
 		{
-			return _data.remove(key);
+			_data.remove(key);
+
+			return true;
 		}
 	}
 
-	Pair<BigInteger, Serializable>[] getData()
+	void forEach(Consumer<Map.Entry<BigInteger, Serializable>> callback)
 	{
 		synchronized (_data)
 		{
-			var entrySet = _data.entrySet();
-			Pair<BigInteger, Serializable>[] data = new Pair[entrySet.size()];
+			for (var e : _data.entrySet())
+				callback.accept(e);
+		}
+	}
 
-			var x = -1;
-			for (var e : entrySet)
-				data[x += 1] = new Pair<>(e.getKey(), e.getValue());
-
-			return data;
+	void getData(Consumer<Map.Entry<BigInteger, Serializable>> callback)
+	{
+		synchronized (_data)
+		{
+			for (var e : _data.entrySet())
+				callback.accept(e);
 		}
 	}
 
@@ -119,24 +133,19 @@ class DHT
 	{
 		synchronized (_data)
 		{
-			var _peerList = (HashSet<BigInteger>) _data.get(keyListaPeers);
-			var a = _peerList.toArray();
-			var b = new BigInteger[a.length];
+			if (_data.containsKey(keyListaPeers))
+			{
+				var _peerList = (HashSet<BigInteger>) _data.get(keyListaPeers);
+				var a = _peerList.toArray();
+				var b = new BigInteger[a.length];
 
-			for (var i = 0; i < a.length; i++)
-				b[i] = (BigInteger) a[i];
+				for (var i = 0; i < a.length; i++)
+					b[i] = (BigInteger) a[i];
 
-			return b;
-		}
-	}
+				return b;
+			}
 
-	void removeAll(HashSet<BigInteger> daRimuovere)
-	{
-		synchronized (_data)
-		{
-			for (var r : daRimuovere)
-				if (_data.containsKey(r))
-					_data.remove(r);
+			return null;
 		}
 	}
 

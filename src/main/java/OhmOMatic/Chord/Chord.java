@@ -304,18 +304,14 @@ public class Chord implements AutoCloseable
 	private void leave()
 	{
 		final var daFare = new HashSet<BigInteger>();
-		final var daRimuovere = new HashSet<BigInteger>();
 		final var successor = getSuccessor();
 
 		if (!n.equals(successor))
 			do
 			{
 				daFare.clear();
-				daRimuovere.clear();
 
-				var data = dht.getData();
-
-				for (var e : data)
+				dht.forEach(e ->
 				{
 					var n_ = find_successor(e.getKey());
 
@@ -324,11 +320,12 @@ public class Chord implements AutoCloseable
 
 					try
 					{
+						System.out.println("[" + GB.DateToString() + "] " + n_ + " > handoff: " + e.getKey() + "=" + e.getValue());
 						daFare.add(e.getKey());
-						final var risultatoTrasferimento = gRPC_Client.gRPC(n_, RichiestaDHT.put, e.getKey(), e.getValue());
+						final var risultatoTrasferimento = gRPC_Client.gRPC(n_, RichiestaDHT.transfer, e.getKey(), e.getValue());
 
 						if (Boolean.TRUE.equals(risultatoTrasferimento))
-							daRimuovere.add(e.getKey());
+							dht.remove(e.getKey());
 					}
 					catch (StatusRuntimeException ex)
 					{
@@ -344,28 +341,32 @@ public class Chord implements AutoCloseable
 						System.out.println("Classe SHA1 non trovata!");
 						ex.printStackTrace();
 					}
-				}
-
-				dht.removeAll(daRimuovere);
+				});
 			}
 			while (daFare.size() > 0);
 	}
 	//endregion
 
 	//region Peer List
-	public Serializable removeFromPeerList(final BigInteger key, final Serializable object)
+	public Boolean removeFromPeerList(final BigInteger key, final Serializable object)
 	{
-		return _functionDHT(RichiestaDHT.removeFromPeerList, key, object);
+		var r = (Boolean) _functionDHT(RichiestaDHT.removeFromPeerList, key, object);
+
+		return (Boolean.TRUE.equals(r) ? r : removeFromPeerList(key, object));
 	}
 
-	public Serializable addToPeerList(final BigInteger key, final Serializable object)
+	public Boolean addToPeerList(final BigInteger key, final Serializable object)
 	{
-		return _functionDHT(RichiestaDHT.addToPeerList, key, object);
+		var r = (Boolean) _functionDHT(RichiestaDHT.addToPeerList, key, object);
+
+		return (Boolean.TRUE.equals(r) ? r : removeFromPeerList(key, object));
 	}
 
 	public BigInteger[] getPeerList()
 	{
-		return (BigInteger[]) _functionDHT(RichiestaDHT.getPeerList, keyListaPeers, null);
+		var l = _functionDHT(RichiestaDHT.getPeerList, keyListaPeers, null);
+
+		return (l == null ? getPeerList() : (BigInteger[]) l);
 	}
 	//endregion
 
@@ -383,6 +384,11 @@ public class Chord implements AutoCloseable
 	public Serializable put(final BigInteger key, final Serializable object)
 	{
 		return _functionDHT(RichiestaDHT.put, key, object);
+	}
+
+	public Serializable transfer(final BigInteger key, final Serializable object)
+	{
+		return dht.put(key, object);
 	}
 
 	private Serializable _functionDHT(final RichiestaDHT req, final BigInteger key, final Serializable object)
@@ -505,27 +511,24 @@ public class Chord implements AutoCloseable
 	private synchronized void handoff()
 	{
 		final var daFare = new HashSet<BigInteger>();
-		final var daRimuovere = new HashSet<BigInteger>();
 
 		do
 		{
 			daFare.clear();
-			daRimuovere.clear();
 
-			var data = dht.getData();
-
-			for (var e : data)
+			dht.forEach(e ->
 			{
 				final var n_ = find_successor(e.getKey());
 
 				if (!n.equals(n_))
 					try
 					{
+						System.out.println("[" + GB.DateToString() + "] " + n_ + " > handoff: " + e.getKey() + "=" + e.getValue());
 						daFare.add(e.getKey());
-						final var risultatoTrasferimento = gRPC_Client.gRPC(n_, RichiestaDHT.put, e.getKey(), e.getValue());
+						final var risultatoTrasferimento = gRPC_Client.gRPC(n_, RichiestaDHT.transfer, e.getKey(), e.getValue());
 
 						if (Boolean.TRUE.equals(risultatoTrasferimento))
-							daRimuovere.add(e.getKey());
+							dht.remove(e.getKey());
 					}
 					catch (StatusRuntimeException ex)
 					{
@@ -541,9 +544,7 @@ public class Chord implements AutoCloseable
 						System.out.println("Classe SHA1 non trovata!");
 						ex.printStackTrace();
 					}
-			}
-
-			dht.removeAll(daRimuovere);
+			});
 		}
 		while (daFare.size() > 0);
 	}
@@ -565,11 +566,7 @@ public class Chord implements AutoCloseable
 	private void stampaData()
 	{
 		System.out.println("My data:");
-
-		var data = dht.getData();
-
-		for (var e : data)
-			System.out.println(e.getKey() + " > " + e.getValue());
+		dht.getData(e -> System.out.println(e.getKey() + " > " + e.getValue()));
 	}
 
 	private void stampaFingerTable()
@@ -582,11 +579,11 @@ public class Chord implements AutoCloseable
 
 	public void stampaListaPeer()
 	{
-		var lista = getPeerList();
+		var peers = getPeerList();
 
 		System.out.println("Lista peers:");
-		for (var peer : lista)
-			System.out.println("Peer: " + peer);
+		for (var i = 0; i < peers.length; i++)
+			System.out.println("Peer #" + i + ": " + peers[i]);
 	}
 
 	private void stampaStato()
