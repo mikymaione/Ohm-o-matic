@@ -27,6 +27,27 @@ public final class GB
 	private static HashMap<Integer, BigInteger> _powerOfTwo = new HashMap<>();
 
 
+	public static byte[] SHA1(String s)
+	{
+		try
+		{
+			var bytes = s.getBytes(StandardCharsets.UTF_8);
+
+			var sha1 = MessageDigest.getInstance("SHA-1");
+
+			sha1.reset();
+			sha1.update(bytes);
+
+			return sha1.digest();
+		}
+		catch (NoSuchAlgorithmException e)
+		{
+			e.printStackTrace();
+		}
+
+		return new byte[0];
+	}
+
 	public static BigInteger getPowerOfTwo(final Integer k, final Integer mBit)
 	{
 		if (_powerOfTwo.size() == 0)
@@ -80,25 +101,6 @@ public final class GB
 			return start.compareTo(key) < 0 || key.compareTo(end) < 0;
 		else
 			return start.compareTo(key) < 0 && key.compareTo(end) < 0;
-	}
-
-	public static byte[] SHA1(String s)
-	{
-		try
-		{
-			var sha1 = MessageDigest.getInstance("SHA-1");
-
-			sha1.reset();
-			sha1.update(s.getBytes(StandardCharsets.UTF_8));
-
-			return sha1.digest();
-		}
-		catch (NoSuchAlgorithmException e)
-		{
-			e.printStackTrace();
-		}
-
-		return null;
 	}
 
 	public static byte[] serialize(final Serializable obj) throws IOException

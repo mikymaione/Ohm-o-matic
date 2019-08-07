@@ -84,6 +84,7 @@ import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 //endregion
 
@@ -163,7 +164,8 @@ public class Chord implements AutoCloseable
 			stabilizingRoutine.stopMeGently();
 
 		for (var stabilizingRoutine : stabilizingRoutines)
-			while (stabilizingRoutine.isRunning()) ;
+			while (stabilizingRoutine.isRunning())
+				GB.Sleep(250);
 
 		gRPC_listner.shutdown();
 
@@ -200,6 +202,14 @@ public class Chord implements AutoCloseable
 		synchronized (_predecessorLock)
 		{
 			_predecessor = n_;
+		}
+	}
+
+	private Set<Map.Entry<Integer, NodeLink>> getFingerList()
+	{
+		synchronized (_fingerTable)
+		{
+			return Set.copyOf(_fingerTable.entrySet());
 		}
 	}
 
@@ -596,8 +606,9 @@ public class Chord implements AutoCloseable
 	{
 		System.out.println("Finger Table:");
 
-		for (Integer i = 1; i <= mBit; i++)
-			System.out.println(i + ": " + getFinger(i));
+		var lista = getFingerList();
+		for (var f : lista)
+			System.out.println(f.getKey() + ": " + f.getValue());
 	}
 
 	public void stampaListaPeer()
@@ -606,7 +617,7 @@ public class Chord implements AutoCloseable
 
 		System.out.println("Lista peers:");
 		for (var i = 0; i < peers.length; i++)
-			System.out.println("Peer #" + i + ": " + peers[i]);
+			System.out.println("Peer #" + (i + 1) + ": " + peers[i]);
 	}
 
 	private void stampaStato()

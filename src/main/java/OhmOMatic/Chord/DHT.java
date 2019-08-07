@@ -30,13 +30,27 @@ class DHT
 		this.keyListaPeers = keyListaPeers;
 	}
 
-	Boolean createPeerList()
+	void createPeerList()
 	{
 		synchronized (_data)
 		{
 			_data.put(keyListaPeers, new HashSet<BigInteger>());
+		}
+	}
 
-			return true;
+	private HashSet<BigInteger> _getPeerList()
+	{
+		synchronized (_data)
+		{
+			if (_data.containsKey(keyListaPeers))
+			{
+				var klp = _data.get(keyListaPeers);
+
+				if (klp instanceof HashSet)
+					return (HashSet<BigInteger>) klp;
+			}
+
+			return null;
 		}
 	}
 
@@ -48,11 +62,11 @@ class DHT
 
 			synchronized (_data)
 			{
-				if (_data.containsKey(keyListaPeers))
-				{
-					var _peerList = (HashSet<BigInteger>) _data.get(keyListaPeers);
-					_peerList.add(n_);
+				var _peerList = _getPeerList();
 
+				if (_peerList != null)
+				{
+					_peerList.add(n_);
 					return true;
 				}
 			}
@@ -69,11 +83,11 @@ class DHT
 
 			synchronized (_data)
 			{
-				if (_data.containsKey(keyListaPeers))
-				{
-					var _peerList = (HashSet<BigInteger>) _data.get(keyListaPeers);
-					_peerList.remove(n_);
+				var _peerList = _getPeerList();
 
+				if (_peerList != null)
+				{
+					_peerList.remove(n_);
 					return true;
 				}
 			}
@@ -136,14 +150,15 @@ class DHT
 	{
 		synchronized (_data)
 		{
-			if (_data.containsKey(keyListaPeers))
-			{
-				var _peerList = (HashSet<BigInteger>) _data.get(keyListaPeers);
-				var a = _peerList.toArray();
-				var b = new BigInteger[a.length];
+			var _peerList = _getPeerList();
 
-				for (var i = 0; i < a.length; i++)
-					b[i] = (BigInteger) a[i];
+			if (_peerList != null)
+			{
+				var b = new BigInteger[_peerList.size()];
+
+				var x = -1;
+				for (var p : _peerList)
+					b[x += 1] = p;
 
 				return b;
 			}

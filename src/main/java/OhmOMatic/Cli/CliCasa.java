@@ -33,9 +33,9 @@ public final class CliCasa extends BaseCommandLineApplication
 			final var peer_address = cmd.getOptionValue("j");
 			final var peer_port = stringToInt(cmd.getOptionValue("p"), -1);
 
-			try (var chord = new Chord(mio_peer_address, mio_peer_port))
+			try (final var chord = new Chord(mio_peer_address, mio_peer_port))
 			{
-				try (var casa = new Casa(rest_url, mio_peer_address, mio_peer_port, chord))
+				try (final var casa = new Casa(rest_url, mio_peer_address, mio_peer_port, chord))
 				{
 					System.out.println("Casa avviata!");
 
@@ -77,74 +77,34 @@ public final class CliCasa extends BaseCommandLineApplication
 	//region Opzioni command line
 	private static void LeggiComandiInterattivi(Casa casa, Chord chord, Scanner scanner)
 	{
-		final var commands = createOptionsInteractiveProgram();
-		printOptions("", commands);
+		var inEsecuzione = true;
 
-		final var line = scanner.nextLine();
-
-		try
+		do
 		{
-			final var inpts = getCommandLine(commands, line.split(" "));
+			final var commands = createOptionsInteractiveProgram();
+			printOptions("", commands);
 
-			if (inpts.hasOption("q"))
+			final var line = scanner.nextLine();
+
+			try
 			{
-				// quit
-				return;
+				final var inpts = getCommandLine(commands, line.split(" "));
+
+				if (inpts.hasOption("q"))
+					inEsecuzione = false;
+				else if (inpts.hasOption("i"))
+					chord.stampaTutto();
+				else if (inpts.hasOption("l"))
+					chord.stampaListaPeer();
+				else if (inpts.hasOption("c"))
+					casa.stampaConsumo();
 			}
-			else if (inpts.hasOption("i"))
+			catch (ParseException e)
 			{
-				chord.stampaTutto();
-			}
-			else if (inpts.hasOption("l"))
-			{
-				chord.stampaListaPeer();
-			}
-			else if (inpts.hasOption("c"))
-			{
-				casa.stampaConsumo();
-			}
-			else if (inpts.hasOption("r"))
-			{
-				final var key = stringToBigInteger(inpts.getOptionValue("r"), -1);
-
-				var remove = chord.remove(key);
-
-				if (remove == null)
-					System.out.println("-Nessun oggetto con chiave " + key);
-				else
-					System.out.println("-Rimosso oggetto " + key);
-			}
-			else if (inpts.hasOption("g"))
-			{
-				final var key = stringToBigInteger(inpts.getOptionValue("g"), -1);
-
-				var get = chord.get(key);
-
-				if (get == null)
-					System.out.println("-Nessun oggetto con chiave " + key);
-				else
-					System.out.println("-Ottenuto oggetto con chiave " + key + ": " + get);
-			}
-			else if (inpts.hasOption("p"))
-			{
-				final var set = inpts.getOptionValues("p");
-				final var key = stringToBigInteger(set[0], -1);
-				final var obj = set[1];
-
-				var put = chord.put(key, obj);
-
-				if (put == null)
-					System.out.println("-Inserito oggetto con chiave " + key);
-				else
-					System.out.println("-Sostituito oggetto con chiave " + key);
+				System.out.println("Il comando " + line + " non esiste!");
 			}
 		}
-		catch (ParseException e)
-		{
-			System.out.println("Il comando " + line + " non esiste!");
-		}
-
-		LeggiComandiInterattivi(casa, chord, scanner);
+		while (inEsecuzione);
 	}
 
 	private static Options createOptionsInteractiveProgram()
@@ -169,35 +129,11 @@ public final class CliCasa extends BaseCommandLineApplication
 				.hasArg(false)
 				.build();
 
-		final var get = Option.builder("g")
-				.desc("Get")
-				.hasArg()
-				.argName("Key")
-				.build();
-
-		final var put = Option.builder("p")
-				.desc("Put")
-				.hasArgs()
-				.numberOfArgs(2)
-				.argName("Key")
-				.argName("Value")
-				.build();
-
-		final var remove = Option.builder("r")
-				.desc("Remove")
-				.argName("Key")
-				.build();
-
-		final var options = new Options()
+		return new Options()
 				.addOption(quit)
 				.addOption(info)
 				.addOption(list)
-				.addOption(consumption)
-				.addOption(get)
-				.addOption(put)
-				.addOption(remove);
-
-		return options;
+				.addOption(consumption);
 	}
 
 	private static Options createOptionsStartProgram()
@@ -242,16 +178,13 @@ public final class CliCasa extends BaseCommandLineApplication
 				.argName("Port")
 				.build();
 
-
-		final var options = new Options()
+		return new Options()
 				.addOption(rest_url)
 				.addOption(id)
 				.addOption(mio_peer_address)
 				.addOption(mio_peer_port)
 				.addOption(peer_address)
 				.addOption(peer_port);
-
-		return options;
 	}
 	//endregion
 
