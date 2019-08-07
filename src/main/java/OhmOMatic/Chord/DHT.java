@@ -21,8 +21,9 @@ import java.util.function.Consumer;
 class DHT
 {
 
-	private final BigInteger keyListaPeers;
+	// S(N): O(㏒ N)
 	private final HashMap<BigInteger, Serializable> _data = new HashMap<>();
+	private final BigInteger keyListaPeers;
 
 
 	DHT(BigInteger keyListaPeers)

@@ -93,6 +93,7 @@ public class Chord implements AutoCloseable
 
 	//region Fields
 	//====================================== DHT ======================================
+	// S(N): O(㏒ N)
 	private final DHT dht;
 	//====================================== DHT ======================================
 
@@ -231,6 +232,8 @@ public class Chord implements AutoCloseable
 	//endregion
 
 	//region Funzioni Chord
+
+	// T(N): O(㏒ N)
 	// ask node n to find the successor of id
 	public NodeLink find_successor(final BigInteger id)
 	{
@@ -279,6 +282,7 @@ public class Chord implements AutoCloseable
 		}
 	}
 
+	// T(N): O(㏒² N)
 	// join a Chord ring containing node n_
 	public void join(final String _ip, final int _port) throws Exception
 	{
@@ -311,6 +315,7 @@ public class Chord implements AutoCloseable
 		startStabilizingRoutines();
 	}
 
+	// T(N): O(㏒² N)
 	private void leave()
 	{
 		final var daFare = new HashSet<BigInteger>();
@@ -400,21 +405,26 @@ public class Chord implements AutoCloseable
 	//endregion
 
 	//region DHT
+
+	// T(N): O(㏒ N)
 	public Serializable remove(final BigInteger key)
 	{
 		return _functionDHT(RichiestaDHT.remove, key, null);
 	}
 
+	// T(N): O(㏒ N)
 	public Serializable get(final BigInteger key)
 	{
 		return _functionDHT(RichiestaDHT.get, key, null);
 	}
 
+	// T(N): O(㏒ N)
 	public Serializable put(final BigInteger key, final Serializable object)
 	{
 		return _functionDHT(RichiestaDHT.put, key, object);
 	}
 
+	// T(N): O(1)
 	public Serializable transfer(final BigInteger key, final Serializable object)
 	{
 		return dht.put(key, object);
@@ -539,6 +549,7 @@ public class Chord implements AutoCloseable
 			setPredecessor(null);
 	}
 
+	// T(N): O(1/N)
 	// called periodically. handoff my data to the correct peer
 	private synchronized void handoff()
 	{
