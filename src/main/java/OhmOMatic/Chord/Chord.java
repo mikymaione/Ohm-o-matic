@@ -114,6 +114,8 @@ public class Chord implements AutoCloseable
 
 	//timer per le funzioni di stabilizzazione
 	private final Set<Waiter> stabilizingRoutines;
+
+	private static final Integer _sleepTime = 555;
 	//===================================== Chord =====================================
 
 
@@ -166,7 +168,7 @@ public class Chord implements AutoCloseable
 
 		for (var stabilizingRoutine : stabilizingRoutines)
 			while (stabilizingRoutine.isRunning())
-				GB.Sleep(250);
+				GB.Sleep(_sleepTime);
 
 		gRPC_listner.shutdown();
 
@@ -373,7 +375,7 @@ public class Chord implements AutoCloseable
 			if (Boolean.TRUE.equals(r))
 				return true;
 			else
-				GB.Sleep(250);
+				GB.Sleep(_sleepTime);
 		}
 	}
 
@@ -386,7 +388,7 @@ public class Chord implements AutoCloseable
 			if (Boolean.TRUE.equals(r))
 				return true;
 			else
-				GB.Sleep(250);
+				GB.Sleep(_sleepTime);
 		}
 	}
 
@@ -397,7 +399,7 @@ public class Chord implements AutoCloseable
 			var r = _functionDHT(RichiestaDHT.getPeerList, keyListaPeers, null);
 
 			if (r == null)
-				GB.Sleep(250);
+				GB.Sleep(_sleepTime);
 			else
 				return (BigInteger[]) r;
 		}
@@ -432,11 +434,11 @@ public class Chord implements AutoCloseable
 
 	private Serializable _functionDHT(final RichiestaDHT req, final BigInteger key, final Serializable object)
 	{
-		final var n_ = find_successor(key);
+		final var successor = find_successor(key);
 
 		//System.out.println("[" + GB.DateToString() + "] DHT." + req + " > " + n_ + ": " + key + "=" + object);
 
-		if (n.equals(n_))
+		if (n.equals(successor))
 			switch (req)
 			{
 				case getPeerList:
@@ -457,12 +459,13 @@ public class Chord implements AutoCloseable
 			while (true)
 				try
 				{
-					return gRPC_Client.gRPC(n_, req, key, object);
+					return gRPC_Client.gRPC(successor, req, key, object);
 				}
 				catch (StatusRuntimeException e)
 				{
-					System.out.println("DHT: Nodo " + n_ + " non raggiungibile!");
-					GB.Sleep(250);
+					System.out.println("DHT: Nodo " + successor + " non raggiungibile!");
+					setSuccessor(null);
+					GB.Sleep(_sleepTime);
 				}
 				catch (IOException e)
 				{
@@ -562,21 +565,22 @@ public class Chord implements AutoCloseable
 
 			dht.forEachAndRemoveAll(e ->
 			{
-				final var n_ = find_successor(e.getKey());
+				final var successor = find_successor(e.getKey());
 
-				if (!n.equals(n_))
+				if (!n.equals(successor))
 					try
 					{
 						//System.out.println("[" + GB.DateToString() + "] handoff > " + n_ + ": " + e.getKey() + "=" + e.getValue());
 						daFare.add(e.getKey());
-						final var risultatoTrasferimento = gRPC_Client.gRPC(n_, RichiestaDHT.transfer, e.getKey(), e.getValue());
+						final var risultatoTrasferimento = gRPC_Client.gRPC(successor, RichiestaDHT.transfer, e.getKey(), e.getValue());
 
 						if (Boolean.TRUE.equals(risultatoTrasferimento))
 							daRimuovere.add(e.getKey());
 					}
 					catch (StatusRuntimeException ex)
 					{
-						System.out.println("Handoff: Nodo " + n_ + " non raggiungibile!");
+						System.out.println("Handoff: Nodo " + successor + " non raggiungibile!");
+						setSuccessor(null);
 					}
 					catch (IOException ex)
 					{
