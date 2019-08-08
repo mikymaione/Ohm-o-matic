@@ -11,20 +11,19 @@ import OhmOMatic.ProtoBuffer.Common.standardRes;
 import OhmOMatic.ProtoBuffer.Home.casa;
 import OhmOMatic.ProtoBuffer.Home.listaCase;
 import OhmOMatic.Simulation.SmartMeterSimulator;
-import OhmOMatic.Sistema.Base.BufferImpl;
+import OhmOMatic.Sistema.Base.BufferImplWithOverlap;
 import OhmOMatic.Sistema.Base.MeanListener;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
-import java.io.IOException;
 
 public class Casa implements MeanListener, AutoCloseable
 {
 
 	private final SmartMeterSimulator smartMeterSimulator;
-	private final BufferImpl theBuffer;
+	private final BufferImplWithOverlap theBuffer;
 
 	private Client client;
 	private WebTarget webTargetRest;
@@ -39,7 +38,7 @@ public class Casa implements MeanListener, AutoCloseable
 	private Double consumoEnergeticoMio;
 
 
-	public Casa(String indirizzoREST_, String mioIndirizzo_, int miaPorta_, Chord chord_) throws IOException
+	public Casa(String indirizzoREST_, String mioIndirizzo_, int miaPorta_, Chord chord_)
 	{
 		chord = chord_;
 
@@ -48,7 +47,7 @@ public class Casa implements MeanListener, AutoCloseable
 		myAddress = mioIndirizzo_;
 		myPort = miaPorta_;
 
-		theBuffer = new BufferImpl(24, this);
+		theBuffer = new BufferImplWithOverlap(24, 12, this);
 
 		smartMeterSimulator = new SmartMeterSimulator(theBuffer);
 		smartMeterSimulator.setName("smartMeterSimulator");

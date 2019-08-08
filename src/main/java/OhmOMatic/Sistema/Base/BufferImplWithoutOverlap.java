@@ -9,7 +9,7 @@ package OhmOMatic.Sistema.Base;
 import OhmOMatic.Simulation.Buffer;
 import OhmOMatic.Simulation.Measurement;
 
-public final class BufferImpl implements Buffer
+public final class BufferImplWithoutOverlap implements Buffer
 {
 
 	private final int slidingWindowCount;
@@ -20,7 +20,7 @@ public final class BufferImpl implements Buffer
 	private final MeanListener listener;
 
 
-	public BufferImpl(int SlidingWindowCount, MeanListener Listener)
+	public BufferImplWithoutOverlap(final int SlidingWindowCount, MeanListener Listener)
 	{
 		listener = Listener;
 		slidingWindowCount = SlidingWindowCount;
