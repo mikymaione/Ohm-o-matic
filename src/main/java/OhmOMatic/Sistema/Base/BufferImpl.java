@@ -15,9 +15,9 @@ public final class BufferImpl implements Buffer
 	private final int slidingWindowCount;
 
 	private int buffer_index = -1;
-	private Measurement[] buffer;
+	private final Measurement[] buffer;
 
-	private MeanListener listener;
+	private final MeanListener listener;
 
 
 	public BufferImpl(int SlidingWindowCount, MeanListener Listener)
@@ -27,33 +27,21 @@ public final class BufferImpl implements Buffer
 		buffer = new Measurement[SlidingWindowCount];
 	}
 
-
-	private static class addMeasurementResult
-	{
-		final double media;
-		final boolean sendStats;
-
-		addMeasurementResult(double media, boolean sendStats)
-		{
-			this.media = media;
-			this.sendStats = sendStats;
-		}
-	}
-
 	private synchronized addMeasurementResult addMeasurement_sync(Measurement m)
 	{
 		buffer[buffer_index += 1] = m;
 
+		// riempito sliding window
 		if (buffer_index + 1 == slidingWindowCount)
 		{
+			buffer_index = -1;
+
 			var sum = 0d;
 
 			for (var e : buffer)
 				sum += e.getValue();
 
 			final var media = sum / slidingWindowCount;
-
-			buffer_index = -1;
 
 			return new addMeasurementResult(media, true);
 		}
@@ -70,6 +58,19 @@ public final class BufferImpl implements Buffer
 
 		if (r.sendStats)
 			listener.meanGenerated(r.media);
+	}
+
+
+	private static class addMeasurementResult
+	{
+		final double media;
+		final boolean sendStats;
+
+		addMeasurementResult(final double media, final boolean sendStats)
+		{
+			this.media = media;
+			this.sendStats = sendStats;
+		}
 	}
 
 
