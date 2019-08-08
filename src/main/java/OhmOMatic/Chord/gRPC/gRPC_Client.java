@@ -42,7 +42,7 @@ public class gRPC_Client
 		if (server == null)
 			return null;
 
-		try (var hfs = new HomeFastStub())
+		try (final var hfs = new HomeFastStub())
 		{
 			var _messaggio = Home.messaggio.newBuilder();
 			var _casa = Home.casa.newBuilder();
@@ -98,7 +98,7 @@ public class gRPC_Client
 
 	private static Home.casaRes doRequestChord(NodeLink server, HomeFastStub hfs, RichiestaChord req, Home.messaggio c)
 	{
-		var stub = hfs.getStub(server);
+		final var stub = hfs.getStub(server);
 
 		switch (req)
 		{
@@ -122,14 +122,14 @@ public class gRPC_Client
 		if (server == null)
 			return null;
 
-		try (var hfs = new HomeFastStub())
+		try (final var hfs = new HomeFastStub())
 		{
-			var _oggetto = Home.oggetto.newBuilder()
+			final var _oggetto = Home.oggetto.newBuilder()
 					.setKey(ByteString.copyFrom(key.toByteArray()))
 					.setObj(ByteString.copyFrom(GB.serialize(object)))
 					.build();
 
-			var _request = doRequestDHT(server, hfs, req, _oggetto);
+			final var _request = doRequestDHT(server, hfs, req, _oggetto);
 
 			if (_request.getStandardRes().getOk())
 			{
@@ -148,7 +148,7 @@ public class gRPC_Client
 		if (server == null)
 			return null;
 
-		var stub = hfs.getStub(server);
+		final var stub = hfs.getStub(server);
 
 		switch (req)
 		{

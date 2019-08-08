@@ -604,42 +604,27 @@ public class Chord implements AutoCloseable
 	//endregion
 
 	//region Print
-	public void stampaTutto()
+	public void stampaStato()
 	{
-		stampaStato();
-		stampaFingerTable();
-		stampaData();
-	}
-
-	private void stampaData()
-	{
-		System.out.println("My data:");
-		dht.getData(e -> System.out.println(e.getKey() + " > " + e.getValue()));
-	}
-
-	private void stampaFingerTable()
-	{
+		System.out.println("Nodo: " + n);
+		System.out.println("Predecessor: " + getPredecessor());
+		System.out.println("Successor: " + getSuccessor());
 		System.out.println("Finger Table:");
 
-		var lista = getFingerList();
+		final var lista = getFingerList();
+
 		for (var f : lista)
 			System.out.println(f.getKey() + ": " + f.getValue());
 	}
 
 	public void stampaListaPeer()
 	{
-		var peers = getPeerList();
-
 		System.out.println("Lista peers:");
+
+		final var peers = getPeerList();
+
 		for (var i = 0; i < peers.length; i++)
 			System.out.println("Peer #" + (i + 1) + ": " + peers[i]);
-	}
-
-	private void stampaStato()
-	{
-		System.out.println("Nodo: " + n);
-		System.out.println("Predecessor: " + getPredecessor());
-		System.out.println("Successor: " + getSuccessor());
 	}
 	//endregion
 

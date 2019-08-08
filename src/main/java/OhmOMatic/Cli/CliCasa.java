@@ -94,7 +94,7 @@ public final class CliCasa extends BaseCommandLineApplication
 				if (inpts.hasOption("q"))
 					inEsecuzione = false;
 				else if (inpts.hasOption("i"))
-					chord.stampaTutto();
+					chord.stampaStato();
 				else if (inpts.hasOption("l"))
 					chord.stampaListaPeer();
 				else if (inpts.hasOption("c"))

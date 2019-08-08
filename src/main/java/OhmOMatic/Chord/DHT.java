@@ -138,15 +138,6 @@ class DHT
 		}
 	}
 
-	void getData(Consumer<Map.Entry<BigInteger, Serializable>> callback)
-	{
-		synchronized (_data)
-		{
-			for (var e : _data.entrySet())
-				callback.accept(e);
-		}
-	}
-
 	BigInteger[] getPeerList()
 	{
 		synchronized (_data)

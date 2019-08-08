@@ -9,12 +9,12 @@ package OhmOMatic.Chord.gRPC;
 import OhmOMatic.Chord.Chord;
 import OhmOMatic.Chord.Link.NodeLink;
 import OhmOMatic.Global.GB;
+import OhmOMatic.Global.Pair;
 import OhmOMatic.ProtoBuffer.Common;
 import OhmOMatic.ProtoBuffer.Home;
 import OhmOMatic.ProtoBuffer.HomeServiceGrpc;
 import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import java.io.Serializable;
 import java.math.BigInteger;
@@ -107,7 +107,7 @@ public class gRPC_Server
 			//endregion
 
 			//region Funzioni DHT
-			private void elaboraDHT(Home.oggetto request, StreamObserver<Home.oggettoRes> responseObserver, Function<ImmutablePair<BigInteger, Serializable>, Serializable> callback)
+			private void elaboraDHT(Home.oggetto request, StreamObserver<Home.oggettoRes> responseObserver, Function<Pair<BigInteger, Serializable>, Serializable> callback)
 			{
 				var _standardRes = Common.standardRes.newBuilder();
 				var _oggetto = Home.oggetto.newBuilder();
@@ -118,7 +118,7 @@ public class gRPC_Server
 					final var _key = new BigInteger(request.getKey().toByteArray());
 					final var _obj = GB.deserialize(request.getObj().toByteArray());
 
-					final var R = callback.apply(new ImmutablePair<>(_key, _obj));
+					final var R = callback.apply(new Pair<>(_key, _obj));
 
 					_oggetto
 							.setKey(request.getKey())
