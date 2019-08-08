@@ -44,6 +44,7 @@ public class gRPC_Client
 
 		try (var hfs = new HomeFastStub())
 		{
+			var _messaggio = Home.messaggio.newBuilder();
 			var _casa = Home.casa.newBuilder();
 
 			if (_id != null)
@@ -51,15 +52,22 @@ public class gRPC_Client
 
 			if (setNode != null)
 			{
-				_casa.setOptionalIP(setNode.IP);
-				_casa.setOptionalPort(setNode.port);
+				final var destinatario = Home.casa.newBuilder()
+						.setIP(setNode.IP)
+						.setPort(setNode.port)
+						.setIdentificatore(setNode.identificatore)
+						.build();
+
+				_messaggio.setDestinatario(destinatario);
 			}
 
 			_casa
 					.setIP(server.IP)
 					.setPort(server.port);
 
-			var _request = doRequestChord(server, hfs, req, _casa.build());
+			_messaggio.setMittente(_casa.build());
+
+			final var _request = doRequestChord(server, hfs, req, _messaggio.build());
 
 			if (_request.getNullValue())
 			{
@@ -67,9 +75,9 @@ public class gRPC_Client
 			}
 			else if (_request.getStandardRes().getOk())
 			{
-				var c = _request.getCasa();
+				final var c = _request.getCasa();
 
-				return new NodeLink(c.getIP(), c.getPort());
+				return new NodeLink(c.getIdentificatore(), c.getIP(), c.getPort());
 			}
 			else
 			{
@@ -88,7 +96,7 @@ public class gRPC_Client
 		return null;
 	}
 
-	private static Home.casaRes doRequestChord(NodeLink server, HomeFastStub hfs, RichiestaChord req, Home.casa c)
+	private static Home.casaRes doRequestChord(NodeLink server, HomeFastStub hfs, RichiestaChord req, Home.messaggio c)
 	{
 		var stub = hfs.getStub(server);
 

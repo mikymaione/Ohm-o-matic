@@ -29,7 +29,7 @@ public class gRPC_Server
 		{
 
 			//region Funzioni Chord
-			private void elaboraChord(Home.casa request, StreamObserver<Home.casaRes> responseObserver, Function<NodeLink, NodeLink> callback)
+			private void elaboraChord(Home.messaggio request, StreamObserver<Home.casaRes> responseObserver, Function<NodeLink, NodeLink> callback)
 			{
 				var _standardRes = Common.standardRes.newBuilder();
 				var _casa = Home.casa.newBuilder();
@@ -37,15 +37,17 @@ public class gRPC_Server
 
 				try
 				{
-					var n_ = new NodeLink(request.getOptionalIP(), request.getOptionalPort());
+					final var destinatario = request.getDestinatario();
+					final var n_ = new NodeLink(destinatario.getIdentificatore(), destinatario.getIP(), destinatario.getPort());
 
-					var R = callback.apply(n_);
+					final var R = callback.apply(n_);
 
 					if (R == null)
 						_casaRes
 								.setNullValue(true);
 					else
 						_casa
+								.setIdentificatore(R.identificatore)
 								.setIP(R.IP)
 								.setPort(R.port);
 
@@ -54,7 +56,7 @@ public class gRPC_Server
 				}
 				catch (Exception e)
 				{
-					var _errorMessage = e.getMessage();
+					final var _errorMessage = e.getMessage();
 
 					if (_errorMessage != null)
 						_standardRes.setErrore(_errorMessage);
@@ -72,27 +74,32 @@ public class gRPC_Server
 
 
 			@Override
-			public void notify(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
+			public void notify(Home.messaggio request, StreamObserver<Home.casaRes> responseObserver)
 			{
 				elaboraChord(request, responseObserver, local::notify);
 			}
 
 			@Override
-			public void ping(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
+			public void ping(Home.messaggio request, StreamObserver<Home.casaRes> responseObserver)
 			{
 				elaboraChord(request, responseObserver, n ->
 						local.ping());
 			}
 
 			@Override
-			public void findSuccessor(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
+			public void findSuccessor(Home.messaggio request, StreamObserver<Home.casaRes> responseObserver)
 			{
 				elaboraChord(request, responseObserver, n ->
-						local.find_successor(new BigInteger(request.getID().toByteArray())));
+				{
+					final var mittente = request.getMittente();
+					final var mID = mittente.getID();
+
+					return local.find_successor(new BigInteger(mID.toByteArray()));
+				});
 			}
 
 			@Override
-			public void predecessor(Home.casa request, StreamObserver<Home.casaRes> responseObserver)
+			public void predecessor(Home.messaggio request, StreamObserver<Home.casaRes> responseObserver)
 			{
 				elaboraChord(request, responseObserver, n ->
 						local.getPredecessor());
@@ -108,10 +115,10 @@ public class gRPC_Server
 
 				try
 				{
-					var _key = new BigInteger(request.getKey().toByteArray());
-					var _obj = GB.deserialize(request.getObj().toByteArray());
+					final var _key = new BigInteger(request.getKey().toByteArray());
+					final var _obj = GB.deserialize(request.getObj().toByteArray());
 
-					var R = callback.apply(new ImmutablePair<>(_key, _obj));
+					final var R = callback.apply(new ImmutablePair<>(_key, _obj));
 
 					_oggetto
 							.setKey(request.getKey())
@@ -122,7 +129,7 @@ public class gRPC_Server
 				}
 				catch (Exception e)
 				{
-					var _errorMessage = e.getMessage();
+					final var _errorMessage = e.getMessage();
 
 					if (_errorMessage != null)
 						_standardRes.setErrore(_errorMessage);

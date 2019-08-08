@@ -20,15 +20,25 @@ public class NodeLink implements Serializable
 {
 
 	public final BigInteger ID;
+
 	public final String IP;
 	public final int port;
 
+	public final String identificatore;
 
-	public NodeLink(String IP, int port)
+
+	public NodeLink(final String IP, final int port)
+	{
+		this("", IP, port);
+	}
+
+	public NodeLink(final String identificatore, final String IP, final int port)
 	{
 		var b = GB.SHA1(IP + ":" + port);
 
 		this.ID = new BigInteger(b);
+
+		this.identificatore = identificatore;
 		this.IP = IP;
 		this.port = port;
 	}
@@ -51,7 +61,7 @@ public class NodeLink implements Serializable
 	@Override
 	public String toString()
 	{
-		return IP + ":" + port;
+		return IP + ":" + port + " (" + identificatore + ")";
 	}
 
 

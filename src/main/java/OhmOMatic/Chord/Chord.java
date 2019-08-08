@@ -126,9 +126,9 @@ public class Chord implements AutoCloseable
 	//endregion
 
 	//region Constructor & Destructors
-	public Chord(final String _ip, final int _port) throws IOException
+	public Chord(final String identificatore, final String ip, final int port) throws IOException
 	{
-		this(new NodeLink(_ip, _port));
+		this(new NodeLink(identificatore, ip, port));
 	}
 
 	public Chord(final NodeLink address) throws IOException
@@ -499,11 +499,12 @@ public class Chord implements AutoCloseable
 	private synchronized void stabilize()
 	{
 		//var x = successor.predecessor;
-		var x = gRPC_Client.gRPC(getSuccessor(), RichiestaChord.predecessor);
+		final var successor = getSuccessor();
+		final var x = gRPC_Client.gRPC(successor, RichiestaChord.predecessor);
 
 		if (x != null)
 			//x ∈ (n, successor)
-			if (GB.incluso(x, n, getSuccessor()))
+			if (GB.incluso(x, n, successor))
 				setSuccessor(x);
 
 		//successor.notify(n);

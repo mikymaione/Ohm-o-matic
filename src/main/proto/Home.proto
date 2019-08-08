@@ -11,22 +11,29 @@ package OhmOMatic.ProtoBuffer;
 import "Common.proto";
 
 service HomeService {
-    rpc findSuccessor (casa) returns (casaRes);
-    rpc predecessor (casa) returns (casaRes);
+    //CHORD
+    rpc findSuccessor (messaggio) returns (casaRes);
+    rpc predecessor (messaggio) returns (casaRes);
 
-    rpc notify (casa) returns (casaRes);
-    rpc ping (casa) returns (casaRes);
+    rpc notify (messaggio) returns (casaRes);
+    rpc ping (messaggio) returns (casaRes);
+    //CHORD
 
+    //DHT generic
     rpc transfer (oggetto) returns (oggettoRes);
     rpc put (oggetto) returns (oggettoRes);
     rpc get (oggetto) returns (oggettoRes);
     rpc remove (oggetto) returns (oggettoRes);
+    //DHT generic
 
+    //DHT peer list
     rpc getPeerList (oggetto) returns (oggettoRes);
     rpc addToPeerList (oggetto) returns (oggettoRes);
     rpc removeFromPeerList (oggetto) returns (oggettoRes);
+    //DHT peer list
 }
 
+//Request
 message oggetto {
     bytes Key = 1;
     bytes Obj = 2;
@@ -35,13 +42,19 @@ message oggetto {
 message casa {
     bytes ID = 1;
 
+    string identificatore = 2;
+
     string IP = 3;
     int32 port = 4;
-
-    string Optional_IP = 5;
-    int32 Optional_port = 6;
 }
 
+message messaggio {
+    casa mittente = 1;
+    casa destinatario = 2;
+}
+//Request
+
+//Response
 message oggettoRes {
     standardRes StandardRes = 1;
     oggetto Obj = 2;
@@ -57,3 +70,4 @@ message listaCase {
     standardRes standardResponse = 1;
     repeated casa case = 2;
 }
+//Response
