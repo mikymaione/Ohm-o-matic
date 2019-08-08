@@ -8,8 +8,8 @@ An open-source distributed and pervasive system for peer-to-peer control of elec
 ### P2P
 * Chord: a protocol and algorithm for a peer-to-peer distributed hash table
 ### Web service
-* Jersey RESTful Web Services
-* Grizzly NIO framework
+* Project Jersey: an open source framework for developing RESTful Web Services.
+* Project Grizzly: a framework for build scalable and robust servers using NIO as well as offering extended framework components.
 
 
 ## Minimum system requirements
