@@ -57,7 +57,8 @@ n.fix_fingers()
 	next = next + 1;
 	if (next > m)
 		next = 1;
-	finger[next] = find_successor(n + 2^(next - 1));
+	i = next - 1
+	finger[next] = find_successor(n + 2ⁱ);
 
 // called periodically. checks whether predecessor has failed.
 n.check_predecessor()
@@ -534,12 +535,10 @@ public class Chord implements AutoCloseable
 		if (next > mBit)
 			next = 1;
 
-		// n + 2^(next - 1)
 		var i = GB.getPowerOfTwo(next - 1, mBit);
 		i = n.ID.add(i);
 		i = i.mod(GB.getPowerOfTwo(mBit, mBit));
 
-		//final var successor = gRPC_Client.gRPC(find_successor(i), RichiestaChord.ping);
 		final var successor = find_successor(i);
 		setFinger(next, successor);
 	}
