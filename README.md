@@ -1,5 +1,15 @@
 # Ohm-o-matic
-An open-source distributed and pervasive system for peer-toE-peer control of electricity consumption in house.
+An open-source distributed and pervasive system for peer-to-peer control of electricity consumption in house.
+
+
+## Implementation
+### Communication
+* gRPC: an open source remote procedure call (RPC) system
+### P2P
+* Chord: a protocol and algorithm for a peer-to-peer distributed hash table
+### Web service
+* Jersey RESTful Web Services
+* Grizzly NIO framework
 
 
 ## Minimum system requirements
