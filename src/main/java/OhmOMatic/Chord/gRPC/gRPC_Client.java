@@ -106,8 +106,8 @@ public class gRPC_Client
 				return stub.notify(c);
 			case findSuccessor:
 				return stub.findSuccessor(c);
-			case predecessor:
-				return stub.predecessor(c);
+			case getPredecessor:
+				return stub.getPredecessor(c);
 			case ping:
 				return stub.ping(c);
 			default:

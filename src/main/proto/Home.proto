@@ -13,7 +13,7 @@ import "Common.proto";
 service HomeService {
     //CHORD
     rpc findSuccessor (messaggio) returns (casaRes);
-    rpc predecessor (messaggio) returns (casaRes);
+    rpc getPredecessor (messaggio) returns (casaRes);
 
     rpc notify (messaggio) returns (casaRes);
     rpc ping (messaggio) returns (casaRes);

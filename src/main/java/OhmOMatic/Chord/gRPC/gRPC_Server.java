@@ -99,7 +99,7 @@ public class gRPC_Server
 			}
 
 			@Override
-			public void predecessor(Home.messaggio request, StreamObserver<Home.casaRes> responseObserver)
+			public void getPredecessor(Home.messaggio request, StreamObserver<Home.casaRes> responseObserver)
 			{
 				elaboraChord(request, responseObserver, n ->
 						local.getPredecessor());

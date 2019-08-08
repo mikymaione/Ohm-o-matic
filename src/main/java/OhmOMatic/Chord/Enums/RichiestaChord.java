@@ -8,7 +8,7 @@ package OhmOMatic.Chord.Enums;
 
 public enum RichiestaChord
 {
-	predecessor,
+	getPredecessor,
 	findSuccessor,
 
 	notify,

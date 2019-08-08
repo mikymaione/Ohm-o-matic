@@ -501,7 +501,7 @@ public class Chord implements AutoCloseable
 	{
 		//var x = successor.predecessor;
 		final var successor = getSuccessor();
-		final var x = gRPC_Client.gRPC(successor, RichiestaChord.predecessor);
+		final var x = gRPC_Client.gRPC(successor, RichiestaChord.getPredecessor);
 
 		if (x != null)
 			//x ∈ (n, successor)
