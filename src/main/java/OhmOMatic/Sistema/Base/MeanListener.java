@@ -6,11 +6,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Sistema.Base;
 
+import OhmOMatic.Global.Pair;
+
+import java.util.Date;
 import java.util.EventListener;
 
 public interface MeanListener extends EventListener
 {
 
-	void meanGenerated(double mean);
+	void meanGenerated(Pair<Double, Date> mean);
 
 }

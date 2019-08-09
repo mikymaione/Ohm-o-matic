@@ -6,8 +6,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Sistema.Base;
 
+import OhmOMatic.Global.Pair;
 import OhmOMatic.Simulation.Buffer;
 import OhmOMatic.Simulation.Measurement;
+
+import java.util.Date;
 
 public final class BufferImplWithoutOverlap implements Buffer
 {
@@ -27,7 +30,7 @@ public final class BufferImplWithoutOverlap implements Buffer
 		buffer = new Measurement[SlidingWindowCount];
 	}
 
-	private synchronized addMeasurementResult addMeasurement_sync(Measurement m)
+	private synchronized Double addMeasurement_sync(Measurement m)
 	{
 		buffer[buffer_index += 1] = m;
 
@@ -41,13 +44,11 @@ public final class BufferImplWithoutOverlap implements Buffer
 			for (var e : buffer)
 				sum += e.getValue();
 
-			final var media = sum / slidingWindowCount;
-
-			return new addMeasurementResult(media, true);
+			return sum / slidingWindowCount;
 		}
 		else
 		{
-			return new addMeasurementResult(0d, false);
+			return null;
 		}
 	}
 
@@ -56,8 +57,8 @@ public final class BufferImplWithoutOverlap implements Buffer
 	{
 		final var r = addMeasurement_sync(m);
 
-		if (r.sendStats)
-			listener.meanGenerated(r.media);
+		if (r != null)
+			listener.meanGenerated(new Pair<>(r, new Date()));
 	}
 
 

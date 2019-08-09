@@ -6,9 +6,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Sistema.Base;
 
+import OhmOMatic.Global.Pair;
 import OhmOMatic.Simulation.Buffer;
 import OhmOMatic.Simulation.Measurement;
 
+import java.util.Date;
 import java.util.LinkedList;
 
 public final class BufferImplWithOverlap implements Buffer
@@ -30,19 +32,17 @@ public final class BufferImplWithOverlap implements Buffer
 		buffer = new LinkedList<>();
 	}
 
-	private addMeasurementResult _getSum()
+	private Double _getSum()
 	{
 		var sum = 0d;
 
 		for (var b : buffer)
 			sum += b.getValue();
 
-		final var media = sum / slidingWindowCount;
-
-		return new addMeasurementResult(media, true);
+		return sum / slidingWindowCount;
 	}
 
-	private synchronized addMeasurementResult addMeasurement_sync(Measurement m)
+	private synchronized Double addMeasurement_sync(Measurement m)
 	{
 		buffer.offer(m);
 
@@ -64,7 +64,7 @@ public final class BufferImplWithOverlap implements Buffer
 		}
 		else
 		{
-			return new addMeasurementResult(0d, false);
+			return null;
 		}
 	}
 
@@ -73,21 +73,8 @@ public final class BufferImplWithOverlap implements Buffer
 	{
 		final var r = addMeasurement_sync(m);
 
-		if (r.sendStats)
-			listener.meanGenerated(r.media);
-	}
-
-
-	private static class addMeasurementResult
-	{
-		final double media;
-		final boolean sendStats;
-
-		addMeasurementResult(final double media, final boolean sendStats)
-		{
-			this.media = media;
-			this.sendStats = sendStats;
-		}
+		if (r != null)
+			listener.meanGenerated(new Pair<>(r, new Date()));
 	}
 
 

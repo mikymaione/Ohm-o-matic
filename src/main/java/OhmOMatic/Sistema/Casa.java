@@ -7,6 +7,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package OhmOMatic.Sistema;
 
 import OhmOMatic.Chord.Chord;
+import OhmOMatic.Global.Pair;
 import OhmOMatic.ProtoBuffer.Common.standardRes;
 import OhmOMatic.ProtoBuffer.Home.casa;
 import OhmOMatic.ProtoBuffer.Home.listaCase;
@@ -18,6 +19,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
+import java.util.Date;
 
 public class Casa implements MeanListener, AutoCloseable
 {
@@ -134,10 +136,10 @@ public class Casa implements MeanListener, AutoCloseable
 	//endregion
 
 	//region Funzioni sul calcolo del consumo energetico
-	private void inviaStatistiche(final Double consumo)
+	private void inviaStatistiche(final Pair<Double, Date> mean)
 	{
-		chord.put(chord.getID(), consumo);
-		consumoEnergeticoMio = consumo;
+		chord.put(chord.getID(), mean);
+		consumoEnergeticoMio = mean.getKey();
 	}
 
 	private Double calcolaConsumoEnergeticoComplessivo()
@@ -149,10 +151,14 @@ public class Casa implements MeanListener, AutoCloseable
 		if (peerList != null)
 			for (final var peer : peerList)
 			{
-				final var consumo = chord.get(peer);
+				final var valore = chord.get(peer);
 
-				if (consumo instanceof Double)
-					consumoEnergeticoTotale += (Double) consumo;
+				if (valore instanceof Pair)
+				{
+					var p = (Pair<Double, Date>) valore;
+
+					consumoEnergeticoTotale += p.getKey();
+				}
 			}
 
 		return consumoEnergeticoTotale;
@@ -189,7 +195,7 @@ public class Casa implements MeanListener, AutoCloseable
 	}
 
 	@Override
-	public void meanGenerated(double mean)
+	public void meanGenerated(Pair<Double, Date> mean)
 	{
 		inviaStatistiche(mean);
 	}
