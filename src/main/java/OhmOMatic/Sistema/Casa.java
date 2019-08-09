@@ -14,9 +14,9 @@ import OhmOMatic.ProtoBuffer.Home.listaCase;
 import OhmOMatic.Simulation.SmartMeterSimulator;
 import OhmOMatic.Sistema.Base.BufferImplWithOverlap;
 import OhmOMatic.Sistema.Base.MeanListener;
+import org.knowm.xchart.CategoryChart;
+import org.knowm.xchart.CategoryChartBuilder;
 import org.knowm.xchart.SwingWrapper;
-import org.knowm.xchart.XYChart;
-import org.knowm.xchart.XYChartBuilder;
 import org.knowm.xchart.style.Styler;
 import org.knowm.xchart.style.markers.SeriesMarkers;
 
@@ -189,11 +189,11 @@ public class Casa implements MeanListener, AutoCloseable
 
 
 	//region Chart
-	private XYChart chart;
+	private CategoryChart chart;
 
 	private void creaChart()
 	{
-		chart = new XYChartBuilder()
+		chart = new CategoryChartBuilder()
 				.title("Consumo energetico")
 				.yAxisTitle("kW⋅h")
 				.xAxisTitle("s")
@@ -202,7 +202,9 @@ public class Casa implements MeanListener, AutoCloseable
 		var stiler = chart.getStyler();
 		stiler.setLegendPosition(Styler.LegendPosition.InsideSE);
 		stiler.setLocale(Locale.ITALY);
-		stiler.setXAxisTicksVisible(false);
+		stiler.setDatePattern("HH:mm:ss");
+		stiler.setOverlapped(true);
+		stiler.setAvailableSpaceFill(.96);
 	}
 
 	private Pair<ArrayList<Double>, ArrayList<Date>> convertiPerChart(ArrayList mie)
@@ -226,16 +228,16 @@ public class Casa implements MeanListener, AutoCloseable
 	{
 		if (chart.getSeriesMap().isEmpty())
 		{
-			chart.addSeries("Mio", mieiConsumi.getValue(), mieiConsumi.getKey(), null).setMarker(SeriesMarkers.NONE);
-			chart.addSeries("Condominio", condominioConsumi.getValue(), condominioConsumi.getKey(), null).setMarker(SeriesMarkers.NONE);
+			chart.addSeries("Mio", mieiConsumi.getValue(), mieiConsumi.getKey(), null);
+			chart.addSeries("Condominio", condominioConsumi.getValue(), condominioConsumi.getKey(), null);
 
 			final var swing = new SwingWrapper<>(chart);
 			swing.displayChart();
 		}
 		else
 		{
-			chart.updateXYSeries("Mio", mieiConsumi.getValue(), mieiConsumi.getKey(), null);
-			chart.updateXYSeries("Condominio", condominioConsumi.getValue(), condominioConsumi.getKey(), null);
+			chart.updateCategorySeries("Mio", mieiConsumi.getValue(), mieiConsumi.getKey(), null);
+			chart.updateCategorySeries("Condominio", condominioConsumi.getValue(), condominioConsumi.getKey(), null);
 		}
 	}
 	//endregion
