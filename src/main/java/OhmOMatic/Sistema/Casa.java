@@ -18,8 +18,8 @@ import org.knowm.xchart.CategoryChart;
 import org.knowm.xchart.CategoryChartBuilder;
 import org.knowm.xchart.SwingWrapper;
 import org.knowm.xchart.style.Styler;
-import org.knowm.xchart.style.markers.SeriesMarkers;
 
+import javax.swing.*;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -224,6 +224,8 @@ public class Casa implements MeanListener, AutoCloseable
 		return new Pair<>(mioConsumo, mioTempo);
 	}
 
+	private JFrame frame;
+
 	private void aggiornaChart(Pair<ArrayList<Double>, ArrayList<Date>> mieiConsumi, Pair<ArrayList<Double>, ArrayList<Date>> condominioConsumi)
 	{
 		if (chart.getSeriesMap().isEmpty())
@@ -232,12 +234,15 @@ public class Casa implements MeanListener, AutoCloseable
 			chart.addSeries("Condominio", condominioConsumi.getValue(), condominioConsumi.getKey(), null);
 
 			final var swing = new SwingWrapper<>(chart);
-			swing.displayChart();
+			frame = swing.displayChart();
+			frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		}
 		else
 		{
 			chart.updateCategorySeries("Mio", mieiConsumi.getValue(), mieiConsumi.getKey(), null);
 			chart.updateCategorySeries("Condominio", condominioConsumi.getValue(), condominioConsumi.getKey(), null);
+
+			frame.update(frame.getGraphics());
 		}
 	}
 	//endregion
