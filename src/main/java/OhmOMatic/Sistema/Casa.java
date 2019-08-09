@@ -14,12 +14,17 @@ import OhmOMatic.ProtoBuffer.Home.listaCase;
 import OhmOMatic.Simulation.SmartMeterSimulator;
 import OhmOMatic.Sistema.Base.BufferImplWithOverlap;
 import OhmOMatic.Sistema.Base.MeanListener;
+import org.knowm.xchart.SwingWrapper;
+import org.knowm.xchart.XYChart;
+import org.knowm.xchart.XYChartBuilder;
+import org.knowm.xchart.style.Styler;
+import org.knowm.xchart.style.markers.SeriesMarkers;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
-import java.util.Date;
+import java.util.*;
 
 public class Casa implements MeanListener, AutoCloseable
 {
@@ -36,8 +41,6 @@ public class Casa implements MeanListener, AutoCloseable
 	private final int myPort;
 
 	private final Chord chord;
-
-	private Double consumoEnergeticoMio;
 
 
 	public Casa(String indirizzoREST_, String mioIndirizzo_, int miaPorta_, Chord chord_)
@@ -136,56 +139,112 @@ public class Casa implements MeanListener, AutoCloseable
 	//endregion
 
 	//region Funzioni sul calcolo del consumo energetico
-	private void inviaStatistiche(final Pair<Double, Date> mean)
+	private synchronized void inviaStatistiche(final Pair<Double, Date> mean)
 	{
-		chord.put(chord.getID(), mean);
-		consumoEnergeticoMio = mean.getKey();
-	}
-
-	private Double calcolaConsumoEnergeticoComplessivo()
-	{
-		Double consumoEnergeticoTotale = 0d;
+		chord.putIncremental(mean);
 
 		final var peerList = chord.getPeerList();
 
 		if (peerList != null)
+		{
+			//Pair<Double, Date> mean
+			final var mie = chord.getIncrementals(chord.getID());
+			final var somme = new HashMap<Date, Double>();
+
 			for (final var peer : peerList)
 			{
-				final var valore = chord.get(peer);
+				final var statisticheAltroPeer = chord.getIncrementals(peer);
 
-				if (valore instanceof Pair)
+				for (var statisticaAltroPeer : statisticheAltroPeer)
 				{
-					var p = (Pair<Double, Date>) valore;
+					if (statisticaAltroPeer instanceof Pair)
+					{
+						final var p = (Pair<Double, Date>) statisticaAltroPeer;
+						final Double attuale = somme.getOrDefault(p.getValue(), 0d) + p.getKey();
 
-					consumoEnergeticoTotale += p.getKey();
+						somme.put(p.getValue(), attuale);
+					}
 				}
 			}
 
-		return consumoEnergeticoTotale;
+			if (somme.size() > 0)
+			{
+				var condominiali = new ArrayList<Pair<Double, Date>>();
+
+				for (var s : somme.entrySet())
+					condominiali.add(new Pair<>(s.getValue(), s.getKey()));
+
+				condominiali.sort(Comparator.comparing(Pair::getValue));
+
+				aggiornaChart(convertiPerChart(mie), convertiPerChart(condominiali));
+			}
+		}
 	}
 
 	public void richiediAlCondominioDiPoterConsumareOltreLaMedia()
 	{
 
 	}
+	//endregion
 
-	public void stampaConsumo()
+
+	//region Chart
+	private XYChart chart;
+
+	private void creaChart()
 	{
-		System.out.println(
-				"Consumo mio: " +
-						System.lineSeparator() +
-						consumoEnergeticoMio +
-						System.lineSeparator() +
-						"Consumo energetico del condominio: " +
-						System.lineSeparator() +
-						calcolaConsumoEnergeticoComplessivo()
-		);
+		chart = new XYChartBuilder()
+				.title("Consumo energetico")
+				.yAxisTitle("kW⋅h")
+				.xAxisTitle("s")
+				.build();
+
+		var stiler = chart.getStyler();
+		stiler.setLegendPosition(Styler.LegendPosition.InsideSE);
+		stiler.setLocale(Locale.ITALY);
+		stiler.setXAxisTicksVisible(false);
+	}
+
+	private Pair<ArrayList<Double>, ArrayList<Date>> convertiPerChart(ArrayList mie)
+	{
+		var mioConsumo = new ArrayList<Double>(mie.size());
+		var mioTempo = new ArrayList<Date>(mie.size());
+
+		for (final var e : mie)
+			if (e instanceof Pair)
+			{
+				final var p = (Pair<Double, Date>) e;
+
+				mioConsumo.add(p.getKey());
+				mioTempo.add(p.getValue());
+			}
+
+		return new Pair<>(mioConsumo, mioTempo);
+	}
+
+	private void aggiornaChart(Pair<ArrayList<Double>, ArrayList<Date>> mieiConsumi, Pair<ArrayList<Double>, ArrayList<Date>> condominioConsumi)
+	{
+		if (chart.getSeriesMap().isEmpty())
+		{
+			chart.addSeries("Mio", mieiConsumi.getValue(), mieiConsumi.getKey(), null).setMarker(SeriesMarkers.NONE);
+			chart.addSeries("Condominio", condominioConsumi.getValue(), condominioConsumi.getKey(), null).setMarker(SeriesMarkers.NONE);
+
+			final var swing = new SwingWrapper<>(chart);
+			swing.displayChart();
+		}
+		else
+		{
+			chart.updateXYSeries("Mio", mieiConsumi.getValue(), mieiConsumi.getKey(), null);
+			chart.updateXYSeries("Condominio", condominioConsumi.getValue(), condominioConsumi.getKey(), null);
+		}
 	}
 	//endregion
+
 
 	//region Gestione Smart meter
 	public void avviaSmartMeter()
 	{
+		creaChart();
 		smartMeterSimulator.start();
 	}
 

@@ -95,10 +95,10 @@ public final class CliCasa extends BaseCommandLineApplication
 					inEsecuzione = false;
 				else if (inpts.hasOption("i"))
 					chord.stampaStato();
+				else if (inpts.hasOption("d"))
+					chord.stampaData();
 				else if (inpts.hasOption("l"))
 					chord.stampaListaPeer();
-				else if (inpts.hasOption("c"))
-					casa.stampaConsumo();
 			}
 			catch (ParseException e)
 			{
@@ -120,21 +120,21 @@ public final class CliCasa extends BaseCommandLineApplication
 				.hasArg(false)
 				.build();
 
-		final var list = Option.builder("l")
-				.desc("List peer")
+		final var data = Option.builder("d")
+				.desc("Data")
 				.hasArg(false)
 				.build();
 
-		final var consumption = Option.builder("c")
-				.desc("Energy consumption")
+		final var list = Option.builder("l")
+				.desc("List peer")
 				.hasArg(false)
 				.build();
 
 		return new Options()
 				.addOption(quit)
 				.addOption(info)
-				.addOption(list)
-				.addOption(consumption);
+				.addOption(data)
+				.addOption(list);
 	}
 
 	private static Options createOptionsStartProgram()

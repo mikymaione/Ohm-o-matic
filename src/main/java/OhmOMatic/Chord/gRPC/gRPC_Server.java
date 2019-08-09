@@ -176,6 +176,13 @@ public class gRPC_Server
 			}
 
 			@Override
+			public void incBigInteger(Home.oggetto request, StreamObserver<Home.oggettoRes> responseObserver)
+			{
+				elaboraDHT(request, responseObserver, e ->
+						local.incBigInteger(e.getKey()));
+			}
+
+			@Override
 			public void get(Home.oggetto request, StreamObserver<Home.oggettoRes> responseObserver)
 			{
 				elaboraDHT(request, responseObserver, e ->

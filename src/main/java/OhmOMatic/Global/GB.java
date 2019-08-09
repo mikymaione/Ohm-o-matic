@@ -161,5 +161,19 @@ public final class GB
 		}
 	}
 
+	public static Date Now()
+	{
+		final var n = new Date();
+
+		return new Date(
+				n.getYear(),
+				n.getMonth(),
+				n.getDate(),
+				n.getHours(),
+				n.getMinutes(),
+				n.getSeconds()
+		);
+	}
+
 
 }

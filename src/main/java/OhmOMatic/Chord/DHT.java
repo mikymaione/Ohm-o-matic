@@ -11,8 +11,11 @@ Implementazione in Java di Chord:
 */
 package OhmOMatic.Chord;
 
+import OhmOMatic.Global.Pair;
+
 import java.io.Serializable;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -98,11 +101,25 @@ class DHT
 	}
 
 
+	ArrayList<Pair<BigInteger, Serializable>> getData()
+	{
+		synchronized (_data)
+		{
+			final var entryset = _data.entrySet();
+			var dati = new ArrayList<Pair<BigInteger, Serializable>>(entryset.size());
+
+			for (final var d : entryset)
+				dati.add(new Pair<>(d.getKey(), d.getValue()));
+
+			return dati;
+		}
+	}
+
 	Serializable get(final BigInteger key)
 	{
 		synchronized (_data)
 		{
-			return _data.get(key);
+			return _data.getOrDefault(key, false);
 		}
 	}
 
@@ -113,6 +130,19 @@ class DHT
 			_data.put(key, value);
 
 			return true;
+		}
+	}
+
+	Serializable incBigInteger(BigInteger key)
+	{
+		synchronized (_data)
+		{
+			var val = (BigInteger) _data.getOrDefault(key, BigInteger.ZERO);
+			val = val.add(BigInteger.ONE);
+
+			_data.put(key, val);
+
+			return val;
 		}
 	}
 

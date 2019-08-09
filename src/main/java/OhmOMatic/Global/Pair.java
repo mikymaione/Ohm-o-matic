@@ -29,5 +29,11 @@ public class Pair<K, V> implements Serializable
 		return value;
 	}
 
+	@Override
+	public String toString()
+	{
+		return "Pair (" + key + " > " + value + ")";
+	}
+
 
 }

@@ -83,10 +83,7 @@ import io.grpc.StatusRuntimeException;
 import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 //endregion
 
 public class Chord implements AutoCloseable
@@ -173,7 +170,9 @@ public class Chord implements AutoCloseable
 
 		gRPC_listner.shutdown();
 
+		System.out.println("Trasferimento dati ad altri peers...");
 		leave();
+		System.out.println("Trasferimento dati ad altri peers terminato!");
 	}
 	//endregion
 
@@ -408,23 +407,89 @@ public class Chord implements AutoCloseable
 	//endregion
 
 	//region DHT
+	public void putIncremental(final Serializable object)
+	{
+		final var curNumero = incBigInteger(n.ID);
+		final var chiave = n.ID.add(curNumero);
+		put(chiave, object);
+	}
+
+	public ArrayList<Serializable> getIncrementals(final BigInteger key)
+	{
+		final var curNumero = getOrDefault(key, BigInteger.ZERO);
+		final var tot = curNumero.intValue();
+		final var lista = new ArrayList<Serializable>(tot);
+
+		for (long i = 1; i <= tot; i++)
+		{
+			final var chiave = key.add(BigInteger.valueOf(i));
+			lista.add(get(chiave));
+		}
+
+		return lista;
+	}
+
+	// T(N): O(㏒ N)
+	public BigInteger incBigInteger(BigInteger key)
+	{
+		while (true)
+		{
+			var r = _functionDHT(RichiestaDHT.incBigInteger, key, null);
+
+			if (r instanceof BigInteger)
+				return (BigInteger) r;
+			else
+				GB.Sleep(_sleepTime);
+		}
+	}
 
 	// T(N): O(㏒ N)
 	public Serializable remove(final BigInteger key)
 	{
-		return _functionDHT(RichiestaDHT.remove, key, null);
+		while (true)
+		{
+			var r = _functionDHT(RichiestaDHT.remove, key, null);
+
+			if (Boolean.TRUE.equals(r))
+				return r;
+			else
+				GB.Sleep(_sleepTime);
+		}
 	}
 
 	// T(N): O(㏒ N)
+	private <X extends Serializable> X getOrDefault(final BigInteger key, final X default_)
+	{
+		final var g = get(key);
+
+		return (g == null ? default_ : (X) g);
+	}
+
 	public Serializable get(final BigInteger key)
 	{
-		return _functionDHT(RichiestaDHT.get, key, null);
+		while (true)
+		{
+			var r = _functionDHT(RichiestaDHT.get, key, null);
+
+			if (Boolean.FALSE.equals(r))
+				GB.Sleep(_sleepTime);
+			else
+				return r;
+		}
 	}
 
 	// T(N): O(㏒ N)
 	public Serializable put(final BigInteger key, final Serializable object)
 	{
-		return _functionDHT(RichiestaDHT.put, key, object);
+		while (true)
+		{
+			var r = _functionDHT(RichiestaDHT.put, key, object);
+
+			if (Boolean.TRUE.equals(r))
+				return r;
+			else
+				GB.Sleep(_sleepTime);
+		}
 	}
 
 	// T(N): O(1)
@@ -442,6 +507,9 @@ public class Chord implements AutoCloseable
 		if (n.equals(successor))
 			switch (req)
 			{
+				case incBigInteger:
+					return dht.incBigInteger(key);
+
 				case getPeerList:
 					return dht.getPeerList();
 				case addToPeerList:
@@ -625,6 +693,15 @@ public class Chord implements AutoCloseable
 
 		for (var i = 0; i < peers.length; i++)
 			System.out.println("Peer #" + (i + 1) + ": " + peers[i]);
+	}
+
+	public void stampaData()
+	{
+		final var data = dht.getData();
+		System.out.println("Dati:");
+
+		for (final var d : data)
+			System.out.println(d.getKey() + " > " + d.getValue());
 	}
 	//endregion
 

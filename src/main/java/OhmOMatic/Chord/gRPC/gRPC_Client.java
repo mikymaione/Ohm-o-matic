@@ -152,6 +152,9 @@ public class gRPC_Client
 
 		switch (req)
 		{
+			case incBigInteger:
+				return stub.incBigInteger(o);
+
 			case getPeerList:
 				return stub.getPeerList(o);
 			case addToPeerList:
