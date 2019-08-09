@@ -148,8 +148,8 @@ public class Casa implements MeanListener, AutoCloseable
 		if (peerList != null)
 		{
 			//Pair<Double, Date> mean
-			final var mie = chord.getIncrementals(chord.getID());
 			final var somme = new HashMap<Date, Double>();
+			final var mie = chord.getIncrementals(chord.getID());
 
 			for (final var peer : peerList)
 			{
@@ -169,14 +169,20 @@ public class Casa implements MeanListener, AutoCloseable
 
 			if (somme.size() > 0)
 			{
-				var condominiali = new ArrayList<Pair<Double, Date>>();
+				var mieSorted = new ArrayList<Pair<Double, Date>>(mie.size());
+				var condominiali = new ArrayList<Pair<Double, Date>>(somme.size());
 
 				for (var s : somme.entrySet())
 					condominiali.add(new Pair<>(s.getValue(), s.getKey()));
 
-				condominiali.sort(Comparator.comparing(Pair::getValue));
+				for (final var m : mie)
+					if (m instanceof Pair)
+						mieSorted.add((Pair<Double, Date>) m);
 
-				aggiornaChart(convertiPerChart(mie), convertiPerChart(condominiali));
+				condominiali.sort(Comparator.comparing(Pair::getValue));
+				mieSorted.sort(Comparator.comparing(Pair::getValue));
+
+				aggiornaChart(convertiPerChart(mieSorted), convertiPerChart(condominiali));
 			}
 		}
 	}
@@ -204,22 +210,19 @@ public class Casa implements MeanListener, AutoCloseable
 		stiler.setLocale(Locale.ITALY);
 		stiler.setDatePattern("HH:mm:ss");
 		stiler.setOverlapped(true);
-		stiler.setAvailableSpaceFill(.96);
+		stiler.setYAxisMin(0d);
 	}
 
-	private Pair<ArrayList<Double>, ArrayList<Date>> convertiPerChart(ArrayList mie)
+	private Pair<ArrayList<Double>, ArrayList<Date>> convertiPerChart(ArrayList<Pair<Double, Date>> mie)
 	{
 		var mioConsumo = new ArrayList<Double>(mie.size());
 		var mioTempo = new ArrayList<Date>(mie.size());
 
 		for (final var e : mie)
-			if (e instanceof Pair)
-			{
-				final var p = (Pair<Double, Date>) e;
-
-				mioConsumo.add(p.getKey());
-				mioTempo.add(p.getValue());
-			}
+		{
+			mioConsumo.add(e.getKey());
+			mioTempo.add(e.getValue());
+		}
 
 		return new Pair<>(mioConsumo, mioTempo);
 	}
