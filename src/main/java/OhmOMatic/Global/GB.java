@@ -85,14 +85,27 @@ public final class GB
 		return incluso(id, a.ID, b.ID);
 	}
 
-	private static boolean incluso(BigInteger key, BigInteger id1, BigInteger id2)
+	private static boolean incluso(BigInteger id, BigInteger start, BigInteger end)
 	{
-		if ((key.compareTo(id1) > 0) && (key.compareTo(id2) < 0))
-			return true;
-		else if ((id1.compareTo(id2) > 0))
-			return (key.compareTo(id1) < 0) && (key.compareTo(id2) < 0);
+		if (end.compareTo(start) <= 0)
+			return start.compareTo(id) < 0 || id.compareTo(end) <= 0;
 		else
-			return false;
+			return start.compareTo(id) < 0 && id.compareTo(end) <= 0;
+	}
+
+	public static boolean finger_incluso(NodeLink key, NodeLink x, BigInteger y)
+	{
+		return finger_incluso(key.ID, x.ID, y);
+	}
+
+	private static boolean finger_incluso(BigInteger key, BigInteger start, BigInteger end)
+	{
+		if (start.equals(end))
+			return true;
+		else if (end.compareTo(start) < 0)
+			return start.compareTo(key) < 0 || key.compareTo(end) < 0;
+		else
+			return start.compareTo(key) < 0 && key.compareTo(end) < 0;
 	}
 
 	public static byte[] serialize(final Serializable obj) throws IOException

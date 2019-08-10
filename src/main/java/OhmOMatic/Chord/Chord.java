@@ -273,7 +273,7 @@ public class Chord implements AutoCloseable
 				final var iThFinger = _fingerTable.get(i);
 
 				if (iThFinger != null && !n.equals(iThFinger))
-					if (GB.incluso(iThFinger, n, id))
+					if (GB.finger_incluso(iThFinger, n, id))
 					{
 						final var vivo = gRPC_Client.gRPC(iThFinger, RichiestaChord.ping);
 
