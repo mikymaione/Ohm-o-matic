@@ -628,69 +628,58 @@ public class Chord implements AutoCloseable
 			setPredecessor(null);
 	}
 
-	private boolean checkFingers()
-	{
-		synchronized (_fingerTable)
-		{
-			for (var i = 1; i <= mBit; i++)
-				if (_fingerTable.get(i) == null)
-					return false;
-
-			return true;
-		}
-	}
-
 	// T(N): O(1/N)
 	// called periodically. handoff my data to the correct peer
 	private void handoff()
 	{
-		if (checkFingers())
+		final var daRimuovere = new HashSet<BigInteger>();
+		final var daFare = new HashSet<BigInteger>();
+
+		do
 		{
-			final var daRimuovere = new HashSet<BigInteger>();
-			final var daFare = new HashSet<BigInteger>();
+			daFare.clear();
 
-			do
+			final var keys = dht.getKeys();
+
+			for (final var key : keys)
 			{
-				daFare.clear();
+				final var successor = find_successor(key);
 
-				dht.forEachAndRemoveAll(e ->
-				{
-					final var successor = find_successor(e.getKey());
+				if (!n.equals(successor))
+					try
+					{
+						//final var info = "[" + GB.DateToString() + "] handoff > " + successor + ": " + e.getKey() + "=" + e.getValue();
+						//System.out.println(info);
 
-					if (!n.equals(successor))
-						try
-						{
-							//final var info = "[" + GB.DateToString() + "] handoff > " + successor + ": " + e.getKey() + "=" + e.getValue();
-							//System.out.println(info);
+						daFare.add(key);
+						final var risultatoTrasferimento = gRPC_Client.gRPC(successor, RichiestaDHT.transfer, key, dht.get(key));
 
-							daFare.add(e.getKey());
-							final var risultatoTrasferimento = gRPC_Client.gRPC(successor, RichiestaDHT.transfer, e.getKey(), e.getValue());
-
-							if (Boolean.TRUE.equals(risultatoTrasferimento))
-							{
-								daRimuovere.add(e.getKey());
-								//System.out.println(info + " OK!");
-							}
-						}
-						catch (StatusRuntimeException ex)
+						if (Boolean.TRUE.equals(risultatoTrasferimento))
 						{
-							System.out.println("Handoff: Nodo " + successor + " non raggiungibile!");
-							setSuccessor(null);
+							daRimuovere.add(key);
+							//System.out.println(info + " OK!");
 						}
-						catch (IOException ex)
-						{
-							System.out.println("Errore serializzazione oggetto!");
-							ex.printStackTrace();
-						}
-						catch (ClassNotFoundException ex)
-						{
-							System.out.println("Classe SHA1 non trovata!");
-							ex.printStackTrace();
-						}
-				}, daRimuovere);
+					}
+					catch (StatusRuntimeException ex)
+					{
+						System.out.println("Handoff: Nodo " + successor + " non raggiungibile!");
+						setSuccessor(null);
+					}
+					catch (IOException ex)
+					{
+						System.out.println("Errore serializzazione oggetto!");
+						ex.printStackTrace();
+					}
+					catch (ClassNotFoundException ex)
+					{
+						System.out.println("Classe SHA1 non trovata!");
+						ex.printStackTrace();
+					}
 			}
-			while (daFare.size() > 0);
+
+			dht.removeAll(daRimuovere);
 		}
+		while (daFare.size() > 0);
 	}
 
 	public NodeLink ping()

@@ -15,7 +15,6 @@ import OhmOMatic.Global.Pair;
 
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -97,16 +96,31 @@ class DHT
 		return false;
 	}
 
+	BigInteger[] getKeys()
+	{
+		synchronized (_data)
+		{
+			final var keySet = _data.keySet();
+			final var R = new BigInteger[keySet.size()];
 
-	ArrayList<Pair<BigInteger, Serializable>> getData()
+			var x = -1;
+			for (final var k : keySet)
+				R[x += 1] = k;
+
+			return R;
+		}
+	}
+
+	Pair<BigInteger, Serializable>[] getData()
 	{
 		synchronized (_data)
 		{
 			final var entryset = _data.entrySet();
-			var dati = new ArrayList<Pair<BigInteger, Serializable>>(entryset.size());
+			final var dati = new Pair[entryset.size()];
 
+			var x = -1;
 			for (final var d : entryset)
-				dati.add(new Pair<>(d.getKey(), d.getValue()));
+				dati[x += 1] = new Pair<>(d.getKey(), d.getValue());
 
 			return dati;
 		}
@@ -156,6 +170,15 @@ class DHT
 		}
 	}
 
+	void removeAll(HashSet<BigInteger> daRimuovere)
+	{
+		synchronized (_data)
+		{
+			for (var d : daRimuovere)
+				_data.remove(d);
+		}
+	}
+
 	void forEachAndRemoveAll(Consumer<Map.Entry<BigInteger, Serializable>> callback, HashSet<BigInteger> daRimuovere)
 	{
 		synchronized (_data)
@@ -163,8 +186,7 @@ class DHT
 			for (var e : _data.entrySet())
 				callback.accept(e);
 
-			for (var d : daRimuovere)
-				_data.remove(d);
+			removeAll(daRimuovere);
 		}
 	}
 
