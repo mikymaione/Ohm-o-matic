@@ -147,6 +147,7 @@ public class Casa implements MeanListener, AutoCloseable
 		{
 			//Pair<Double, Date> mean
 			final var somme = new HashMap<Date, Double>();
+			final var mie = chord.getIncrementals(chord.getID());
 
 			for (final var peer : peerList)
 			{
@@ -163,8 +164,6 @@ public class Casa implements MeanListener, AutoCloseable
 
 			if (somme.size() > 0)
 			{
-				final var mie = chord.getIncrementals(chord.getID());
-
 				if (mie.length > 0)
 				{
 					var mieSorted = new ArrayList<Pair<Double, Date>>(mie.length);
