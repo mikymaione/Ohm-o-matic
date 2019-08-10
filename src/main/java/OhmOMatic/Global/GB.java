@@ -53,14 +53,14 @@ public final class GB
 		return new byte[0];
 	}
 
-	public static BigInteger getPowerOfTwo(final Integer k, final Integer mBit)
+	public static BigInteger getPowerOfTwo(final Integer k)
 	{
 		if (_powerOfTwo.size() == 0)
 		{
 			final var due = BigInteger.valueOf(2);
 			var curVal = BigInteger.valueOf(1); //2^0
 
-			for (Integer i = 0; i <= mBit; i++)
+			for (Integer i = 0; i <= 160; i++)
 			{
 				_powerOfTwo.put(i, curVal);
 				curVal = curVal.multiply(due);
@@ -87,25 +87,19 @@ public final class GB
 
 	private static boolean incluso(BigInteger id, BigInteger start, BigInteger end)
 	{
-		if (end.compareTo(start) <= 0)
-			return start.compareTo(id) < 0 || id.compareTo(end) <= 0;
-		else
-			return start.compareTo(id) < 0 && id.compareTo(end) <= 0;
+		// start < id < end
+		return start.compareTo(id) < 0 && id.compareTo(end) < 0;
 	}
 
-	public static boolean finger_incluso(NodeLink key, NodeLink x, BigInteger y)
+	public static boolean inclusoR(BigInteger id, NodeLink a, NodeLink b)
 	{
-		return finger_incluso(key.ID, x.ID, y);
+		return inclusoR(id, a.ID, b.ID);
 	}
 
-	private static boolean finger_incluso(BigInteger key, BigInteger start, BigInteger end)
+	private static boolean inclusoR(BigInteger id, BigInteger start, BigInteger end)
 	{
-		if (start.equals(end))
-			return true;
-		else if (end.compareTo(start) < 0)
-			return start.compareTo(key) < 0 || key.compareTo(end) < 0;
-		else
-			return start.compareTo(key) < 0 && key.compareTo(end) < 0;
+		// start < id <= end
+		return start.compareTo(id) < 0 && id.compareTo(end) <= 0;
 	}
 
 	public static byte[] serialize(final Serializable obj) throws IOException

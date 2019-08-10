@@ -137,7 +137,7 @@ public class Chord implements AutoCloseable
 
 		_fingerTable = new HashMap<>(mBit);
 
-		keyListaPeers = new BigInteger(GB.SHA1("Chiave speciale per lista dei peer"));
+		keyListaPeers = GB.SHA1BI("Chiave speciale per lista dei peer");
 		dht = new DHT(keyListaPeers);
 
 		stabilizingRoutines = Set.of(
@@ -250,7 +250,7 @@ public class Chord implements AutoCloseable
 
 		//if (id ∈ (n, successor])
 		if (successor != null)
-			if (GB.incluso(id, n, successor))
+			if (GB.inclusoR(id, n, successor))
 				return successor;
 
 		// forward the query around the circle
@@ -273,7 +273,7 @@ public class Chord implements AutoCloseable
 				final var iThFinger = _fingerTable.get(i);
 
 				if (iThFinger != null && !n.equals(iThFinger))
-					if (GB.finger_incluso(iThFinger, n, id))
+					if (GB.incluso(iThFinger, n, id))
 					{
 						final var vivo = gRPC_Client.gRPC(iThFinger, RichiestaChord.ping);
 
@@ -320,6 +320,8 @@ public class Chord implements AutoCloseable
 
 		final var addedToPeerList = addToPeerList(keyListaPeers, n.ID);
 		System.out.println("Aggiunta a lista peer: " + addedToPeerList);
+
+		put(n.ID, BigInteger.ZERO);
 
 		startStabilizingRoutines();
 	}
@@ -430,8 +432,8 @@ public class Chord implements AutoCloseable
 
 		for (var i = 0; i < tot; i++)
 		{
-			final var chiave = key.add(BigInteger.valueOf(i + 1));
-			lista[i] = get(chiave);
+			final var new_key = key.add(BigInteger.valueOf(i + 1));
+			lista[i] = get(new_key);
 		}
 
 		return lista;
@@ -611,9 +613,9 @@ public class Chord implements AutoCloseable
 		if (next > mBit)
 			next = 1;
 
-		var i = GB.getPowerOfTwo(next - 1, mBit);
+		var i = GB.getPowerOfTwo(next - 1);
 		i = n.ID.add(i);
-		i = i.mod(GB.getPowerOfTwo(mBit, mBit));
+		//i = i.mod(BigInteger.valueOf(160));
 
 		final var successor = find_successor(i);
 		setFinger(next, successor);
@@ -708,8 +710,9 @@ public class Chord implements AutoCloseable
 
 		final var peers = getPeerList();
 
-		for (var i = 0; i < peers.length; i++)
-			System.out.println("Peer #" + (i + 1) + ": " + peers[i]);
+		var x = 0;
+		for (final var p : peers)
+			System.out.println("Peer #" + (x += 1) + ": " + p);
 	}
 
 	public void stampaData()

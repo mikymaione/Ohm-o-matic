@@ -21,7 +21,6 @@ public class NodeLink implements Serializable
 
 	public final BigInteger ID;
 
-	public final String nome;
 	public final String IP;
 	public final int port;
 
@@ -35,10 +34,10 @@ public class NodeLink implements Serializable
 
 	public NodeLink(final String identificatore, final String IP, final int port)
 	{
-		this.nome = IP + ":" + port;
-		this.ID = GB.SHA1BI(nome);
+		this.ID = GB.SHA1BI(IP + ":" + port);
 
 		this.identificatore = identificatore;
+
 		this.IP = IP;
 		this.port = port;
 	}
@@ -52,10 +51,8 @@ public class NodeLink implements Serializable
 
 			return ID.equals(aNode.ID);
 		}
-		else
-		{
-			return false;
-		}
+
+		return false;
 	}
 
 	@Override
