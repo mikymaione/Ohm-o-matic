@@ -250,7 +250,7 @@ public class Chord implements AutoCloseable
 
 		//if (id ∈ (n, successor])
 		if (successor != null)
-			if (GB.inclusoR(id, n, successor))
+			if (GB.incluso(id, n, successor))
 				return successor;
 
 		// forward the query around the circle
@@ -595,6 +595,11 @@ public class Chord implements AutoCloseable
 	{
 		final var predecessor = getPredecessor();
 
+		if (predecessor == null)
+		{
+			var aaa = 0;
+		}
+
 		if (predecessor == null || (GB.incluso(n_, predecessor, n)))
 		{
 			setPredecessor(n_);
@@ -615,7 +620,6 @@ public class Chord implements AutoCloseable
 
 		var i = GB.getPowerOfTwo(next - 1);
 		i = n.ID.add(i);
-		//i = i.mod(BigInteger.valueOf(160));
 
 		final var successor = find_successor(i);
 		setFinger(next, successor);
