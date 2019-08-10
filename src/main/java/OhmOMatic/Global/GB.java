@@ -36,7 +36,7 @@ public final class GB
 	{
 		try
 		{
-			var bytes = s.getBytes(StandardCharsets.UTF_8);
+			final var bytes = s.getBytes(StandardCharsets.UTF_8);
 
 			var sha1 = MessageDigest.getInstance("SHA-1");
 
@@ -57,7 +57,7 @@ public final class GB
 	{
 		if (_powerOfTwo.size() == 0)
 		{
-			var due = BigInteger.valueOf(2);
+			final var due = BigInteger.valueOf(2);
 			var curVal = BigInteger.valueOf(1); //2^0
 
 			for (Integer i = 0; i <= mBit; i++)
@@ -149,7 +149,7 @@ public final class GB
 
 	private static String DateToString(Date d)
 	{
-		var sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss.SSS");
+		final var sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss.SSS");
 
 		return sdf.format(d);
 	}
