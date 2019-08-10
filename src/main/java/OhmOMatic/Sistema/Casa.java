@@ -62,7 +62,8 @@ public class Casa implements MeanListener, AutoCloseable
 	@Override
 	public void close()
 	{
-		//
+		if (chart_frame != null)
+			chart_frame.dispose();
 	}
 
 	//region Chiamate WS
@@ -149,7 +150,6 @@ public class Casa implements MeanListener, AutoCloseable
 		{
 			//Pair<Double, Date> mean
 			final var somme = new HashMap<Date, Double>();
-			final var mie = chord.getIncrementals(chord.getID());
 
 			for (final var peer : peerList)
 			{
@@ -157,27 +157,24 @@ public class Casa implements MeanListener, AutoCloseable
 
 				for (var statisticaAltroPeer : statisticheAltroPeer)
 				{
-					if (statisticaAltroPeer instanceof Pair)
-					{
-						final var p = (Pair<Double, Date>) statisticaAltroPeer;
-						final Double attuale = somme.getOrDefault(p.getValue(), 0d) + p.getKey();
+					final var p = Pair.<Double, Date>fromSerializable(statisticaAltroPeer);
+					final var attuale = somme.getOrDefault(p.getValue(), 0d) + p.getKey();
 
-						somme.put(p.getValue(), attuale);
-					}
+					somme.put(p.getValue(), attuale);
 				}
 			}
 
 			if (somme.size() > 0)
 			{
-				var mieSorted = new ArrayList<Pair<Double, Date>>(mie.size());
+				final var mie = chord.getIncrementals(chord.getID());
+				var mieSorted = new ArrayList<Pair<Double, Date>>(mie.length);
 				var condominiali = new ArrayList<Pair<Double, Date>>(somme.size());
 
-				for (var s : somme.entrySet())
+				for (final var s : somme.entrySet())
 					condominiali.add(new Pair<>(s.getValue(), s.getKey()));
 
 				for (final var m : mie)
-					if (m instanceof Pair)
-						mieSorted.add((Pair<Double, Date>) m);
+					mieSorted.add(Pair.fromSerializable(m));
 
 				condominiali.sort(Comparator.comparing(Pair::getValue));
 				mieSorted.sort(Comparator.comparing(Pair::getValue));
@@ -196,6 +193,7 @@ public class Casa implements MeanListener, AutoCloseable
 
 	//region Chart
 	private CategoryChart chart;
+	private JFrame chart_frame;
 
 	private void creaChart()
 	{
@@ -227,8 +225,6 @@ public class Casa implements MeanListener, AutoCloseable
 		return new Pair<>(mioConsumo, mioTempo);
 	}
 
-	private JFrame frame;
-
 	private void aggiornaChart(Pair<ArrayList<Double>, ArrayList<Date>> mieiConsumi, Pair<ArrayList<Double>, ArrayList<Date>> condominioConsumi)
 	{
 		if (chart.getSeriesMap().isEmpty())
@@ -237,15 +233,17 @@ public class Casa implements MeanListener, AutoCloseable
 			chart.addSeries("Condominio", condominioConsumi.getValue(), condominioConsumi.getKey(), null);
 
 			final var swing = new SwingWrapper<>(chart);
-			frame = swing.displayChart();
-			frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+			chart_frame = swing.displayChart();
+			chart_frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 		}
 		else
 		{
+			chart_frame.update(chart_frame.getGraphics());
+
 			chart.updateCategorySeries("Mio", mieiConsumi.getValue(), mieiConsumi.getKey(), null);
 			chart.updateCategorySeries("Condominio", condominioConsumi.getValue(), condominioConsumi.getKey(), null);
 
-			frame.update(frame.getGraphics());
+			chart_frame.update(chart_frame.getGraphics());
 		}
 	}
 	//endregion

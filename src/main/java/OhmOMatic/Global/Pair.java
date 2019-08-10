@@ -35,5 +35,10 @@ public class Pair<K, V> implements Serializable
 		return "Pair (" + key + " > " + value + ")";
 	}
 
+	public static <X, Y> Pair<X, Y> fromSerializable(Serializable s)
+	{
+		return (Pair<X, Y>) s;
+	}
+
 
 }

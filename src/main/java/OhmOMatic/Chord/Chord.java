@@ -83,7 +83,10 @@ import io.grpc.StatusRuntimeException;
 import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 //endregion
 
 public class Chord implements AutoCloseable
@@ -414,16 +417,16 @@ public class Chord implements AutoCloseable
 		put(chiave, object);
 	}
 
-	public ArrayList<Serializable> getIncrementals(final BigInteger key)
+	public Serializable[] getIncrementals(final BigInteger key)
 	{
 		final var curNumero = getOrDefault(key, BigInteger.ZERO);
 		final var tot = curNumero.intValue();
-		final var lista = new ArrayList<Serializable>(tot);
+		final var lista = new Serializable[tot];
 
-		for (long i = 1; i <= tot; i++)
+		for (var i = 0; i < tot; i++)
 		{
-			final var chiave = key.add(BigInteger.valueOf(i));
-			lista.add(get(chiave));
+			final var chiave = key.add(BigInteger.valueOf(i + 1));
+			lista[i] = get(chiave);
 		}
 
 		return lista;
