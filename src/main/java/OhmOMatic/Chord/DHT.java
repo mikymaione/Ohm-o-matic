@@ -42,20 +42,17 @@ class DHT
 		}
 	}
 
-	private HashSet<BigInteger> _getPeerList()
+	private HashSet<BigInteger> _getPeerList_NS()
 	{
-		synchronized (_data)
+		if (_data.containsKey(keyListaPeers))
 		{
-			if (_data.containsKey(keyListaPeers))
-			{
-				var klp = _data.get(keyListaPeers);
+			var klp = _data.get(keyListaPeers);
 
-				if (klp instanceof HashSet)
-					return (HashSet<BigInteger>) klp;
-			}
-
-			return null;
+			if (klp instanceof HashSet)
+				return (HashSet<BigInteger>) klp;
 		}
+
+		return null;
 	}
 
 	Boolean addToPeerList(final Serializable ID)
@@ -66,7 +63,7 @@ class DHT
 
 			synchronized (_data)
 			{
-				var _peerList = _getPeerList();
+				var _peerList = _getPeerList_NS();
 
 				if (_peerList != null)
 				{
@@ -87,7 +84,7 @@ class DHT
 
 			synchronized (_data)
 			{
-				var _peerList = _getPeerList();
+				var _peerList = _getPeerList_NS();
 
 				if (_peerList != null)
 				{
@@ -127,7 +124,10 @@ class DHT
 	{
 		synchronized (_data)
 		{
-			_data.put(key, value);
+			final var prev = _data.put(key, value);
+
+			if (prev != null)
+				System.out.println("Put overwrite " + key + " from " + prev + " to " + value);
 
 			return true;
 		}
@@ -172,7 +172,7 @@ class DHT
 	{
 		synchronized (_data)
 		{
-			var _peerList = _getPeerList();
+			final var _peerList = _getPeerList_NS();
 
 			if (_peerList != null)
 			{

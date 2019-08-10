@@ -15,35 +15,47 @@ public class Waiter
 
 	private final Timer timer;
 	private final Runnable func;
-	private Boolean inEsecuzione = true;
+
+	private Boolean inEsecuzione = false;
 	private Boolean elaborazioneInCorso = false;
+
+	private final Object _inEsecuzioneLock = new Object();
+	private final Object _elaborazioneInCorsoLock = new Object();
+
 	private final long millisecondi;
 
 
 	public Waiter(String nome, Runnable func, long millisecondi)
 	{
-		this.timer = new Timer("__" + nome);
 		this.func = func;
 		this.millisecondi = millisecondi;
+		this.timer = new Timer("__" + nome);
 	}
 
 	public void start()
 	{
-		timer.scheduleAtFixedRate(new TimerTask()
+		synchronized (_inEsecuzioneLock)
 		{
-			@Override
-			public void run()
+			if (!inEsecuzione)
 			{
-				esegui();
+				inEsecuzione = true;
+				timer.scheduleAtFixedRate(new TimerTask()
+				{
+					@Override
+					public void run()
+					{
+						esegui();
+					}
+				}, new Date(), millisecondi);
 			}
-		}, new Date(), millisecondi);
+		}
 	}
 
 	private void esegui()
 	{
-		synchronized (inEsecuzione)
+		synchronized (_inEsecuzioneLock)
 		{
-			synchronized (elaborazioneInCorso)
+			synchronized (_elaborazioneInCorsoLock)
 			{
 				if (inEsecuzione && !elaborazioneInCorso)
 				{
@@ -57,7 +69,7 @@ public class Waiter
 
 	public Boolean isRunning()
 	{
-		synchronized (elaborazioneInCorso)
+		synchronized (_elaborazioneInCorsoLock)
 		{
 			return elaborazioneInCorso;
 		}
@@ -65,7 +77,7 @@ public class Waiter
 
 	public void stopMeGently()
 	{
-		synchronized (inEsecuzione)
+		synchronized (_inEsecuzioneLock)
 		{
 			timer.cancel();
 			inEsecuzione = false;

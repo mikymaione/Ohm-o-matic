@@ -8,19 +8,20 @@ package OhmOMatic.Sistema;
 
 import OhmOMatic.Chord.Chord;
 import OhmOMatic.Global.Pair;
+import OhmOMatic.Global.Waiter;
 import OhmOMatic.ProtoBuffer.Common.standardRes;
 import OhmOMatic.ProtoBuffer.Home.casa;
 import OhmOMatic.ProtoBuffer.Home.listaCase;
 import OhmOMatic.Simulation.SmartMeterSimulator;
 import OhmOMatic.Sistema.Base.BufferImplWithOverlap;
 import OhmOMatic.Sistema.Base.MeanListener;
-import org.knowm.xchart.CategoryChart;
-import org.knowm.xchart.CategoryChartBuilder;
 import org.knowm.xchart.SwingWrapper;
+import org.knowm.xchart.XYChart;
+import org.knowm.xchart.XYChartBuilder;
 import org.knowm.xchart.style.Styler;
+import org.knowm.xchart.style.markers.SeriesMarkers;
 
 import javax.swing.*;
-import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
@@ -30,32 +31,31 @@ public class Casa implements MeanListener, AutoCloseable
 {
 
 	private final SmartMeterSimulator smartMeterSimulator;
-	private final BufferImplWithOverlap theBuffer;
 
-	private Client client;
 	private WebTarget webTargetRest;
 
+	private final String identificatore;
 	private final String RESTAddress;
-
 	private final String myAddress;
 	private final int myPort;
 
 	private final Chord chord;
 
 
-	public Casa(String indirizzoREST_, String mioIndirizzo_, int miaPorta_, Chord chord_)
+	public Casa(final String identificatore_, final String indirizzoREST_, final String mioIndirizzo_, final int miaPorta_, final Chord chord_)
 	{
 		chord = chord_;
 
+		identificatore = identificatore_;
 		RESTAddress = indirizzoREST_;
 
 		myAddress = mioIndirizzo_;
 		myPort = miaPorta_;
 
-		theBuffer = new BufferImplWithOverlap(24, 12, this);
-
-		smartMeterSimulator = new SmartMeterSimulator(theBuffer);
-		smartMeterSimulator.setName("smartMeterSimulator");
+		smartMeterSimulator = new SmartMeterSimulator(
+				new BufferImplWithOverlap(24, 12, this)
+		);
+		smartMeterSimulator.setName("__smartMeterSimulator");
 	}
 
 
@@ -70,10 +70,7 @@ public class Casa implements MeanListener, AutoCloseable
 	private WebTarget getWebTarget()
 	{
 		if (webTargetRest == null)
-		{
-			client = ClientBuilder.newClient();
-			webTargetRest = client.target(RESTAddress + "/OOM");
-		}
+			webTargetRest = ClientBuilder.newClient().target(RESTAddress + "/OOM");
 
 		return webTargetRest;
 	}
@@ -140,10 +137,10 @@ public class Casa implements MeanListener, AutoCloseable
 	//endregion
 
 	//region Funzioni sul calcolo del consumo energetico
-	private synchronized void inviaStatistiche(final Pair<Double, Date> mean)
-	{
-		chord.putIncremental(mean);
+	private final Waiter calcoloStatistiche = new Waiter("calcoloStatistiche", this::calcolaStatistiche, 2000);
 
+	private void calcolaStatistiche()
+	{
 		final var peerList = chord.getPeerList();
 
 		if (peerList != null)
@@ -167,19 +164,23 @@ public class Casa implements MeanListener, AutoCloseable
 			if (somme.size() > 0)
 			{
 				final var mie = chord.getIncrementals(chord.getID());
-				var mieSorted = new ArrayList<Pair<Double, Date>>(mie.length);
-				var condominiali = new ArrayList<Pair<Double, Date>>(somme.size());
 
-				for (final var s : somme.entrySet())
-					condominiali.add(new Pair<>(s.getValue(), s.getKey()));
+				if (mie.length > 0)
+				{
+					var mieSorted = new ArrayList<Pair<Double, Date>>(mie.length);
+					var condominiali = new ArrayList<Pair<Double, Date>>(somme.size());
 
-				for (final var m : mie)
-					mieSorted.add(Pair.fromSerializable(m));
+					for (final var s : somme.entrySet())
+						condominiali.add(new Pair<>(s.getValue(), s.getKey()));
 
-				condominiali.sort(Comparator.comparing(Pair::getValue));
-				mieSorted.sort(Comparator.comparing(Pair::getValue));
+					for (final var m : mie)
+						mieSorted.add(Pair.fromSerializable(m));
 
-				aggiornaChart(convertiPerChart(mieSorted), convertiPerChart(condominiali));
+					condominiali.sort(Comparator.comparing(Pair::getValue));
+					mieSorted.sort(Comparator.comparing(Pair::getValue));
+
+					aggiornaChart(convertiPerChart(mieSorted), convertiPerChart(condominiali));
+				}
 			}
 		}
 	}
@@ -192,12 +193,12 @@ public class Casa implements MeanListener, AutoCloseable
 
 
 	//region Chart
-	private CategoryChart chart;
+	private XYChart chart;
 	private JFrame chart_frame;
 
 	private void creaChart()
 	{
-		chart = new CategoryChartBuilder()
+		chart = new XYChartBuilder()
 				.title("Consumo energetico")
 				.yAxisTitle("kW⋅h")
 				.xAxisTitle("s")
@@ -207,8 +208,8 @@ public class Casa implements MeanListener, AutoCloseable
 		stiler.setLegendPosition(Styler.LegendPosition.InsideSE);
 		stiler.setLocale(Locale.ITALY);
 		stiler.setDatePattern("HH:mm:ss");
-		stiler.setOverlapped(true);
 		stiler.setYAxisMin(0d);
+		//stiler.setOverlapped(true);
 	}
 
 	private Pair<ArrayList<Double>, ArrayList<Date>> convertiPerChart(ArrayList<Pair<Double, Date>> mie)
@@ -229,19 +230,20 @@ public class Casa implements MeanListener, AutoCloseable
 	{
 		if (chart.getSeriesMap().isEmpty())
 		{
-			chart.addSeries("Mio", mieiConsumi.getValue(), mieiConsumi.getKey(), null);
-			chart.addSeries("Condominio", condominioConsumi.getValue(), condominioConsumi.getKey(), null);
+			chart.addSeries("Mio", mieiConsumi.getValue(), mieiConsumi.getKey(), null).setMarker(SeriesMarkers.NONE);
+			chart.addSeries("Condominio", condominioConsumi.getValue(), condominioConsumi.getKey(), null).setMarker(SeriesMarkers.NONE);
 
 			final var swing = new SwingWrapper<>(chart);
 			chart_frame = swing.displayChart();
 			chart_frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+			chart_frame.setTitle(identificatore);
 		}
 		else
 		{
 			chart_frame.update(chart_frame.getGraphics());
 
-			chart.updateCategorySeries("Mio", mieiConsumi.getValue(), mieiConsumi.getKey(), null);
-			chart.updateCategorySeries("Condominio", condominioConsumi.getValue(), condominioConsumi.getKey(), null);
+			chart.updateXYSeries("Mio", mieiConsumi.getValue(), mieiConsumi.getKey(), null);
+			chart.updateXYSeries("Condominio", condominioConsumi.getValue(), condominioConsumi.getKey(), null);
 
 			chart_frame.update(chart_frame.getGraphics());
 		}
@@ -253,6 +255,7 @@ public class Casa implements MeanListener, AutoCloseable
 	public void avviaSmartMeter()
 	{
 		creaChart();
+		calcoloStatistiche.start();
 		smartMeterSimulator.start();
 	}
 
@@ -264,7 +267,7 @@ public class Casa implements MeanListener, AutoCloseable
 	@Override
 	public void meanGenerated(Pair<Double, Date> mean)
 	{
-		inviaStatistiche(mean);
+		chord.putIncremental(mean);
 	}
 	//endregion
 

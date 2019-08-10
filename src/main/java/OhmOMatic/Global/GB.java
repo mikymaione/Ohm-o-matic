@@ -27,6 +27,11 @@ public final class GB
 	private static HashMap<Integer, BigInteger> _powerOfTwo = new HashMap<>();
 
 
+	public static BigInteger SHA1BI(String s)
+	{
+		return new BigInteger(SHA1(s));
+	}
+
 	public static byte[] SHA1(String s)
 	{
 		try

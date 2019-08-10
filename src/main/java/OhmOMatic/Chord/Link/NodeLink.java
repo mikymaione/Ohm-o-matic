@@ -21,6 +21,7 @@ public class NodeLink implements Serializable
 
 	public final BigInteger ID;
 
+	public final String nome;
 	public final String IP;
 	public final int port;
 
@@ -34,9 +35,8 @@ public class NodeLink implements Serializable
 
 	public NodeLink(final String identificatore, final String IP, final int port)
 	{
-		var b = GB.SHA1(IP + ":" + port);
-
-		this.ID = new BigInteger(b);
+		this.nome = IP + ":" + port;
+		this.ID = GB.SHA1BI(nome);
 
 		this.identificatore = identificatore;
 		this.IP = IP;
