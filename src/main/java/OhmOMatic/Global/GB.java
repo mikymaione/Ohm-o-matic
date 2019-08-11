@@ -17,6 +17,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Random;
+import java.util.concurrent.Callable;
 
 public final class GB
 {
@@ -152,6 +153,12 @@ public final class GB
 		final var sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss.SSS");
 
 		return sdf.format(d);
+	}
+
+	public static void waitfor(Callable<Boolean> callback, int millisecondi) throws Exception
+	{
+		while (!callback.call())
+			GB.Sleep(millisecondi);
 	}
 
 	public static void Sleep(int millisecondi)

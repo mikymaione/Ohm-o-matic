@@ -11,6 +11,7 @@ import OhmOMatic.Chord.Enums.RichiestaDHT;
 import OhmOMatic.Chord.Link.NodeLink;
 import OhmOMatic.Global.GB;
 import OhmOMatic.ProtoBuffer.Home;
+import OhmOMatic.gRPC.FastStub;
 import com.google.protobuf.ByteString;
 import io.grpc.StatusRuntimeException;
 
@@ -42,7 +43,7 @@ public class gRPC_Client
 		if (server == null)
 			return null;
 
-		try (final var hfs = new HomeFastStub())
+		try (final var hfs = new FastStub())
 		{
 			var _messaggio = Home.messaggio.newBuilder();
 			var _casa = Home.casa.newBuilder();
@@ -96,9 +97,9 @@ public class gRPC_Client
 		return null;
 	}
 
-	private static Home.casaRes doRequestChord(NodeLink server, HomeFastStub hfs, RichiestaChord req, Home.messaggio c)
+	private static Home.casaRes doRequestChord(NodeLink server, FastStub hfs, RichiestaChord req, Home.messaggio c)
 	{
-		final var stub = hfs.getStub(server);
+		final var stub = hfs.getHome(server);
 
 		switch (req)
 		{
@@ -122,7 +123,7 @@ public class gRPC_Client
 		if (server == null)
 			return null;
 
-		try (final var hfs = new HomeFastStub())
+		try (final var hfs = new FastStub())
 		{
 			final var _oggetto = Home.oggetto.newBuilder()
 					.setKey(ByteString.copyFrom(key.toByteArray()))
@@ -143,12 +144,12 @@ public class gRPC_Client
 		}
 	}
 
-	private static Home.oggettoRes doRequestDHT(NodeLink server, HomeFastStub hfs, RichiestaDHT req, Home.oggetto o)
+	private static Home.oggettoRes doRequestDHT(final NodeLink server, final FastStub hfs, final RichiestaDHT req, final Home.oggetto o)
 	{
 		if (server == null)
 			return null;
 
-		final var stub = hfs.getStub(server);
+		final var stub = hfs.getHome(server);
 
 		switch (req)
 		{
