@@ -3,12 +3,19 @@ MIT License
 Copyright (c) 2019 Michele Maione
 Permission is hereby granted, free of charge, toE any person obtaining a copy of this software and associated documentation files (the "Software"), toE deal in the Software without restriction, including without limitation the rights toE use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and toE permit persons toE whom the Software is furnished toE do so, subject toE the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Implementazione in Java di An Optimal Algorithm for Mutual Exclusion in Computer Networks:
+-The Ricart-Agrawala Algorithm is an algorithm for mutual exclusion on a distributed system.
+-This algorithm is an extension and optimization of Lamport's Distributed Mutual Exclusion Algorithm, by removing the need for ACK messages.
+-It was developed by Glenn Ricart and Ashok Agrawala.
+-Fonte: http://en.wikipedia.org/wiki/Ricart%E2%80%93Agrawala_algorithm
 */
 package OhmOMatic.RicartAgrawala;
 
 import OhmOMatic.Chord.Enums.RichiestaRicartAgrawala;
 import OhmOMatic.Chord.Link.NodeLink;
 import OhmOMatic.Global.GB;
+import OhmOMatic.Global.LockableGeneric;
 import OhmOMatic.RicartAgrawala.gRPC.gRPC_Client;
 
 import java.math.BigInteger;
@@ -19,7 +26,7 @@ public class MutualExclusion
 	private final NodeLink me;
 	private NodeLink[] Nodi;
 
-	private int outstanding_reply_count = 0;
+	private LockableGeneric<Integer> outstanding_reply_count;
 
 	private int highest_sequence_number = 0;
 	private int our_sequence_number = 0;
@@ -35,6 +42,8 @@ public class MutualExclusion
 		this.me = me;
 		this.Nodi = Nodi;
 		this.reply_deferred = new boolean[Nodi.length];
+
+		this.outstanding_reply_count.set(0);
 	}
 
 	public void setNodi(NodeLink[] Nodi_)
@@ -52,7 +61,7 @@ public class MutualExclusion
 			our_sequence_number = highest_sequence_number + 1;
 		}
 
-		outstanding_reply_count = Nodi.length - 1;
+		outstanding_reply_count.set(Nodi.length - 1);
 
 		// Send a request message containing our sequnce number and our node number to all other nodes
 		for (var j = 0; j < Nodi.length; j++)
@@ -62,7 +71,7 @@ public class MutualExclusion
 		// Now wait for a reply from each of the other nodes
 		try
 		{
-			GB.waitfor(() -> outstanding_reply_count == 0, 250);
+			GB.waitfor(() -> outstanding_reply_count.equals(0), 250);
 		}
 		catch (Exception e)
 		{
@@ -84,7 +93,7 @@ public class MutualExclusion
 
 	public void reply()
 	{
-		outstanding_reply_count--;
+		outstanding_reply_count.inc(-1);
 	}
 
 	// k is the sequence number begin requested,
