@@ -17,9 +17,9 @@ import OhmOMatic.Chord.Enums.RichiestaChord;
 import OhmOMatic.Chord.Enums.RichiestaDHT;
 import OhmOMatic.Chord.Link.NodeLink;
 import OhmOMatic.Chord.gRPC.gRPC_Client;
-import OhmOMatic.Chord.gRPC.gRPC_Server;
 import OhmOMatic.Global.GB;
 import OhmOMatic.Global.Waiter;
+import OhmOMatic.RicartAgrawala.MutualExclusion;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.StatusRuntimeException;
@@ -36,6 +36,10 @@ public class Chord implements AutoCloseable
 {
 
 	//region Fields
+	//=============================== Mutual Exclusion ================================
+	private final MutualExclusion mutualExclusion;
+	//=============================== Mutual Exclusion ================================
+
 	//====================================== DHT ======================================
 	// S(N): O(㏒ N)
 	private final DHT dht;
@@ -94,9 +98,12 @@ public class Chord implements AutoCloseable
 		setPredecessor(null);
 		setSuccessor(n);
 
+		mutualExclusion = new MutualExclusion(n, this);
+
 		gRPC_listner = ServerBuilder
 				.forPort(n.port)
-				.addService(gRPC_Server.getListnerServer(this))
+				.addService(OhmOMatic.Chord.gRPC.gRPC_Server.getListnerServer(this))
+				.addService(OhmOMatic.RicartAgrawala.gRPC.gRPC_Server.getListnerServer(mutualExclusion))
 				.build()
 				.start();
 	}
@@ -104,7 +111,7 @@ public class Chord implements AutoCloseable
 	@Override
 	public void close()
 	{
-		removeFromPeerList(keyListaPeers, n.ID);
+		removeFromPeerList(keyListaPeers, n);
 		remove(n.ID);
 
 		for (var stabilizingRoutine : stabilizingRoutines)
@@ -123,6 +130,11 @@ public class Chord implements AutoCloseable
 	//endregion
 
 	//region Proprietà
+	public NodeLink getNodeLink()
+	{
+		return n;
+	}
+
 	public BigInteger getID()
 	{
 		return n.ID;
@@ -262,7 +274,7 @@ public class Chord implements AutoCloseable
 			setSuccessor(successor);
 		}
 
-		final var addedToPeerList = addToPeerList(keyListaPeers, n.ID);
+		final var addedToPeerList = addToPeerList(keyListaPeers, n);
 		System.out.println("Aggiunta a lista peer: " + addedToPeerList);
 
 		put(n.ID, BigInteger.ZERO);
@@ -345,7 +357,7 @@ public class Chord implements AutoCloseable
 		}
 	}
 
-	public BigInteger[] getPeerList()
+	public NodeLink[] getPeerList()
 	{
 		while (true)
 		{
@@ -354,7 +366,7 @@ public class Chord implements AutoCloseable
 			if (r == null)
 				GB.Sleep(_sleepTime);
 			else
-				return (BigInteger[]) r;
+				return (NodeLink[]) r;
 		}
 	}
 	//endregion
@@ -539,11 +551,6 @@ public class Chord implements AutoCloseable
 	{
 		final var predecessor = getPredecessor();
 
-		if (predecessor == null)
-		{
-			var aaa = 0;
-		}
-
 		if (predecessor == null || (GB.incluso(n_, predecessor, n)))
 		{
 			setPredecessor(n_);
@@ -635,6 +642,13 @@ public class Chord implements AutoCloseable
 	public NodeLink ping()
 	{
 		return n;
+	}
+	//endregion
+
+	//region Mutual Exlusion
+	public void invokeMutualExclusion(Runnable critical_region_callback)
+	{
+		mutualExclusion.invokeMutualExclusion(critical_region_callback);
 	}
 	//endregion
 

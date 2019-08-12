@@ -6,6 +6,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.RicartAgrawala.gRPC;
 
+import OhmOMatic.Chord.Link.NodeLink;
+import OhmOMatic.Global.GB;
 import OhmOMatic.Global.Pair;
 import OhmOMatic.ProtoBuffer.Common;
 import OhmOMatic.ProtoBuffer.RicartAgrawalaGrpc;
@@ -13,7 +15,6 @@ import OhmOMatic.ProtoBuffer.RicartAgrawalaOuterClass;
 import OhmOMatic.RicartAgrawala.MutualExclusion;
 import io.grpc.stub.StreamObserver;
 
-import java.math.BigInteger;
 import java.util.function.Consumer;
 
 public class gRPC_Server
@@ -24,16 +25,16 @@ public class gRPC_Server
 		return new RicartAgrawalaGrpc.RicartAgrawalaImplBase()
 		{
 
-			private void elabora(RicartAgrawalaOuterClass.mutualExMsg request, StreamObserver<Common.standardRes> responseObserver, Consumer<Pair<Integer, Integer>> callback)
+			private void elabora(RicartAgrawalaOuterClass.mutualExMsg request, StreamObserver<Common.standardRes> responseObserver, Consumer<Pair<NodeLink, Integer>> callback)
 			{
 				var _standardRes = Common.standardRes.newBuilder();
 
 				try
 				{
-					final var id = new BigInteger(request.getID().toByteArray());
+					final var nodo = GB.<NodeLink>deserializeT(request.getNodeLink().toByteArray());
 					final var our_sequence_number = request.getOurSequenceNumber();
 
-					callback.accept(new Pair<>(id.intValue(), our_sequence_number));
+					callback.accept(new Pair<>(nodo, our_sequence_number));
 
 					_standardRes
 							.setOk(true);

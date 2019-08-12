@@ -8,28 +8,29 @@ package OhmOMatic.RicartAgrawala.gRPC;
 
 import OhmOMatic.Chord.Enums.RichiestaRicartAgrawala;
 import OhmOMatic.Chord.Link.NodeLink;
+import OhmOMatic.Global.GB;
 import OhmOMatic.ProtoBuffer.Common;
 import OhmOMatic.ProtoBuffer.RicartAgrawalaOuterClass;
 import OhmOMatic.gRPC.FastStub;
 import com.google.protobuf.ByteString;
 
-import java.math.BigInteger;
+import java.io.IOException;
 
 public class gRPC_Client
 {
 	//region Ricart & Agrawala gRPC
 	public static boolean gRPC(NodeLink server, RichiestaRicartAgrawala req)
 	{
-		return gRPC(server, req, -1, BigInteger.ZERO);
+		return gRPC(server, req, -1, new NodeLink("", -1));
 	}
 
-	public static boolean gRPC(NodeLink server, RichiestaRicartAgrawala req, int our_sequence_number, BigInteger me)
+	public static boolean gRPC(NodeLink server, RichiestaRicartAgrawala req, int our_sequence_number, NodeLink me)
 	{
 		if (server != null)
 			try (final var hfs = new FastStub())
 			{
 				final var _oggetto = RicartAgrawalaOuterClass.mutualExMsg.newBuilder()
-						.setID(ByteString.copyFrom(me.toByteArray()))
+						.setNodeLink(ByteString.copyFrom(GB.serialize(me)))
 						.setOurSequenceNumber(our_sequence_number)
 						.build();
 
@@ -49,6 +50,10 @@ public class gRPC_Client
 				}
 
 				return _request.getOk();
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
 			}
 
 		return false;

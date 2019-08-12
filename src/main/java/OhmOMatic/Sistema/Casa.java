@@ -41,7 +41,6 @@ public class Casa implements MeanListener, AutoCloseable
 
 	private final Chord chord;
 
-
 	public Casa(final String identificatore_, final String indirizzoREST_, final String mioIndirizzo_, final int miaPorta_, final Chord chord_)
 	{
 		chord = chord_;
@@ -151,7 +150,7 @@ public class Casa implements MeanListener, AutoCloseable
 
 			for (final var peer : peerList)
 			{
-				final var statisticheAltroPeer = chord.getIncrementals(peer);
+				final var statisticheAltroPeer = chord.getIncrementals(peer.ID);
 
 				for (var statisticaAltroPeer : statisticheAltroPeer)
 				{
@@ -261,6 +260,21 @@ public class Casa implements MeanListener, AutoCloseable
 	public void fermaSmartMeter()
 	{
 		smartMeterSimulator.stopMeGently();
+	}
+
+	public void boost()
+	{
+		chord.invokeMutualExclusion(() ->
+		{
+			try
+			{
+				smartMeterSimulator.boost();
+			}
+			catch (InterruptedException e)
+			{
+				e.printStackTrace();
+			}
+		});
 	}
 
 	@Override

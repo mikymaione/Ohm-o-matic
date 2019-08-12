@@ -11,6 +11,7 @@ Implementazione in Java di Chord:
 */
 package OhmOMatic.Chord;
 
+import OhmOMatic.Chord.Link.NodeLink;
 import OhmOMatic.Global.Pair;
 
 import java.io.Serializable;
@@ -37,18 +38,18 @@ class DHT
 	{
 		synchronized (_data)
 		{
-			_data.put(keyListaPeers, new HashSet<BigInteger>());
+			_data.put(keyListaPeers, new HashSet<NodeLink>());
 		}
 	}
 
-	private HashSet<BigInteger> _getPeerList_NS()
+	private HashSet<NodeLink> _getPeerList_NS()
 	{
 		if (_data.containsKey(keyListaPeers))
 		{
 			var klp = _data.get(keyListaPeers);
 
 			if (klp instanceof HashSet)
-				return (HashSet<BigInteger>) klp;
+				return (HashSet<NodeLink>) klp;
 		}
 
 		return null;
@@ -56,9 +57,9 @@ class DHT
 
 	Boolean addToPeerList(final Serializable ID)
 	{
-		if (ID instanceof BigInteger)
+		if (ID instanceof NodeLink)
 		{
-			final var n_ = (BigInteger) ID;
+			final var n_ = (NodeLink) ID;
 
 			synchronized (_data)
 			{
@@ -77,9 +78,9 @@ class DHT
 
 	Boolean removeFromPeerList(final Serializable ID)
 	{
-		if (ID instanceof BigInteger)
+		if (ID instanceof NodeLink)
 		{
-			final var n_ = (BigInteger) ID;
+			final var n_ = (NodeLink) ID;
 
 			synchronized (_data)
 			{
@@ -190,7 +191,7 @@ class DHT
 		}
 	}
 
-	BigInteger[] getPeerList()
+	NodeLink[] getPeerList()
 	{
 		synchronized (_data)
 		{
@@ -198,7 +199,7 @@ class DHT
 
 			if (_peerList != null)
 			{
-				var b = new BigInteger[_peerList.size()];
+				var b = new NodeLink[_peerList.size()];
 
 				var x = -1;
 				for (var p : _peerList)

@@ -17,7 +17,7 @@ service RicartAgrawala {
 
 //Request
 message mutualExMsg {
-    bytes ID = 1;
+    bytes nodeLink = 1;
     int32 our_sequence_number = 2;
 }
 //Request

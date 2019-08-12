@@ -12,66 +12,70 @@ Implementazione in Java di An Optimal Algorithm for Mutual Exclusion in Computer
 */
 package OhmOMatic.RicartAgrawala;
 
+import OhmOMatic.Chord.Chord;
 import OhmOMatic.Chord.Enums.RichiestaRicartAgrawala;
 import OhmOMatic.Chord.Link.NodeLink;
 import OhmOMatic.Global.GB;
-import OhmOMatic.Global.LockableGeneric;
 import OhmOMatic.RicartAgrawala.gRPC.gRPC_Client;
 
-import java.math.BigInteger;
+import java.util.HashMap;
 
-public class MutualExclusion
+public class MutualExclusion implements AutoCloseable
 {
 
 	private final NodeLink me;
-	private NodeLink[] Nodi;
 
-	private LockableGeneric<Integer> outstanding_reply_count;
+	private int outstanding_reply_count = 0;
 
 	private int highest_sequence_number = 0;
 	private int our_sequence_number = 0;
 
 	private boolean requesting_critical_section = false;
-	private boolean[] reply_deferred;
+	private final HashMap<NodeLink, Boolean> reply_deferred = new HashMap<>();
 
-	private final Object lock_shared_vars = new Object();
+	private final Chord chord;
 
 
-	public MutualExclusion(final NodeLink me, final NodeLink[] Nodi)
+	public MutualExclusion(final NodeLink me, Chord chord)
 	{
 		this.me = me;
-		this.Nodi = Nodi;
-		this.reply_deferred = new boolean[Nodi.length];
-
-		this.outstanding_reply_count.set(0);
+		this.chord = chord;
 	}
 
-	public void setNodi(NodeLink[] Nodi_)
+	@Override
+	public void close()
 	{
-		this.Nodi = Nodi_;
+		//
 	}
 
-	public void invokeMutualExclusion()
+	private NodeLink[] getNodi()
+	{
+		return chord.getPeerList();
+	}
+
+	public void invokeMutualExclusion(Runnable critical_region_callback)
 	{
 		// Request entry to our critical section
-		synchronized (lock_shared_vars)
-		{
-			// Choose a sequence number
-			requesting_critical_section = true;
-			our_sequence_number = highest_sequence_number + 1;
-		}
 
-		outstanding_reply_count.set(Nodi.length - 1);
+		// Choose a sequence number
+		requesting_critical_section = true;
+		our_sequence_number = highest_sequence_number + 1;
+
+		final var Nodi = getNodi();
+		outstanding_reply_count = Nodi.length - 1;
 
 		// Send a request message containing our sequnce number and our node number to all other nodes
-		for (var j = 0; j < Nodi.length; j++)
-			if (!BigInteger.valueOf(j).equals(me.ID))
-				reply_deferred[j] = gRPC_Client.gRPC(Nodi[j], RichiestaRicartAgrawala.request, our_sequence_number, me.ID);
+		for (final var nodo : Nodi)
+			if (!nodo.equals(me))
+			{
+				final var r = gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.request, our_sequence_number, me);
+				reply_deferred.put(nodo, r);
+			}
 
 		// Now wait for a reply from each of the other nodes
 		try
 		{
-			GB.waitfor(() -> outstanding_reply_count.equals(0), 250);
+			GB.waitfor(() -> outstanding_reply_count == 0, 250);
 		}
 		catch (Exception e)
 		{
@@ -79,41 +83,40 @@ public class MutualExclusion
 		}
 
 		// Critical section processing can be performed at this point
+		critical_region_callback.run();
 		requesting_critical_section = false;
 
-		for (var j = 0; j < Nodi.length; j++)
-			if (reply_deferred[j])
+		for (final var nodo : Nodi)
+			if (reply_deferred.getOrDefault(nodo, false))
 			{
-				reply_deferred[j] = false;
+				reply_deferred.put(nodo, false);
 
 				// Send a reply to node j
-				gRPC_Client.gRPC(Nodi[j], RichiestaRicartAgrawala.reply);
+				gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.reply);
 			}
 	}
 
 	public void reply()
 	{
-		outstanding_reply_count.inc(-1);
+		outstanding_reply_count--;
 	}
 
 	// k is the sequence number begin requested,
 	// j is the node number making the request;
-	public void request(Integer k, Integer j)
+	public void request(Integer k, NodeLink j)
 	{
-		final boolean defer_it;
-
 		highest_sequence_number = Math.max(highest_sequence_number, k);
 
-		synchronized (lock_shared_vars)
-		{
-			// defer_it will be true if we have priority over node j's request
-			defer_it = requesting_critical_section && ((k > our_sequence_number) || (k == our_sequence_number && BigInteger.valueOf(j).compareTo(me.ID) > 0));
-		}
+		// defer_it will be true if we have priority over node j's request
+		final var defer_it =
+				requesting_critical_section &&
+						((k > our_sequence_number) ||
+								(k == our_sequence_number && j.ID.compareTo(me.ID) > 0));
 
 		if (defer_it)
-			reply_deferred[j] = true;
+			reply_deferred.put(j, true);
 		else
-			gRPC_Client.gRPC(Nodi[j], RichiestaRicartAgrawala.reply);
+			gRPC_Client.gRPC(j, RichiestaRicartAgrawala.reply);
 	}
 
 

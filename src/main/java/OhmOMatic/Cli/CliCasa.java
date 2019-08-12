@@ -99,6 +99,8 @@ public final class CliCasa extends BaseCommandLineApplication
 					chord.stampaData();
 				else if (inpts.hasOption("l"))
 					chord.stampaListaPeer();
+				else if (inpts.hasOption("b"))
+					casa.boost();
 			}
 			catch (ParseException e)
 			{
@@ -130,11 +132,17 @@ public final class CliCasa extends BaseCommandLineApplication
 				.hasArg(false)
 				.build();
 
+		final var boost = Option.builder("b")
+				.desc("Boost")
+				.hasArg(false)
+				.build();
+
 		return new Options()
 				.addOption(quit)
 				.addOption(info)
 				.addOption(data)
-				.addOption(list);
+				.addOption(list)
+				.addOption(boost);
 	}
 
 	private static Options createOptionsStartProgram()

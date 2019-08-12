@@ -122,6 +122,11 @@ public final class GB
 		}
 	}
 
+	public static <G extends Serializable> G deserializeT(final byte[] data) throws IOException, ClassNotFoundException
+	{
+		return (G) deserialize(data);
+	}
+
 	public static Serializable deserialize(final byte[] data) throws IOException, ClassNotFoundException
 	{
 		try (
