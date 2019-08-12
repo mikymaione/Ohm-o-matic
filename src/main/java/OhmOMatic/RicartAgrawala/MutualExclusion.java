@@ -19,8 +19,7 @@ import OhmOMatic.RicartAgrawala.Enums.RichiestaRicartAgrawala;
 import OhmOMatic.RicartAgrawala.gRPC.gRPC_Client;
 
 import java.math.BigInteger;
-import java.util.HashSet;
-import java.util.Stack;
+import java.util.HashMap;
 
 public class MutualExclusion implements AutoCloseable
 {
@@ -28,24 +27,24 @@ public class MutualExclusion implements AutoCloseable
 	private final NodeLink me;
 
 	private final Object shared_vars = new Object();
+	private final int numberOfMutex;
 
 	private int outstanding_reply_count = 0;
 
 	private int highest_sequence_number = 0;
 	private int our_sequence_number = 0;
 
-	private final HashSet<BigInteger> requesting_critical_section = new HashSet<>();
-	private final Stack<BigInteger> reply_deferred = new Stack<>();
+	private boolean requesting_critical_section = false;
+	private final HashMap<BigInteger, Boolean> reply_deferred = new HashMap<>();
 
 	private final Chord chord;
-	private final int numberOFMutex;
 
 
-	public MutualExclusion(final int numberOFMutex, final NodeLink me, final Chord chord)
+	public MutualExclusion(final int numberOfMutex, final NodeLink me, Chord chord)
 	{
 		this.me = me;
 		this.chord = chord;
-		this.numberOFMutex = numberOFMutex;
+		this.numberOfMutex = numberOfMutex;
 	}
 
 	@Override
@@ -68,11 +67,7 @@ public class MutualExclusion implements AutoCloseable
 		synchronized (shared_vars)
 		{
 			// Choose a sequence number
-			synchronized (requesting_critical_section)
-			{
-				requesting_critical_section.add(me.ID);
-			}
-
+			requesting_critical_section = true;
 			our_sequence_number = highest_sequence_number + 1;
 			outstanding_reply_count = Nodi.length - 1;
 		}
@@ -107,110 +102,43 @@ public class MutualExclusion implements AutoCloseable
 
 		// Critical section processing can be performed at this point
 		critical_region_callback.run();
-		synchronized (requesting_critical_section)
+		synchronized (shared_vars)
 		{
-			requesting_critical_section.remove(me);
+			requesting_critical_section = false;
 		}
 
 		for (final var nodo : Nodi)
-			if (!nodo.ID.equals(me.ID))
+		{
+			final boolean ok;
+
+			synchronized (reply_deferred)
+			{
+				ok = reply_deferred.getOrDefault(nodo.ID, false);
+
+				if (ok)
+					reply_deferred.put(nodo.ID, false);
+			}
+
+			if (ok)
 				try
 				{
-					GB.waitfor(() -> gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.free, me), 250);
+					GB.waitfor(() -> gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.reply), 250);
 				}
 				catch (Exception e)
 				{
 					e.printStackTrace();
 				}
-
-		final int deferredCount;
-		synchronized (reply_deferred)
-		{
-			deferredCount = reply_deferred.size();
-		}
-
-		if (deferredCount > 0)
-		{
-			final BigInteger deferred;
-
-			synchronized (reply_deferred)
-			{
-				deferred = reply_deferred.pop();
-			}
-
-			for (final var nodo : Nodi)
-				if (nodo.ID.equals(deferred))
-					try
-					{
-						GB.waitfor(() -> gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.reply), 250);
-					}
-					catch (Exception e)
-					{
-						e.printStackTrace();
-					}
 		}
 	}
 	//endregion
 
 
 	//region Server
-	public void free(NodeLink n)
-	{
-		synchronized (requesting_critical_section)
-		{
-			if (requesting_critical_section.contains(n.ID))
-				requesting_critical_section.remove(n.ID);
-		}
-	}
-
 	public void reply()
 	{
 		synchronized (shared_vars)
 		{
 			outstanding_reply_count--;
-
-			final int deferredCount;
-			synchronized (reply_deferred)
-			{
-				deferredCount = reply_deferred.size();
-			}
-
-			if (deferredCount > 0)
-			{
-				final boolean inviaReq;
-				synchronized (requesting_critical_section)
-				{
-					inviaReq = requesting_critical_section.contains(me.ID);
-				}
-
-				if (inviaReq)
-				{
-					final var Nodi = getNodi();
-
-					if (Nodi.length > 0)
-					{
-						final BigInteger deferred;
-						synchronized (reply_deferred)
-						{
-							deferred = reply_deferred.pop();
-						}
-
-						for (final var nodo : Nodi)
-							try
-							{
-								if (nodo.ID.equals(deferred))
-								{
-									GB.waitfor(() -> gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.reply), 250);
-									break;
-								}
-							}
-							catch (Exception e)
-							{
-								e.printStackTrace();
-							}
-					}
-				}
-			}
 		}
 	}
 
@@ -222,24 +150,19 @@ public class MutualExclusion implements AutoCloseable
 
 		synchronized (shared_vars)
 		{
-			synchronized (requesting_critical_section)
-			{
-				requesting_critical_section.add(caller.ID);
+			highest_sequence_number = Math.max(highest_sequence_number, caller_sequence_number);
 
-				highest_sequence_number = Math.max(highest_sequence_number, caller_sequence_number);
-
-				// defer_it will be true if we have priority over node caller's request
-				defer_it =
-						(requesting_critical_section.size() > numberOFMutex) &&
-								((caller_sequence_number > our_sequence_number) ||
-										(caller_sequence_number == our_sequence_number && caller.ID.compareTo(me.ID) > 0));
-			}
+			// defer_it will be true if we have priority over node caller's request
+			defer_it =
+					requesting_critical_section &&
+							((caller_sequence_number > our_sequence_number) ||
+									(caller_sequence_number == our_sequence_number && caller.ID.compareTo(me.ID) > 0));
 		}
 
 		if (defer_it)
 			synchronized (reply_deferred)
 			{
-				reply_deferred.push(caller.ID);
+				reply_deferred.put(caller.ID, true);
 			}
 		else
 			try
