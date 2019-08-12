@@ -19,8 +19,8 @@ import OhmOMatic.RicartAgrawala.Enums.RichiestaRicartAgrawala;
 import OhmOMatic.RicartAgrawala.gRPC.gRPC_Client;
 
 import java.math.BigInteger;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Stack;
 
 public class MutualExclusion implements AutoCloseable
 {
@@ -35,7 +35,7 @@ public class MutualExclusion implements AutoCloseable
 	private int our_sequence_number = 0;
 
 	private final HashSet<BigInteger> requesting_critical_section = new HashSet<>();
-	private final HashMap<BigInteger, Boolean> reply_deferred = new HashMap<>();
+	private final Stack<BigInteger> reply_deferred = new Stack<>();
 
 	private final Chord chord;
 	private final int numberOFMutex;
@@ -113,7 +113,6 @@ public class MutualExclusion implements AutoCloseable
 		}
 
 		for (final var nodo : Nodi)
-		{
 			if (!nodo.ID.equals(me.ID))
 				try
 				{
@@ -124,19 +123,23 @@ public class MutualExclusion implements AutoCloseable
 					e.printStackTrace();
 				}
 
-			if (deferredCount() > 0)
+		final int deferredCount;
+		synchronized (reply_deferred)
+		{
+			deferredCount = reply_deferred.size();
+		}
+
+		if (deferredCount > 0)
+		{
+			final BigInteger deferred;
+
+			synchronized (reply_deferred)
 			{
-				final boolean ok;
+				deferred = reply_deferred.pop();
+			}
 
-				synchronized (reply_deferred)
-				{
-					ok = reply_deferred.getOrDefault(nodo.ID, false);
-
-					if (ok)
-						reply_deferred.put(nodo.ID, false);
-				}
-
-				if (ok)
+			for (final var nodo : Nodi)
+				if (nodo.ID.equals(deferred))
 					try
 					{
 						GB.waitfor(() -> gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.reply), 250);
@@ -145,24 +148,10 @@ public class MutualExclusion implements AutoCloseable
 					{
 						e.printStackTrace();
 					}
-			}
 		}
 	}
 	//endregion
 
-	private int deferredCount()
-	{
-		synchronized (reply_deferred)
-		{
-			var x = 0;
-
-			for (var rd : reply_deferred.values())
-				if (rd)
-					x++;
-
-			return x;
-		}
-	}
 
 	//region Server
 	public void free(NodeLink n)
@@ -180,7 +169,13 @@ public class MutualExclusion implements AutoCloseable
 		{
 			outstanding_reply_count--;
 
-			if (deferredCount() > 0)
+			final int deferredCount;
+			synchronized (reply_deferred)
+			{
+				deferredCount = reply_deferred.size();
+			}
+
+			if (deferredCount > 0)
 			{
 				final boolean inviaReq;
 				synchronized (requesting_critical_section)
@@ -192,26 +187,28 @@ public class MutualExclusion implements AutoCloseable
 				{
 					final var Nodi = getNodi();
 
-					for (final var nodo : Nodi)
-						try
+					if (Nodi.length > 0)
+					{
+						final BigInteger deferred;
+						synchronized (reply_deferred)
 						{
-							final boolean ok;
-
-							synchronized (reply_deferred)
-							{
-								ok = reply_deferred.getOrDefault(nodo.ID, false);
-							}
-
-							if (ok)
-							{
-								GB.waitfor(() -> gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.reply), 250);
-								break;
-							}
+							deferred = reply_deferred.pop();
 						}
-						catch (Exception e)
-						{
-							e.printStackTrace();
-						}
+
+						for (final var nodo : Nodi)
+							try
+							{
+								if (nodo.ID.equals(deferred))
+								{
+									GB.waitfor(() -> gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.reply), 250);
+									break;
+								}
+							}
+							catch (Exception e)
+							{
+								e.printStackTrace();
+							}
+					}
 				}
 			}
 		}
@@ -242,7 +239,7 @@ public class MutualExclusion implements AutoCloseable
 		if (defer_it)
 			synchronized (reply_deferred)
 			{
-				reply_deferred.put(caller.ID, true);
+				reply_deferred.push(caller.ID);
 			}
 		else
 			try
