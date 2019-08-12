@@ -25,6 +25,8 @@ public class MutualExclusion implements AutoCloseable
 
 	private final NodeLink me;
 
+	private final Object shared_vars = new Object();
+
 	private int outstanding_reply_count = 0;
 
 	private int highest_sequence_number = 0;
@@ -53,29 +55,42 @@ public class MutualExclusion implements AutoCloseable
 		return chord.getPeerList();
 	}
 
+	//region Client
+	// Request entry to our critical section
 	public void invokeMutualExclusion(Runnable critical_region_callback)
 	{
-		// Request entry to our critical section
-
-		// Choose a sequence number
-		requesting_critical_section = true;
-		our_sequence_number = highest_sequence_number + 1;
-
 		final var Nodi = getNodi();
-		outstanding_reply_count = Nodi.length - 1;
+
+		synchronized (shared_vars)
+		{
+			// Choose a sequence number
+			requesting_critical_section = true;
+			our_sequence_number = highest_sequence_number + 1;
+			outstanding_reply_count = Nodi.length - 1;
+		}
 
 		// Send a request message containing our sequnce number and our node number to all other nodes
 		for (final var nodo : Nodi)
 			if (!nodo.equals(me))
 			{
 				final var r = gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.request, our_sequence_number, me);
-				reply_deferred.put(nodo, r);
+
+				synchronized (reply_deferred)
+				{
+					reply_deferred.put(nodo, r);
+				}
 			}
 
 		// Now wait for a reply from each of the other nodes
 		try
 		{
-			GB.waitfor(() -> outstanding_reply_count == 0, 250);
+			GB.waitfor(() ->
+			{
+				synchronized (shared_vars)
+				{
+					return outstanding_reply_count == 0;
+				}
+			}, 250);
 		}
 		catch (Exception e)
 		{
@@ -84,40 +99,64 @@ public class MutualExclusion implements AutoCloseable
 
 		// Critical section processing can be performed at this point
 		critical_region_callback.run();
-		requesting_critical_section = false;
+		synchronized (shared_vars)
+		{
+			requesting_critical_section = false;
+		}
 
 		for (final var nodo : Nodi)
-			if (reply_deferred.getOrDefault(nodo, false))
+		{
+			final boolean ok;
+
+			synchronized (reply_deferred)
 			{
-				reply_deferred.put(nodo, false);
+				ok = reply_deferred.getOrDefault(nodo, false);
 
-				// Send a reply to node j
-				gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.reply);
+				if (ok)
+					reply_deferred.put(nodo, false);
 			}
-	}
 
+			if (ok)
+				gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.reply);
+		}
+	}
+	//endregion
+
+
+	//region Server
 	public void reply()
 	{
-		outstanding_reply_count--;
+		synchronized (shared_vars)
+		{
+			outstanding_reply_count--;
+		}
 	}
 
 	// k is the sequence number begin requested,
-	// j is the node number making the request;
+	// j is the node making the request;
 	public void request(Integer k, NodeLink j)
 	{
-		highest_sequence_number = Math.max(highest_sequence_number, k);
+		final boolean defer_it;
 
-		// defer_it will be true if we have priority over node j's request
-		final var defer_it =
-				requesting_critical_section &&
-						((k > our_sequence_number) ||
-								(k == our_sequence_number && j.ID.compareTo(me.ID) > 0));
+		synchronized (shared_vars)
+		{
+			highest_sequence_number = Math.max(highest_sequence_number, k);
+
+			// defer_it will be true if we have priority over node j's request
+			defer_it =
+					requesting_critical_section &&
+							((k > our_sequence_number) ||
+									(k == our_sequence_number && j.ID.compareTo(me.ID) > 0));
+		}
 
 		if (defer_it)
-			reply_deferred.put(j, true);
+			synchronized (reply_deferred)
+			{
+				reply_deferred.put(j, true);
+			}
 		else
 			gRPC_Client.gRPC(j, RichiestaRicartAgrawala.reply);
 	}
-
+	//endregion
 
 }
