@@ -18,6 +18,7 @@ import OhmOMatic.Chord.Link.NodeLink;
 import OhmOMatic.Global.GB;
 import OhmOMatic.RicartAgrawala.gRPC.gRPC_Client;
 
+import java.math.BigInteger;
 import java.util.HashMap;
 
 public class MutualExclusion implements AutoCloseable
@@ -33,7 +34,7 @@ public class MutualExclusion implements AutoCloseable
 	private int our_sequence_number = 0;
 
 	private boolean requesting_critical_section = false;
-	private final HashMap<NodeLink, Boolean> reply_deferred = new HashMap<>();
+	private final HashMap<BigInteger, Boolean> reply_deferred = new HashMap<>();
 
 	private final Chord chord;
 
@@ -72,14 +73,14 @@ public class MutualExclusion implements AutoCloseable
 		// Send a request message containing our sequence number and our node number to all other nodes
 		for (final var nodo : Nodi)
 			if (!nodo.equals(me))
-			{
-				final var r = gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.request, our_sequence_number, me);
-
-				synchronized (reply_deferred)
+				try
 				{
-					reply_deferred.put(nodo, r);
+					GB.waitfor(() -> gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.request, our_sequence_number, me), 250);
 				}
-			}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
 
 		// Now wait for a reply from each of the other nodes
 		try
@@ -90,7 +91,7 @@ public class MutualExclusion implements AutoCloseable
 				{
 					return outstanding_reply_count == 0;
 				}
-			}, 250);
+			}, 100);
 		}
 		catch (Exception e)
 		{
@@ -110,14 +111,21 @@ public class MutualExclusion implements AutoCloseable
 
 			synchronized (reply_deferred)
 			{
-				ok = reply_deferred.getOrDefault(nodo, false);
+				ok = reply_deferred.getOrDefault(nodo.ID, false);
 
 				if (ok)
-					reply_deferred.put(nodo, false);
+					reply_deferred.put(nodo.ID, false);
 			}
 
 			if (ok)
-				gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.reply);
+				try
+				{
+					GB.waitfor(() -> gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.reply), 250);
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
 		}
 	}
 	//endregion
@@ -132,30 +140,37 @@ public class MutualExclusion implements AutoCloseable
 		}
 	}
 
-	// k is the sequence number begin requested,
-	// j is the node making the request;
-	public void request(Integer k, NodeLink j)
+	// caller_sequence_number is the sequence number begin requested,
+	// caller is the node making the request;
+	public void request(Integer caller_sequence_number, NodeLink caller)
 	{
 		final boolean defer_it;
 
 		synchronized (shared_vars)
 		{
-			highest_sequence_number = Math.max(highest_sequence_number, k);
+			highest_sequence_number = Math.max(highest_sequence_number, caller_sequence_number);
 
-			// defer_it will be true if we have priority over node j's request
+			// defer_it will be true if we have priority over node caller's request
 			defer_it =
 					requesting_critical_section &&
-							((k > our_sequence_number) ||
-									(k == our_sequence_number && j.ID.compareTo(me.ID) > 0));
+							((caller_sequence_number > our_sequence_number) ||
+									(caller_sequence_number == our_sequence_number && caller.ID.compareTo(me.ID) > 0));
 		}
 
 		if (defer_it)
 			synchronized (reply_deferred)
 			{
-				reply_deferred.put(j, true);
+				reply_deferred.put(caller.ID, true);
 			}
 		else
-			gRPC_Client.gRPC(j, RichiestaRicartAgrawala.reply);
+			try
+			{
+				GB.waitfor(() -> gRPC_Client.gRPC(caller, RichiestaRicartAgrawala.reply), 250);
+			}
+			catch (Exception e)
+			{
+				e.printStackTrace();
+			}
 	}
 	//endregion
 

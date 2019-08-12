@@ -25,6 +25,7 @@ import javax.swing.*;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
+import java.awt.*;
 import java.util.*;
 
 public class Casa implements MeanListener, AutoCloseable
@@ -196,10 +197,14 @@ public class Casa implements MeanListener, AutoCloseable
 
 	private void creaChart()
 	{
+		final var dim = Toolkit.getDefaultToolkit().getScreenSize();
+
 		chart = new XYChartBuilder()
 				.title("Consumo energetico")
 				.yAxisTitle("kW⋅h")
 				.xAxisTitle("s")
+				.width(dim.width / 2)
+				.height(dim.height / 2)
 				.build();
 
 		var stiler = chart.getStyler();
@@ -207,7 +212,6 @@ public class Casa implements MeanListener, AutoCloseable
 		stiler.setLocale(Locale.ITALY);
 		stiler.setDatePattern("HH:mm:ss");
 		stiler.setYAxisMin(0d);
-		//stiler.setOverlapped(true);
 	}
 
 	private Pair<ArrayList<Double>, ArrayList<Date>> convertiPerChart(ArrayList<Pair<Double, Date>> mie)
@@ -238,7 +242,7 @@ public class Casa implements MeanListener, AutoCloseable
 		}
 		else
 		{
-			chart_frame.update(chart_frame.getGraphics());
+			//chart_frame.update(chart_frame.getGraphics());
 
 			chart.updateXYSeries("Mio", mieiConsumi.getValue(), mieiConsumi.getKey(), null);
 			chart.updateXYSeries("Condominio", condominioConsumi.getValue(), condominioConsumi.getKey(), null);
