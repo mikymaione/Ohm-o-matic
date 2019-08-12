@@ -264,8 +264,12 @@ public class Casa implements MeanListener, AutoCloseable
 
 	public void boost()
 	{
+		System.out.println("Richiesta boost...");
+
 		chord.invokeMutualExclusion(() ->
 		{
+			System.out.println("Boost!");
+
 			try
 			{
 				smartMeterSimulator.boost();
@@ -274,6 +278,8 @@ public class Casa implements MeanListener, AutoCloseable
 			{
 				e.printStackTrace();
 			}
+
+			System.out.println("Fine boost.");
 		});
 	}
 
