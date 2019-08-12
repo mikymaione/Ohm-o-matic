@@ -69,7 +69,7 @@ public class MutualExclusion implements AutoCloseable
 			outstanding_reply_count = Nodi.length - 1;
 		}
 
-		// Send a request message containing our sequnce number and our node number to all other nodes
+		// Send a request message containing our sequence number and our node number to all other nodes
 		for (final var nodo : Nodi)
 			if (!nodo.equals(me))
 			{
