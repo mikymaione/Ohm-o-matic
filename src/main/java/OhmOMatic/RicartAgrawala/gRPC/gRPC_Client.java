@@ -6,11 +6,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.RicartAgrawala.gRPC;
 
-import OhmOMatic.Chord.Enums.RichiestaRicartAgrawala;
 import OhmOMatic.Chord.Link.NodeLink;
 import OhmOMatic.Global.GB;
 import OhmOMatic.ProtoBuffer.Common;
 import OhmOMatic.ProtoBuffer.RicartAgrawalaOuterClass;
+import OhmOMatic.RicartAgrawala.Enums.RichiestaRicartAgrawala;
 import OhmOMatic.gRPC.FastStub;
 import com.google.protobuf.ByteString;
 
@@ -22,6 +22,11 @@ public class gRPC_Client
 	public static boolean gRPC(NodeLink server, RichiestaRicartAgrawala req)
 	{
 		return gRPC(server, req, -1, new NodeLink("", -1));
+	}
+
+	public static boolean gRPC(NodeLink server, RichiestaRicartAgrawala req, NodeLink me)
+	{
+		return gRPC(server, req, -1, me);
 	}
 
 	public static boolean gRPC(NodeLink server, RichiestaRicartAgrawala req, int our_sequence_number, NodeLink me)
@@ -39,6 +44,9 @@ public class gRPC_Client
 				final Common.standardRes _request;
 				switch (req)
 				{
+					case free:
+						_request = stub.free(_oggetto);
+						break;
 					case reply:
 						_request = stub.reply(_oggetto);
 						break;
