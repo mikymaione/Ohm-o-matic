@@ -19,18 +19,17 @@ import java.io.IOException;
 public class gRPC_Client
 {
 	//region Ricart & Agrawala gRPC
-	public static boolean gRPC(NodeLink server, RichiestaRicartAgrawala req, NodeLink me, boolean i_am_requesting_critical_section)
+	public static boolean gRPC(NodeLink server, RichiestaRicartAgrawala req, NodeLink me, boolean affermativo)
 	{
-		return gRPC(server, req, -1, me, i_am_requesting_critical_section);
+		return gRPC(server, req, -1, me, affermativo);
 	}
 
-	public static boolean gRPC(NodeLink server, RichiestaRicartAgrawala req, int our_sequence_number, NodeLink me, boolean i_am_requesting_critical_section)
+	public static boolean gRPC(NodeLink server, RichiestaRicartAgrawala req, int our_sequence_number, NodeLink me, boolean affermativo)
 	{
 		if (server != null)
 			try (final var hfs = new FastStub())
 			{
 				final var _oggetto = RicartAgrawalaOuterClass.mutualExMsg.newBuilder()
-						.setIAmRequestingCriticalSection(i_am_requesting_critical_section)
 						.setNodeLink(ByteString.copyFrom(GB.serialize(me)))
 						.setOurSequenceNumber(our_sequence_number)
 						.build();
@@ -40,9 +39,6 @@ public class gRPC_Client
 				final Common.standardRes _request;
 				switch (req)
 				{
-					case free:
-						_request = stub.free(_oggetto);
-						break;
 					case reply:
 						_request = stub.reply(_oggetto);
 						break;

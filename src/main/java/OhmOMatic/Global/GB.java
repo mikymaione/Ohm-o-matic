@@ -175,10 +175,10 @@ public final class GB
 	private static void _waitfor(Callable<Boolean> callback, int millisecondi) throws Exception
 	{
 		while (!callback.call())
-			GB.Sleep(millisecondi);
+			GB.sleep(millisecondi);
 	}
 
-	public static void Sleep(int millisecondi)
+	public static void sleep(int millisecondi)
 	{
 		try
 		{

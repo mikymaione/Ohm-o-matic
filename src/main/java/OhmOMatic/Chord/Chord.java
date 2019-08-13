@@ -119,7 +119,7 @@ public class Chord implements AutoCloseable
 
 		for (var stabilizingRoutine : stabilizingRoutines)
 			while (stabilizingRoutine.isRunning())
-				GB.Sleep(_sleepTime);
+				GB.sleep(_sleepTime);
 
 		gRPC_listner.shutdown();
 
@@ -340,7 +340,7 @@ public class Chord implements AutoCloseable
 			if (Boolean.TRUE.equals(r))
 				return true;
 			else
-				GB.Sleep(_sleepTime);
+				GB.sleep(_sleepTime);
 		}
 	}
 
@@ -353,7 +353,7 @@ public class Chord implements AutoCloseable
 			if (Boolean.TRUE.equals(r))
 				return true;
 			else
-				GB.Sleep(_sleepTime);
+				GB.sleep(_sleepTime);
 		}
 	}
 
@@ -364,7 +364,7 @@ public class Chord implements AutoCloseable
 			final var r = _functionDHT(RichiestaDHT.getPeerList, keyListaPeers, null);
 
 			if (r == null)
-				GB.Sleep(_sleepTime);
+				GB.sleep(_sleepTime);
 			else
 				return (NodeLink[]) r;
 		}
@@ -405,7 +405,7 @@ public class Chord implements AutoCloseable
 			if (r instanceof BigInteger)
 				return (BigInteger) r;
 			else
-				GB.Sleep(_sleepTime);
+				GB.sleep(_sleepTime);
 		}
 	}
 
@@ -419,7 +419,7 @@ public class Chord implements AutoCloseable
 			if (Boolean.TRUE.equals(r))
 				return r;
 			else
-				GB.Sleep(_sleepTime);
+				GB.sleep(_sleepTime);
 		}
 	}
 
@@ -438,7 +438,7 @@ public class Chord implements AutoCloseable
 			var r = _functionDHT(RichiestaDHT.get, key, null);
 
 			if (Boolean.FALSE.equals(r))
-				GB.Sleep(_sleepTime);
+				GB.sleep(_sleepTime);
 			else
 				return r;
 		}
@@ -454,7 +454,7 @@ public class Chord implements AutoCloseable
 			if (Boolean.TRUE.equals(r))
 				return r;
 			else
-				GB.Sleep(_sleepTime);
+				GB.sleep(_sleepTime);
 		}
 	}
 
@@ -500,7 +500,7 @@ public class Chord implements AutoCloseable
 				{
 					System.out.println("DHT: Nodo " + successor + " non raggiungibile!");
 					setSuccessor(null);
-					GB.Sleep(_sleepTime);
+					GB.sleep(_sleepTime);
 				}
 				catch (IOException e)
 				{

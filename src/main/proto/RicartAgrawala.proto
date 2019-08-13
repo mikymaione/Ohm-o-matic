@@ -11,7 +11,6 @@ package OhmOMatic.ProtoBuffer;
 import "Common.proto";
 
 service RicartAgrawala {
-    rpc free (mutualExMsg) returns (standardRes);
     rpc reply (mutualExMsg) returns (standardRes);
     rpc request (mutualExMsg) returns (standardRes);
 }
@@ -20,6 +19,5 @@ service RicartAgrawala {
 message mutualExMsg {
     bytes nodeLink = 1;
     int32 our_sequence_number = 2;
-    bool i_am_requesting_critical_section = 3;
 }
 //Request

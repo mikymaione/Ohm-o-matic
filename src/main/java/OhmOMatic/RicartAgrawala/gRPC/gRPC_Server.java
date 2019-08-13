@@ -22,14 +22,12 @@ public class gRPC_Server
 	static class reqParam
 	{
 		NodeLink n;
-		boolean i_am_requesting_critical_section;
 		int sequence_number;
 
-		reqParam(NodeLink n, int sequence_number, boolean requesting_critical_section)
+		reqParam(final NodeLink n, final int sequence_number)
 		{
 			this.n = n;
 			this.sequence_number = sequence_number;
-			this.i_am_requesting_critical_section = requesting_critical_section;
 		}
 	}
 
@@ -46,9 +44,8 @@ public class gRPC_Server
 				{
 					final var nodo = GB.<NodeLink>deserializeT(request.getNodeLink().toByteArray());
 					final var our_sequence_number = request.getOurSequenceNumber();
-					final var requesting_critical_section = request.getIAmRequestingCriticalSection();
 
-					callback.accept(new reqParam(nodo, our_sequence_number, requesting_critical_section));
+					callback.accept(new reqParam(nodo, our_sequence_number));
 
 					_standardRes
 							.setOk(true);
@@ -67,17 +64,10 @@ public class gRPC_Server
 				responseObserver.onCompleted();
 			}
 
-
-			@Override
-			public void free(RicartAgrawalaOuterClass.mutualExMsg request, StreamObserver<Common.standardRes> responseObserver)
-			{
-				elabora(request, responseObserver, p -> local.free(p.n));
-			}
-
 			@Override
 			public void reply(RicartAgrawalaOuterClass.mutualExMsg request, StreamObserver<Common.standardRes> responseObserver)
 			{
-				elabora(request, responseObserver, p -> local.reply(p.n, p.i_am_requesting_critical_section));
+				elabora(request, responseObserver, p -> local.reply());
 			}
 
 			@Override
