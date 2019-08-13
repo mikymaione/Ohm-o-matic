@@ -11,6 +11,8 @@ package OhmOMatic.ProtoBuffer;
 import "Common.proto";
 
 service RicartAgrawala {
+    rpc ping (mutualExMsg) returns (standardRes);
+    rpc enter (mutualExMsg) returns (standardRes);
     rpc reply (mutualExMsg) returns (standardRes);
     rpc request (mutualExMsg) returns (standardRes);
 }

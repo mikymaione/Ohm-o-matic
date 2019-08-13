@@ -19,12 +19,12 @@ import java.io.IOException;
 public class gRPC_Client
 {
 	//region Ricart & Agrawala gRPC
-	public static boolean gRPC(NodeLink server, RichiestaRicartAgrawala req, NodeLink me, boolean affermativo)
+	public static boolean gRPC(NodeLink server, RichiestaRicartAgrawala req, NodeLink me)
 	{
-		return gRPC(server, req, -1, me, affermativo);
+		return gRPC(server, req, -1, me);
 	}
 
-	public static boolean gRPC(NodeLink server, RichiestaRicartAgrawala req, int our_sequence_number, NodeLink me, boolean affermativo)
+	public static boolean gRPC(NodeLink server, RichiestaRicartAgrawala req, int our_sequence_number, NodeLink me)
 	{
 		if (server != null)
 			try (final var hfs = new FastStub())
@@ -39,6 +39,12 @@ public class gRPC_Client
 				final Common.standardRes _request;
 				switch (req)
 				{
+					case free:
+						_request = stub.free(_oggetto);
+						break;
+					case enter:
+						_request = stub.enter(_oggetto);
+						break;
 					case reply:
 						_request = stub.reply(_oggetto);
 						break;

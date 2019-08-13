@@ -256,8 +256,8 @@ public class Casa implements MeanListener, AutoCloseable
 	//region Gestione Smart meter
 	public void avviaSmartMeter()
 	{
-		creaChart();
-		calcoloStatistiche.start();
+		//creaChart();
+		//calcoloStatistiche.start();
 		smartMeterSimulator.start();
 	}
 
