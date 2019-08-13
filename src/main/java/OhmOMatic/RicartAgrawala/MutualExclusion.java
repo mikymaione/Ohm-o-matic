@@ -18,8 +18,10 @@ import OhmOMatic.Global.GB;
 import OhmOMatic.RicartAgrawala.Enums.RichiestaRicartAgrawala;
 import OhmOMatic.RicartAgrawala.gRPC.gRPC_Client;
 
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class MutualExclusion implements AutoCloseable
 {
@@ -36,7 +38,6 @@ public class MutualExclusion implements AutoCloseable
 
 	private boolean requesting_critical_section = false;
 	private final HashMap<BigInteger, Boolean> reply_deferred = new HashMap<>();
-	private final HashMap<NodeLink, Boolean> critical_section = new HashMap<>();
 
 	private final Chord chord;
 
@@ -64,7 +65,7 @@ public class MutualExclusion implements AutoCloseable
 	public void invokeMutualExclusion(Runnable critical_region_callback)
 	{
 		GB.sleep(5000);
-		
+
 		final var Nodi = getNodi();
 
 		synchronized (shared_vars)
@@ -90,29 +91,19 @@ public class MutualExclusion implements AutoCloseable
 		}, 100);
 
 		// Critical section processing can be performed at this point
-		for (final var nodo : Nodi)
-			if (!nodo.equals(me))
-				GB.waitfor(() -> gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.enter, me), 250);
-
-		synchronized (shared_vars)
-		{
-			critical_section.put(me, true);
-		}
-
+		addToCriticalDHTList(me);
 		critical_region_callback.run();
 
 		synchronized (shared_vars)
 		{
 			requesting_critical_section = false;
-			critical_section.put(me, false);
 		}
+		removeFromCriticalDHTList(me);
 
 		for (final var nodo : Nodi)
 			if (!nodo.equals(me))
 			{
 				final boolean ok;
-
-				GB.waitfor(() -> gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.free, me), 250);
 
 				synchronized (shared_vars)
 				{
@@ -128,24 +119,42 @@ public class MutualExclusion implements AutoCloseable
 	}
 	//endregion
 
+	private Serializable get(final String key)
+	{
+		return chord.get(GB.SHA1BI(key));
+	}
+
+	private void put(final String key, final Serializable object)
+	{
+		chord.put(GB.SHA1BI(key), object);
+	}
+
+	public void initCriticalDHTList()
+	{
+		chord.put(GB.SHA1BI("RicartAgrawala_InCriticalSection"), new HashSet<NodeLink>(2));
+	}
+
+	private HashSet<NodeLink> getCriticalDHTList()
+	{
+		return (HashSet<NodeLink>) get("RicartAgrawala_InCriticalSection");
+	}
+
+	private void addToCriticalDHTList(NodeLink n)
+	{
+		final var RicartAgrawala_InCriticalSection = getCriticalDHTList();
+		RicartAgrawala_InCriticalSection.add(n);
+		put("RicartAgrawala_InCriticalSection", RicartAgrawala_InCriticalSection);
+	}
+
+	private void removeFromCriticalDHTList(NodeLink n)
+	{
+		final var RicartAgrawala_InCriticalSection = getCriticalDHTList();
+		RicartAgrawala_InCriticalSection.remove(n);
+		put("RicartAgrawala_InCriticalSection", RicartAgrawala_InCriticalSection);
+	}
+
 
 	//region Server
-	public void free(NodeLink caller)
-	{
-		synchronized (shared_vars)
-		{
-			critical_section.put(caller, false);
-		}
-	}
-
-	public void enter(NodeLink caller)
-	{
-		synchronized (shared_vars)
-		{
-			critical_section.put(caller, true);
-		}
-	}
-
 	public void reply()
 	{
 		synchronized (shared_vars)
@@ -164,14 +173,15 @@ public class MutualExclusion implements AutoCloseable
 		{
 			highest_sequence_number = Math.max(highest_sequence_number, caller_sequence_number);
 
-			// defer_it will be true if we have priority over node caller's request
-			if (GB.countThisValue(critical_section, true) < numeroMutex)
-				defer_it = false;
-			else
+			final var RicartAgrawala_InCriticalSection = getCriticalDHTList();
+
+			if (RicartAgrawala_InCriticalSection.size() == numeroMutex - 1)
 				defer_it =
 						requesting_critical_section &&
 								((caller_sequence_number > our_sequence_number) ||
 										(caller_sequence_number == our_sequence_number && caller.ID.compareTo(me.ID) > 0));
+			else
+				defer_it = RicartAgrawala_InCriticalSection.size() == numeroMutex;
 		}
 
 		if (defer_it)

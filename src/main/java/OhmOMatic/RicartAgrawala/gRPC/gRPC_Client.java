@@ -39,12 +39,6 @@ public class gRPC_Client
 				final Common.standardRes _request;
 				switch (req)
 				{
-					case free:
-						_request = stub.free(_oggetto);
-						break;
-					case enter:
-						_request = stub.enter(_oggetto);
-						break;
 					case reply:
 						_request = stub.reply(_oggetto);
 						break;

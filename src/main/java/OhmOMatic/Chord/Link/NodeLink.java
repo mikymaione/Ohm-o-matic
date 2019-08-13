@@ -35,12 +35,10 @@ public class NodeLink implements Serializable
 
 	public NodeLink(final String identificatore, final String IP, final int port)
 	{
-		this.ID = GB.SHA1BI(IP + ":" + port);
-
-		this.identificatore = identificatore;
-
 		this.IP = IP;
 		this.port = port;
+		this.identificatore = identificatore;
+		this.ID = GB.SHA1BI(indirizzo());
 	}
 
 	@Override
@@ -62,10 +60,15 @@ public class NodeLink implements Serializable
 		return false;
 	}
 
+	public String indirizzo()
+	{
+		return IP + ":" + port;
+	}
+
 	@Override
 	public String toString()
 	{
-		return IP + ":" + port + " (" + identificatore + ")";
+		return indirizzo() + " (" + identificatore + ")";
 	}
 
 

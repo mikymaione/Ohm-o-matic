@@ -8,8 +8,6 @@ package OhmOMatic.RicartAgrawala.Enums;
 
 public enum RichiestaRicartAgrawala
 {
-	enter,
-	free,
 	reply,
 	request;
 }
