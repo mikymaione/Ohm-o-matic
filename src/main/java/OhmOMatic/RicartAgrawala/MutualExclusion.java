@@ -18,8 +18,8 @@ import OhmOMatic.Global.GB;
 import OhmOMatic.RicartAgrawala.Enums.RichiestaRicartAgrawala;
 import OhmOMatic.RicartAgrawala.gRPC.gRPC_Client;
 
-import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class MutualExclusion implements AutoCloseable
 {
@@ -34,17 +34,15 @@ public class MutualExclusion implements AutoCloseable
 	private int highest_sequence_number = 0;
 	private int our_sequence_number = 0;
 
-	private final HashMap<BigInteger, Boolean> reply_deferred = new HashMap<>();
-	private final HashMap<NodeLink, Boolean> requesting_critical_section = new HashMap<>();
+	private boolean i_am_requesting_critical_section = false;
+
+	private final HashMap<NodeLink, Boolean> reply_deferred = new HashMap<>();
 	private final HashMap<NodeLink, Boolean> outstanding_reply_count = new HashMap<>();
+	private final HashMap<NodeLink, Boolean> requesting_critical_section = new HashMap<>();
+	private final HashMap<NodeLink, Integer> caller_sequence_numbers = new HashMap<>();
 
 	private final Chord chord;
 
-
-	public MutualExclusion(final NodeLink me, Chord chord)
-	{
-		this(1, me, chord);
-	}
 
 	public MutualExclusion(final int numberOfMutex, final NodeLink me, Chord chord)
 	{
@@ -75,6 +73,7 @@ public class MutualExclusion implements AutoCloseable
 		synchronized (shared_vars)
 		{
 			// Choose a sequence number
+			i_am_requesting_critical_section = true;
 			requesting_critical_section.put(me, true);
 			our_sequence_number = highest_sequence_number + 1;
 
@@ -83,10 +82,13 @@ public class MutualExclusion implements AutoCloseable
 					outstanding_reply_count.put(nodo, true);
 		}
 
+		GB.Sleep(5000);
+
 		// Send a request message containing our sequence number and our node number to all other nodes
 		for (final var nodo : Nodi)
 			if (!nodo.equals(me))
-				GB.waitfor(() -> gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.request, our_sequence_number, me), timeout_gRPC);
+				GB.waitfor(() ->
+						gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.request, our_sequence_number, me, true), timeout_gRPC);
 
 		// Now wait for a reply from each of the other nodes
 		GB.waitfor(() ->
@@ -99,8 +101,10 @@ public class MutualExclusion implements AutoCloseable
 
 		// Critical section processing can be performed at this point
 		critical_region_callback.run();
+
 		synchronized (shared_vars)
 		{
+			i_am_requesting_critical_section = false;
 			requesting_critical_section.put(me, false);
 		}
 
@@ -110,22 +114,24 @@ public class MutualExclusion implements AutoCloseable
 
 			synchronized (shared_vars)
 			{
-				ok = reply_deferred.getOrDefault(nodo.ID, false);
+				ok = reply_deferred.getOrDefault(nodo, false);
 
 				if (ok)
-					reply_deferred.put(nodo.ID, false);
+					reply_deferred.put(nodo, false);
 			}
 
 			if (ok)
-				GB.waitfor(() -> gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.reply, me), timeout_gRPC);
+				GB.waitfor(() ->
+						gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.reply, me, false), timeout_gRPC);
 
-			GB.waitfor(() -> gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.free, me), timeout_gRPC);
+			GB.waitfor(() ->
+					gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.free, me, false), timeout_gRPC);
 		}
 	}
 	//endregion
 
 	//region Server
-	public void free(NodeLink caller)
+	public void free(final NodeLink caller)
 	{
 		synchronized (shared_vars)
 		{
@@ -133,39 +139,63 @@ public class MutualExclusion implements AutoCloseable
 		}
 	}
 
-	public void reply(NodeLink caller)
+	public void reply(final NodeLink caller, final boolean caller_requesting_critical_section)
 	{
+		final var toReply = new HashSet<NodeLink>();
+
 		synchronized (shared_vars)
 		{
+			requesting_critical_section.put(caller, caller_requesting_critical_section);
 			outstanding_reply_count.put(caller, false);
+
+			if (GB.countThisValue(outstanding_reply_count, true) == 0) // ci sono solo io nella critical section
+			{
+				var pNellaCritical = 1;
+
+				for (var e : requesting_critical_section.entrySet())
+					if (pNellaCritical <= numberOfMutex)
+						if (e.getValue() && !e.getKey().equals(me)) // lui vuole entrare
+						{
+							pNellaCritical++;
+							toReply.add(e.getKey());
+							reply_deferred.put(e.getKey(), false);
+						}
+			}
 		}
+
+		for (var nodo : toReply)
+			GB.waitfor(() ->
+					gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.reply, me, false), timeout_gRPC);
 	}
 
 	// caller_sequence_number is the sequence number begin requested,
 	// caller is the node making the request;
-	public void request(Integer caller_sequence_number, NodeLink caller)
+	public void request(final Integer caller_sequence_number, final NodeLink caller)
 	{
 		final boolean defer_it;
 
 		synchronized (shared_vars)
 		{
 			requesting_critical_section.put(caller, true);
+			caller_sequence_numbers.put(caller, caller_sequence_number);
+
 			highest_sequence_number = Math.max(highest_sequence_number, caller_sequence_number);
 
 			// defer_it will be true if we have priority over node caller's request
-			defer_it =
-					GB.countThisValue(requesting_critical_section, true) > numberOfMutex &&
-							((caller_sequence_number > our_sequence_number) ||
-									(caller_sequence_number == our_sequence_number && caller.ID.compareTo(me.ID) > 0));
+			defer_it = i_am_requesting_critical_section && (
+					(caller_sequence_number > our_sequence_number) ||
+							(caller_sequence_number == our_sequence_number && caller.ID.compareTo(me.ID) > 0)
+			);
 		}
 
 		if (defer_it)
 			synchronized (shared_vars)
 			{
-				reply_deferred.put(caller.ID, true);
+				reply_deferred.put(caller, true);
 			}
 		else
-			GB.waitfor(() -> gRPC_Client.gRPC(caller, RichiestaRicartAgrawala.reply, me), timeout_gRPC);
+			GB.waitfor(() ->
+					gRPC_Client.gRPC(caller, RichiestaRicartAgrawala.reply, me, i_am_requesting_critical_section), timeout_gRPC);
 	}
 	//endregion
 

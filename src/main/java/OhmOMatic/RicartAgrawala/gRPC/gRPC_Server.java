@@ -8,7 +8,6 @@ package OhmOMatic.RicartAgrawala.gRPC;
 
 import OhmOMatic.Chord.Link.NodeLink;
 import OhmOMatic.Global.GB;
-import OhmOMatic.Global.Pair;
 import OhmOMatic.ProtoBuffer.Common;
 import OhmOMatic.ProtoBuffer.RicartAgrawalaGrpc;
 import OhmOMatic.ProtoBuffer.RicartAgrawalaOuterClass;
@@ -20,12 +19,26 @@ import java.util.function.Consumer;
 public class gRPC_Server
 {
 
+	static class reqParam
+	{
+		NodeLink n;
+		boolean i_am_requesting_critical_section;
+		int sequence_number;
+
+		reqParam(NodeLink n, int sequence_number, boolean requesting_critical_section)
+		{
+			this.n = n;
+			this.sequence_number = sequence_number;
+			this.i_am_requesting_critical_section = requesting_critical_section;
+		}
+	}
+
 	public static RicartAgrawalaGrpc.RicartAgrawalaImplBase getListnerServer(MutualExclusion local)
 	{
 		return new RicartAgrawalaGrpc.RicartAgrawalaImplBase()
 		{
 
-			private void elabora(RicartAgrawalaOuterClass.mutualExMsg request, StreamObserver<Common.standardRes> responseObserver, Consumer<Pair<NodeLink, Integer>> callback)
+			private void elabora(RicartAgrawalaOuterClass.mutualExMsg request, StreamObserver<Common.standardRes> responseObserver, Consumer<reqParam> callback)
 			{
 				var _standardRes = Common.standardRes.newBuilder();
 
@@ -33,8 +46,9 @@ public class gRPC_Server
 				{
 					final var nodo = GB.<NodeLink>deserializeT(request.getNodeLink().toByteArray());
 					final var our_sequence_number = request.getOurSequenceNumber();
+					final var requesting_critical_section = request.getIAmRequestingCriticalSection();
 
-					callback.accept(new Pair<>(nodo, our_sequence_number));
+					callback.accept(new reqParam(nodo, our_sequence_number, requesting_critical_section));
 
 					_standardRes
 							.setOk(true);
@@ -57,19 +71,19 @@ public class gRPC_Server
 			@Override
 			public void free(RicartAgrawalaOuterClass.mutualExMsg request, StreamObserver<Common.standardRes> responseObserver)
 			{
-				elabora(request, responseObserver, p -> local.free(p.getKey()));
+				elabora(request, responseObserver, p -> local.free(p.n));
 			}
 
 			@Override
 			public void reply(RicartAgrawalaOuterClass.mutualExMsg request, StreamObserver<Common.standardRes> responseObserver)
 			{
-				elabora(request, responseObserver, p -> local.reply(p.getKey()));
+				elabora(request, responseObserver, p -> local.reply(p.n, p.i_am_requesting_critical_section));
 			}
 
 			@Override
 			public void request(RicartAgrawalaOuterClass.mutualExMsg request, StreamObserver<Common.standardRes> responseObserver)
 			{
-				elabora(request, responseObserver, p -> local.request(p.getValue(), p.getKey()));
+				elabora(request, responseObserver, p -> local.request(p.sequence_number, p.n));
 			}
 
 		};
