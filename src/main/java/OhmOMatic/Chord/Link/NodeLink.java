@@ -15,6 +15,7 @@ import OhmOMatic.Global.GB;
 
 import java.io.Serializable;
 import java.math.BigInteger;
+import java.util.Objects;
 
 public class NodeLink implements Serializable
 {
@@ -40,6 +41,12 @@ public class NodeLink implements Serializable
 
 		this.IP = IP;
 		this.port = port;
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return Objects.hash(IP, port);
 	}
 
 	@Override

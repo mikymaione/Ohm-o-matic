@@ -160,7 +160,19 @@ public final class GB
 		return sdf.format(d);
 	}
 
-	public static void waitfor(Callable<Boolean> callback, int millisecondi) throws Exception
+	public static void waitfor(Callable<Boolean> callback, int millisecondi)
+	{
+		try
+		{
+			_waitfor(callback, millisecondi);
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	private static void _waitfor(Callable<Boolean> callback, int millisecondi) throws Exception
 	{
 		while (!callback.call())
 			GB.Sleep(millisecondi);
@@ -192,5 +204,15 @@ public final class GB
 		);
 	}
 
+	public static <A, B> int countThisValue(final HashMap<A, B> mappa, final B valore)
+	{
+		var x = 0;
+
+		for (var e : mappa.values())
+			if (e.equals(valore))
+				x++;
+
+		return x;
+	}
 
 }

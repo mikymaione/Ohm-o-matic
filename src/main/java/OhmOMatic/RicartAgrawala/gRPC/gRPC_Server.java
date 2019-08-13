@@ -53,6 +53,13 @@ public class gRPC_Server
 				responseObserver.onCompleted();
 			}
 
+
+			@Override
+			public void free(RicartAgrawalaOuterClass.mutualExMsg request, StreamObserver<Common.standardRes> responseObserver)
+			{
+				elabora(request, responseObserver, p -> local.free(p.getKey()));
+			}
+
 			@Override
 			public void reply(RicartAgrawalaOuterClass.mutualExMsg request, StreamObserver<Common.standardRes> responseObserver)
 			{

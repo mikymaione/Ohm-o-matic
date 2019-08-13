@@ -24,21 +24,27 @@ import java.util.HashMap;
 public class MutualExclusion implements AutoCloseable
 {
 
+	private final int timeout_gRPC = 250;
+
 	private final NodeLink me;
 
 	private final Object shared_vars = new Object();
 	private final int numberOfMutex;
 
-	private int outstanding_reply_count = 0;
-
 	private int highest_sequence_number = 0;
 	private int our_sequence_number = 0;
 
-	private boolean requesting_critical_section = false;
 	private final HashMap<BigInteger, Boolean> reply_deferred = new HashMap<>();
+	private final HashMap<NodeLink, Boolean> requesting_critical_section = new HashMap<>();
+	private final HashMap<NodeLink, Boolean> outstanding_reply_count = new HashMap<>();
 
 	private final Chord chord;
 
+
+	public MutualExclusion(final NodeLink me, Chord chord)
+	{
+		this(1, me, chord);
+	}
 
 	public MutualExclusion(final int numberOfMutex, final NodeLink me, Chord chord)
 	{
@@ -67,51 +73,40 @@ public class MutualExclusion implements AutoCloseable
 		synchronized (shared_vars)
 		{
 			// Choose a sequence number
-			requesting_critical_section = true;
+			requesting_critical_section.put(me, true);
 			our_sequence_number = highest_sequence_number + 1;
-			outstanding_reply_count = Nodi.length - 1;
+
+			for (final var nodo : Nodi)
+				if (!nodo.equals(me))
+					outstanding_reply_count.put(nodo, true);
 		}
 
 		// Send a request message containing our sequence number and our node number to all other nodes
 		for (final var nodo : Nodi)
 			if (!nodo.equals(me))
-				try
-				{
-					GB.waitfor(() -> gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.request, our_sequence_number, me), 250);
-				}
-				catch (Exception e)
-				{
-					e.printStackTrace();
-				}
+				GB.waitfor(() -> gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.request, our_sequence_number, me), timeout_gRPC);
 
 		// Now wait for a reply from each of the other nodes
-		try
+		GB.waitfor(() ->
 		{
-			GB.waitfor(() ->
+			synchronized (shared_vars)
 			{
-				synchronized (shared_vars)
-				{
-					return outstanding_reply_count == 0;
-				}
-			}, 100);
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
+				return GB.countThisValue(outstanding_reply_count, true) == 0;
+			}
+		}, 100);
 
 		// Critical section processing can be performed at this point
 		critical_region_callback.run();
 		synchronized (shared_vars)
 		{
-			requesting_critical_section = false;
+			requesting_critical_section.put(me, false);
 		}
 
 		for (final var nodo : Nodi)
 		{
 			final boolean ok;
 
-			synchronized (reply_deferred)
+			synchronized (shared_vars)
 			{
 				ok = reply_deferred.getOrDefault(nodo.ID, false);
 
@@ -120,25 +115,27 @@ public class MutualExclusion implements AutoCloseable
 			}
 
 			if (ok)
-				try
-				{
-					GB.waitfor(() -> gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.reply), 250);
-				}
-				catch (Exception e)
-				{
-					e.printStackTrace();
-				}
+				GB.waitfor(() -> gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.reply, me), timeout_gRPC);
+
+			GB.waitfor(() -> gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.free, me), timeout_gRPC);
 		}
 	}
 	//endregion
 
-
 	//region Server
-	public void reply()
+	public void free(NodeLink caller)
 	{
 		synchronized (shared_vars)
 		{
-			outstanding_reply_count--;
+			requesting_critical_section.put(caller, false);
+		}
+	}
+
+	public void reply(NodeLink caller)
+	{
+		synchronized (shared_vars)
+		{
+			outstanding_reply_count.put(caller, false);
 		}
 	}
 
@@ -150,29 +147,23 @@ public class MutualExclusion implements AutoCloseable
 
 		synchronized (shared_vars)
 		{
+			requesting_critical_section.put(caller, true);
 			highest_sequence_number = Math.max(highest_sequence_number, caller_sequence_number);
 
 			// defer_it will be true if we have priority over node caller's request
 			defer_it =
-					requesting_critical_section &&
+					GB.countThisValue(requesting_critical_section, true) > numberOfMutex &&
 							((caller_sequence_number > our_sequence_number) ||
 									(caller_sequence_number == our_sequence_number && caller.ID.compareTo(me.ID) > 0));
 		}
 
 		if (defer_it)
-			synchronized (reply_deferred)
+			synchronized (shared_vars)
 			{
 				reply_deferred.put(caller.ID, true);
 			}
 		else
-			try
-			{
-				GB.waitfor(() -> gRPC_Client.gRPC(caller, RichiestaRicartAgrawala.reply), 250);
-			}
-			catch (Exception e)
-			{
-				e.printStackTrace();
-			}
+			GB.waitfor(() -> gRPC_Client.gRPC(caller, RichiestaRicartAgrawala.reply, me), timeout_gRPC);
 	}
 	//endregion
 
