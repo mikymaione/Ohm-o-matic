@@ -65,6 +65,8 @@ public class MutualExclusion implements AutoCloseable
 	}
 
 	//region Client
+
+	// 2(N – 1)
 	// Request entry to our critical section
 	public void invokeMutualExclusion(Runnable critical_region_callback)
 	{
