@@ -98,7 +98,7 @@ public class Chord implements AutoCloseable
 		setPredecessor(null);
 		setSuccessor(n);
 
-		mutualExclusion = new MutualExclusion(2, n, this);
+		mutualExclusion = new MutualExclusion(n, this);
 
 		gRPC_listner = ServerBuilder
 				.forPort(n.port)
