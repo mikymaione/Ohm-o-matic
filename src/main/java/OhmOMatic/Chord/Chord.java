@@ -85,7 +85,7 @@ public class Chord implements AutoCloseable
 
 		_fingerTable = new HashMap<>(mBit);
 
-		keyListaPeers = GB.SHA1BI("Chiave speciale per lista dei peer");
+		keyListaPeers = GB.StringToBigInteger("Chiave speciale per lista dei peer");
 		dht = new DHT(keyListaPeers);
 
 		stabilizingRoutines = Set.of(

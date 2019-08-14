@@ -10,9 +10,6 @@ import OhmOMatic.Chord.Link.NodeLink;
 
 import java.io.*;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -27,31 +24,15 @@ public final class GB
 
 	private static HashMap<Integer, BigInteger> _powerOfTwo = new HashMap<>();
 
-
-	public static BigInteger SHA1BI(String s)
+	public static BigInteger StringToBigInteger(String s)
 	{
-		return new BigInteger(SHA1(s));
-	}
+		var id = 0;
+		final var chars = s.toCharArray();
 
-	public static byte[] SHA1(String s)
-	{
-		try
-		{
-			final var bytes = s.getBytes(StandardCharsets.UTF_8);
+		for (final var c : chars)
+			id += c;
 
-			var sha1 = MessageDigest.getInstance("SHA-1");
-
-			sha1.reset();
-			sha1.update(bytes);
-
-			return sha1.digest();
-		}
-		catch (NoSuchAlgorithmException e)
-		{
-			e.printStackTrace();
-		}
-
-		return new byte[0];
+		return BigInteger.valueOf(id);
 	}
 
 	public static BigInteger getPowerOfTwo(final Integer k)
@@ -70,12 +51,7 @@ public final class GB
 
 		return _powerOfTwo.get(k);
 	}
-
-	public static boolean incluso(NodeLink id, NodeLink a, BigInteger b)
-	{
-		return incluso(id.ID, a.ID, b);
-	}
-
+	
 	public static boolean incluso(NodeLink id, NodeLink a, NodeLink b)
 	{
 		return incluso(id.ID, a.ID, b.ID);
@@ -204,15 +180,5 @@ public final class GB
 		);
 	}
 
-	public static <A, B> int countThisValue(final HashMap<A, B> mappa, final B valore)
-	{
-		var x = 0;
-
-		for (var e : mappa.values())
-			if (e.equals(valore))
-				x++;
-
-		return x;
-	}
 
 }
