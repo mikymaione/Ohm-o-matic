@@ -17,7 +17,7 @@ import java.util.Objects;
 public class NodeLink implements Serializable
 {
 
-	public int N;
+	public final int N;
 	public final String ID;
 
 	public final String IP;
@@ -59,7 +59,7 @@ public class NodeLink implements Serializable
 		return false;
 	}
 
-	public String indirizzo()
+	private String indirizzo()
 	{
 		return IP + ":" + port;
 	}

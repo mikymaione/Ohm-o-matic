@@ -138,10 +138,7 @@ class DHT
 	{
 		synchronized (_data)
 		{
-			final var prev = _data.put(key, value);
-
-			if (prev != null)
-				System.out.println("Put overwrite " + key + " from " + prev + " to " + value);
+			_data.put(key, value);
 
 			return true;
 		}
@@ -151,8 +148,13 @@ class DHT
 	{
 		synchronized (_data)
 		{
-			var val = (Integer) _data.getOrDefault(key, 0);
-			val += 1;
+			final var e = _data.get(key);
+
+			if (e == null)
+				return false;
+
+			var val = (Integer) e;
+			val++;
 
 			_data.put(key, val);
 

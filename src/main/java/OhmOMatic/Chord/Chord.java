@@ -73,9 +73,9 @@ public class Chord implements AutoCloseable
 	//endregion
 
 	//region Constructor & Destructors
-	public Chord(final String identificatore, final String ip, final int port) throws IOException
+	public Chord(final int numero, final String identificatore, final String ip, final int port) throws IOException
 	{
-		this(new NodeLink(0, identificatore, ip, port));
+		this(new NodeLink(numero, identificatore, ip, port));
 	}
 
 	public Chord(final NodeLink address) throws IOException
@@ -276,13 +276,6 @@ public class Chord implements AutoCloseable
 		System.out.println("Aggiunta a lista peer: " + addedToPeerList);
 
 		put(n.ID, 0);
-
-		for (var p : getPeerList())
-		{
-			n.N++;
-			if (p.equals(n))
-				break;
-		}
 
 		startStabilizingRoutines();
 	}
@@ -609,8 +602,8 @@ public class Chord implements AutoCloseable
 				if (!n.equals(successor))
 					try
 					{
-						//final var info = "[" + GB.DateToString() + "] handoff > " + successor + ": " + e.getKey() + "=" + e.getValue();
-						//System.out.println(info);
+						final var info = "[" + GB.DateToString() + "] handoff > " + successor + ": " + key;
+						System.out.println(info);
 
 						daFare.add(key);
 						final var risultatoTrasferimento = gRPC_Client.gRPC(successor, RichiestaDHT.transfer, key, dht.get(key));
@@ -618,7 +611,7 @@ public class Chord implements AutoCloseable
 						if (Boolean.TRUE.equals(risultatoTrasferimento))
 						{
 							daRimuovere.add(key);
-							//System.out.println(info + " OK!");
+							System.out.println(info + " OK!");
 						}
 					}
 					catch (StatusRuntimeException ex)

@@ -32,11 +32,12 @@ public final class CliCasa extends BaseCommandLineApplication
 			final var mio_peer_port = stringToInt(cmd.getOptionValue("q"), -1);
 			final var peer_address = cmd.getOptionValue("j");
 			final var peer_port = stringToInt(cmd.getOptionValue("p"), -1);
-			final var identificatore = cmd.getOptionValue("i");
+			final var nome = cmd.getOptionValue("i");
+			final var identificatore = stringToInt(cmd.getOptionValue("n"), 0);
 
-			try (final var chord = new Chord(identificatore, mio_peer_address, mio_peer_port))
+			try (final var chord = new Chord(identificatore, nome, mio_peer_address, mio_peer_port))
 			{
-				try (final var casa = new Casa(identificatore, rest_url, mio_peer_address, mio_peer_port, chord))
+				try (final var casa = new Casa(nome, rest_url, mio_peer_address, mio_peer_port, chord))
 				{
 					System.out.println("Casa " + identificatore + " avviata!");
 
@@ -154,11 +155,18 @@ public final class CliCasa extends BaseCommandLineApplication
 				.argName("URL")
 				.build();
 
-		final var id = Option.builder("i")
+		final var id = Option.builder("n")
 				.desc("ID")
 				.required()
 				.hasArg()
 				.argName("ID")
+				.build();
+
+		final var nome = Option.builder("i")
+				.desc("Nome")
+				.required()
+				.hasArg()
+				.argName("Nome")
 				.build();
 
 		final var mio_peer_address = Option.builder("k")
@@ -190,6 +198,7 @@ public final class CliCasa extends BaseCommandLineApplication
 		return new Options()
 				.addOption(rest_url)
 				.addOption(id)
+				.addOption(nome)
 				.addOption(mio_peer_address)
 				.addOption(mio_peer_port)
 				.addOption(peer_address)
