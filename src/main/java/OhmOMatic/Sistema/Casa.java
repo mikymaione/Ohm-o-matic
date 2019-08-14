@@ -7,6 +7,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package OhmOMatic.Sistema;
 
 import OhmOMatic.Chord.Chord;
+import OhmOMatic.Chord.Link.NodeLink;
 import OhmOMatic.Global.Pair;
 import OhmOMatic.Global.Waiter;
 import OhmOMatic.ProtoBuffer.Common.standardRes;
@@ -26,6 +27,7 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import java.awt.*;
+import java.math.BigInteger;
 import java.util.*;
 
 public class Casa implements MeanListener, AutoCloseable
@@ -139,6 +141,10 @@ public class Casa implements MeanListener, AutoCloseable
 	//region Funzioni sul calcolo del consumo energetico
 	private final Waiter calcoloStatistiche = new Waiter("calcoloStatistiche", this::calcolaStatistiche, 2000);
 
+	final HashMap<NodeLink, BigInteger> ultimoAggiornamentoGrafico = new HashMap<>();
+	final HashMap<Date, Double> condominioGrafico = new HashMap<>();
+	final HashMap<Date, Double> mioGrafico = new HashMap<>();
+
 	private void calcolaStatistiche()
 	{
 		final var peerList = chord.getPeerList();
@@ -146,40 +152,45 @@ public class Casa implements MeanListener, AutoCloseable
 		if (peerList != null)
 		{
 			//Pair<Double, Date> mean
-			final var somme = new HashMap<Date, Double>();
-			final var mie = chord.getIncrementals(chord.getID());
-
 			for (final var peer : peerList)
 			{
-				final var statisticheAltroPeer = chord.getIncrementals(peer.ID);
+				final var lastNumero = ultimoAggiornamentoGrafico.getOrDefault(peer, BigInteger.ZERO);
+				final var curNumero = chord.getOrDefault(peer.ID, BigInteger.ZERO);
+				ultimoAggiornamentoGrafico.put(peer, curNumero);
 
-				for (var statisticaAltroPeer : statisticheAltroPeer)
-				{
-					final var p = Pair.<Double, Date>fromSerializable(statisticaAltroPeer);
-					final var attuale = somme.getOrDefault(p.getValue(), 0d) + p.getKey();
+				final var statisticheaAltroPeer = chord.getIncrementals(peer.ID, lastNumero, curNumero);
 
-					somme.put(p.getValue(), attuale);
-				}
+				for (var statisticaAltroPeer : statisticheaAltroPeer)
+					if (statisticaAltroPeer != null)
+					{
+						final var p = Pair.<Double, Date>fromSerializable(statisticaAltroPeer);
+						final var attuale = condominioGrafico.getOrDefault(p.getValue(), 0d) + p.getKey();
+
+						condominioGrafico.put(p.getValue(), attuale);
+
+						if (peer.ID.equals(chord.getID()))
+						{
+							final var attuale_m = mioGrafico.getOrDefault(p.getValue(), 0d) + p.getKey();
+							mioGrafico.put(p.getValue(), attuale_m);
+						}
+					}
 			}
 
-			if (somme.size() > 0)
+			if (mioGrafico.size() > 0 && condominioGrafico.size() > 0)
 			{
-				if (mie.length > 0)
-				{
-					var mieSorted = new ArrayList<Pair<Double, Date>>(mie.length);
-					var condominiali = new ArrayList<Pair<Double, Date>>(somme.size());
+				var mieSorted = new ArrayList<Pair<Double, Date>>(mioGrafico.size());
+				var condominiali = new ArrayList<Pair<Double, Date>>(condominioGrafico.size());
 
-					for (final var s : somme.entrySet())
-						condominiali.add(new Pair<>(s.getValue(), s.getKey()));
+				for (final var s : condominioGrafico.entrySet())
+					condominiali.add(new Pair<>(s.getValue(), s.getKey()));
 
-					for (final var m : mie)
-						mieSorted.add(Pair.fromSerializable(m));
+				for (final var m : mioGrafico.entrySet())
+					mieSorted.add(new Pair<>(m.getValue(), m.getKey()));
 
-					condominiali.sort(Comparator.comparing(Pair::getValue));
-					mieSorted.sort(Comparator.comparing(Pair::getValue));
+				condominiali.sort(Comparator.comparing(Pair::getValue));
+				mieSorted.sort(Comparator.comparing(Pair::getValue));
 
-					aggiornaChart(convertiPerChart(mieSorted), convertiPerChart(condominiali));
-				}
+				aggiornaChart(convertiPerChart(mieSorted), convertiPerChart(condominiali));
 			}
 		}
 	}
@@ -194,6 +205,7 @@ public class Casa implements MeanListener, AutoCloseable
 	//region Chart
 	private XYChart chart;
 	private JFrame chart_frame;
+	private SwingWrapper<XYChart> swing;
 
 	private void creaChart()
 	{
@@ -212,6 +224,8 @@ public class Casa implements MeanListener, AutoCloseable
 		stiler.setLocale(Locale.ITALY);
 		stiler.setDatePattern("HH:mm:ss");
 		stiler.setYAxisMin(0d);
+
+		swing = new SwingWrapper<>(chart);
 	}
 
 	private Pair<ArrayList<Double>, ArrayList<Date>> convertiPerChart(ArrayList<Pair<Double, Date>> mie)
@@ -235,19 +249,16 @@ public class Casa implements MeanListener, AutoCloseable
 			chart.addSeries("Mio", mieiConsumi.getValue(), mieiConsumi.getKey(), null).setMarker(SeriesMarkers.NONE);
 			chart.addSeries("Condominio", condominioConsumi.getValue(), condominioConsumi.getKey(), null).setMarker(SeriesMarkers.NONE);
 
-			final var swing = new SwingWrapper<>(chart);
 			chart_frame = swing.displayChart();
 			chart_frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 			chart_frame.setTitle(identificatore);
 		}
 		else
 		{
-			//chart_frame.update(chart_frame.getGraphics());
-
 			chart.updateXYSeries("Mio", mieiConsumi.getValue(), mieiConsumi.getKey(), null);
 			chart.updateXYSeries("Condominio", condominioConsumi.getValue(), condominioConsumi.getKey(), null);
 
-			chart_frame.update(chart_frame.getGraphics());
+			swing.repaintChart();
 		}
 	}
 	//endregion

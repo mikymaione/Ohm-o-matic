@@ -380,16 +380,17 @@ public class Chord implements AutoCloseable
 		put(chiave, object);
 	}
 
-	public Serializable[] getIncrementals(final BigInteger key)
+	public Serializable[] getIncrementals(final BigInteger key, final BigInteger lastNumero, final BigInteger curNumero)
 	{
-		final var curNumero = getOrDefault(key, BigInteger.ZERO);
-		final var tot = curNumero.intValue();
-		final var lista = new Serializable[tot];
+		final var from_ = lastNumero.intValue();
+		final var to_ = curNumero.intValue();
+		final var lista = new Serializable[to_ - from_];
 
-		for (var i = 0; i < tot; i++)
+		var x = -1;
+		for (var i = from_; i < to_; i++)
 		{
 			final var new_key = key.add(BigInteger.valueOf(i + 1));
-			lista[i] = get(new_key);
+			lista[x += 1] = get(new_key);
 		}
 
 		return lista;
@@ -424,7 +425,7 @@ public class Chord implements AutoCloseable
 	}
 
 	// T(N): O(㏒ N)
-	private <X extends Serializable> X getOrDefault(final BigInteger key, final X default_)
+	public <X extends Serializable> X getOrDefault(final BigInteger key, final X default_)
 	{
 		final var g = get(key);
 
