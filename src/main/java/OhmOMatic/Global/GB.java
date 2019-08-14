@@ -7,6 +7,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package OhmOMatic.Global;
 
 import OhmOMatic.Chord.Link.NodeLink;
+import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.*;
 import java.math.BigInteger;
@@ -16,6 +17,8 @@ import java.util.HashMap;
 import java.util.Random;
 import java.util.concurrent.Callable;
 
+import static org.apache.commons.codec.digest.MessageDigestAlgorithms.SHA3_512;
+
 public final class GB
 {
 
@@ -24,15 +27,14 @@ public final class GB
 
 	private static HashMap<Integer, BigInteger> _powerOfTwo = new HashMap<>();
 
+
 	public static BigInteger StringToBigInteger(String s)
 	{
-		var id = 0;
-		final var chars = s.toCharArray();
+		final var du = new DigestUtils(SHA3_512);
+		final var bytes = du.digest(s);
+		final var bi = new BigInteger(bytes);
 
-		for (final var c : chars)
-			id += c;
-
-		return BigInteger.valueOf(id);
+		return bi;
 	}
 
 	public static BigInteger getPowerOfTwo(final Integer k)
@@ -51,7 +53,7 @@ public final class GB
 
 		return _powerOfTwo.get(k);
 	}
-	
+
 	public static boolean incluso(NodeLink id, NodeLink a, NodeLink b)
 	{
 		return incluso(id.ID, a.ID, b.ID);
