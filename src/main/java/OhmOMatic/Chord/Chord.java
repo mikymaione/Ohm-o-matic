@@ -75,7 +75,7 @@ public class Chord implements AutoCloseable
 	//region Constructor & Destructors
 	public Chord(final String identificatore, final String ip, final int port) throws IOException
 	{
-		this(new NodeLink(-1, identificatore, ip, port));
+		this(new NodeLink(0, identificatore, ip, port));
 	}
 
 	public Chord(final NodeLink address) throws IOException
@@ -576,7 +576,7 @@ public class Chord implements AutoCloseable
 		var i = GB.getPowerOfTwo(next - 1);
 		i = n.N + i;
 
-		final var successor = find_successor(i + "");
+		final var successor = find_successor(String.valueOf(i));
 		setFinger(next, successor);
 	}
 
