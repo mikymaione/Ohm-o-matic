@@ -7,7 +7,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package OhmOMatic.Global;
 
 import OhmOMatic.Chord.Link.NodeLink;
-import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.*;
 import java.math.BigInteger;
@@ -16,8 +15,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.concurrent.Callable;
-
-import static org.apache.commons.codec.digest.MessageDigestAlgorithms.SHA3_512;
 
 public final class GB
 {
@@ -28,26 +25,21 @@ public final class GB
 	private static HashMap<Integer, BigInteger> _powerOfTwo = new HashMap<>();
 
 
-	public static BigInteger StringToBigInteger(String s)
+	public static long getPowerOfTwo(final Integer k)
 	{
-		final var du = new DigestUtils(SHA3_512);
-		final var bytes = du.digest(s);
-		final var bi = new BigInteger(bytes);
-
-		return bi;
+		return _getPowerOfTwo(k).longValueExact();
 	}
 
-	public static BigInteger getPowerOfTwo(final Integer k)
+	private static BigInteger _getPowerOfTwo(final Integer k)
 	{
 		if (_powerOfTwo.size() == 0)
 		{
-			final var due = BigInteger.valueOf(2);
-			var curVal = BigInteger.valueOf(1); //2^0
+			var curVal = BigInteger.valueOf(1); // 2^0
 
 			for (Integer i = 0; i <= 160; i++)
 			{
 				_powerOfTwo.put(i, curVal);
-				curVal = curVal.multiply(due);
+				curVal = curVal.multiply(BigInteger.TWO);
 			}
 		}
 
@@ -59,12 +51,12 @@ public final class GB
 		return incluso(id.ID, a.ID, b.ID);
 	}
 
-	public static boolean incluso(BigInteger id, NodeLink a, NodeLink b)
+	public static boolean incluso(String id, NodeLink a, NodeLink b)
 	{
 		return incluso(id, a.ID, b.ID);
 	}
 
-	private static boolean incluso(BigInteger id, BigInteger start, BigInteger end)
+	private static boolean incluso(String id, String start, String end)
 	{
 		if (end.compareTo(start) <= 0)
 			return start.compareTo(id) < 0 || id.compareTo(end) <= 0;
@@ -72,12 +64,12 @@ public final class GB
 			return start.compareTo(id) < 0 && id.compareTo(end) <= 0;
 	}
 
-	public static boolean finger_incluso(NodeLink key, NodeLink x, BigInteger y)
+	public static boolean finger_incluso(NodeLink key, NodeLink x, String y)
 	{
 		return finger_incluso(key.ID, x.ID, y);
 	}
 
-	private static boolean finger_incluso(BigInteger key, BigInteger start, BigInteger end)
+	private static boolean finger_incluso(String key, String start, String end)
 	{
 		if (start.equals(end))
 			return true;
@@ -182,5 +174,9 @@ public final class GB
 		);
 	}
 
+	public static String creaChiaveValore(final String key, final int n)
+	{
+		return key + "_valore_" + n;
+	}
 
 }

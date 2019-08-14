@@ -26,7 +26,6 @@ import io.grpc.StatusRuntimeException;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -51,7 +50,7 @@ public class Chord implements AutoCloseable
 	private static final Integer mBit = 8; //versione semplificata
 	private Integer next = 1;
 
-	private final BigInteger keyListaPeers;
+	private static final String keyListaPeers = "Lista dei peer";
 	private final NodeLink n;
 
 	private final Object _predecessorLock = new Object();
@@ -76,7 +75,7 @@ public class Chord implements AutoCloseable
 	//region Constructor & Destructors
 	public Chord(final String identificatore, final String ip, final int port) throws IOException
 	{
-		this(new NodeLink(identificatore, ip, port));
+		this(new NodeLink(-1, identificatore, ip, port));
 	}
 
 	public Chord(final NodeLink address) throws IOException
@@ -85,7 +84,6 @@ public class Chord implements AutoCloseable
 
 		_fingerTable = new HashMap<>(mBit);
 
-		keyListaPeers = GB.StringToBigInteger("Chiave speciale per lista dei peer");
 		dht = new DHT(keyListaPeers);
 
 		stabilizingRoutines = Set.of(
@@ -135,7 +133,7 @@ public class Chord implements AutoCloseable
 		return n;
 	}
 
-	public BigInteger getID()
+	public String getID()
 	{
 		return n.ID;
 	}
@@ -200,7 +198,7 @@ public class Chord implements AutoCloseable
 
 	// T(N): O(㏒ N)
 	// ask node n to find the successor of id
-	public NodeLink find_successor(final BigInteger id)
+	public NodeLink find_successor(final String id)
 	{
 		final var successor = getSuccessor();
 
@@ -220,7 +218,7 @@ public class Chord implements AutoCloseable
 	}
 
 	// search the local table for the highest predecessor of id
-	private NodeLink closest_preceding_node(final BigInteger id)
+	private NodeLink closest_preceding_node(final String id)
 	{
 		synchronized (_fingerTable)
 		{
@@ -277,7 +275,14 @@ public class Chord implements AutoCloseable
 		final var addedToPeerList = addToPeerList(keyListaPeers, n);
 		System.out.println("Aggiunta a lista peer: " + addedToPeerList);
 
-		put(n.ID, BigInteger.ZERO);
+		put(n.ID, 0);
+
+		for (var p : getPeerList())
+		{
+			n.N++;
+			if (p.equals(n))
+				break;
+		}
 
 		startStabilizingRoutines();
 	}
@@ -285,8 +290,8 @@ public class Chord implements AutoCloseable
 	// T(N): O(㏒² N)
 	private void leave()
 	{
-		final var daFare = new HashSet<BigInteger>();
-		final var daRimuovere = new HashSet<BigInteger>();
+		final var daFare = new HashSet<String>();
+		final var daRimuovere = new HashSet<String>();
 		final var successor = getSuccessor();
 
 		if (!n.equals(successor))
@@ -331,7 +336,7 @@ public class Chord implements AutoCloseable
 	//endregion
 
 	//region Peer List
-	public Boolean removeFromPeerList(final BigInteger key, final Serializable object)
+	public Boolean removeFromPeerList(final String key, final Serializable object)
 	{
 		while (true)
 		{
@@ -344,7 +349,7 @@ public class Chord implements AutoCloseable
 		}
 	}
 
-	public Boolean addToPeerList(final BigInteger key, final Serializable object)
+	public Boolean addToPeerList(final String key, final Serializable object)
 	{
 		while (true)
 		{
@@ -374,22 +379,20 @@ public class Chord implements AutoCloseable
 	//region DHT
 	public void putIncremental(final Serializable object)
 	{
-		final var curNumero = incBigInteger(n.ID);
-		final var chiave = n.ID.add(curNumero);
+		final var curNumero = inc(n.ID);
+		final var chiave = GB.creaChiaveValore(n.ID, curNumero);
 
 		put(chiave, object);
 	}
 
-	public Serializable[] getIncrementals(final BigInteger key, final BigInteger lastNumero, final BigInteger curNumero)
+	public Serializable[] getIncrementals(final String key, final int lastNumero, final int curNumero)
 	{
-		final var from_ = lastNumero.intValue();
-		final var to_ = curNumero.intValue();
-		final var lista = new Serializable[to_ - from_];
+		final var lista = new Serializable[curNumero - lastNumero];
 
 		var x = -1;
-		for (var i = from_; i < to_; i++)
+		for (var i = lastNumero; i < curNumero; i++)
 		{
-			final var new_key = key.add(BigInteger.valueOf(i + 1));
+			final var new_key = GB.creaChiaveValore(key, i + 1);
 			lista[x += 1] = get(new_key);
 		}
 
@@ -397,21 +400,21 @@ public class Chord implements AutoCloseable
 	}
 
 	// T(N): O(㏒ N)
-	public BigInteger incBigInteger(final BigInteger key)
+	public Integer inc(final String key)
 	{
 		while (true)
 		{
-			final var r = _functionDHT(RichiestaDHT.incBigInteger, key, null);
+			final var r = _functionDHT(RichiestaDHT.inc, key, null);
 
-			if (r instanceof BigInteger)
-				return (BigInteger) r;
+			if (r instanceof Integer)
+				return (Integer) r;
 			else
 				GB.sleep(_sleepTime);
 		}
 	}
 
 	// T(N): O(㏒ N)
-	public Serializable remove(final BigInteger key)
+	public Serializable remove(final String key)
 	{
 		while (true)
 		{
@@ -425,14 +428,14 @@ public class Chord implements AutoCloseable
 	}
 
 	// T(N): O(㏒ N)
-	public <X extends Serializable> X getOrDefault(final BigInteger key, final X default_)
+	public <X extends Serializable> X getOrDefault(final String key, final X default_)
 	{
 		final var g = get(key);
 
 		return (g == null ? default_ : (X) g);
 	}
 
-	public Serializable get(final BigInteger key)
+	public Serializable get(final String key)
 	{
 		while (true)
 		{
@@ -446,7 +449,7 @@ public class Chord implements AutoCloseable
 	}
 
 	// T(N): O(㏒ N)
-	public Serializable put(final BigInteger key, final Serializable object)
+	public Serializable put(final String key, final Serializable object)
 	{
 		while (true)
 		{
@@ -460,12 +463,12 @@ public class Chord implements AutoCloseable
 	}
 
 	// T(N): O(1)
-	public Serializable transfer(final BigInteger key, final Serializable object)
+	public Serializable transfer(final String key, final Serializable object)
 	{
 		return dht.put(key, object);
 	}
 
-	private Serializable _functionDHT(final RichiestaDHT req, final BigInteger key, final Serializable object)
+	private Serializable _functionDHT(final RichiestaDHT req, final String key, final Serializable object)
 	{
 		final var successor = find_successor(key);
 
@@ -474,8 +477,8 @@ public class Chord implements AutoCloseable
 		if (n.equals(successor))
 			switch (req)
 			{
-				case incBigInteger:
-					return dht.incBigInteger(key);
+				case inc:
+					return dht.inc(key);
 
 				case getPeerList:
 					return dht.getPeerList();
@@ -571,9 +574,9 @@ public class Chord implements AutoCloseable
 			next = 1;
 
 		var i = GB.getPowerOfTwo(next - 1);
-		i = n.ID.add(i);
+		i = n.N + i;
 
-		final var successor = find_successor(i);
+		final var successor = find_successor(i + "");
 		setFinger(next, successor);
 	}
 
@@ -590,8 +593,8 @@ public class Chord implements AutoCloseable
 	// called periodically. handoff my data to the correct peer
 	private void handoff()
 	{
-		final var daRimuovere = new HashSet<BigInteger>();
-		final var daFare = new HashSet<BigInteger>();
+		final var daRimuovere = new HashSet<String>();
+		final var daFare = new HashSet<String>();
 
 		do
 		{

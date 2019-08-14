@@ -17,7 +17,6 @@ import io.grpc.StatusRuntimeException;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.math.BigInteger;
 
 public class gRPC_Client
 {
@@ -28,7 +27,7 @@ public class gRPC_Client
 		return gRPC(server, req, null, null);
 	}
 
-	public static NodeLink gRPC(NodeLink server, RichiestaChord req, BigInteger _id)
+	public static NodeLink gRPC(NodeLink server, RichiestaChord req, String _id)
 	{
 		return gRPC(server, req, _id, null);
 	}
@@ -38,7 +37,7 @@ public class gRPC_Client
 		return gRPC(server, req, null, setNode);
 	}
 
-	private static NodeLink gRPC(NodeLink server, RichiestaChord req, BigInteger _id, NodeLink setNode)
+	private static NodeLink gRPC(NodeLink server, RichiestaChord req, String _id, NodeLink setNode)
 	{
 		if (server == null)
 			return null;
@@ -49,7 +48,7 @@ public class gRPC_Client
 			var _casa = Home.casa.newBuilder();
 
 			if (_id != null)
-				_casa.setID(ByteString.copyFrom(_id.toByteArray()));
+				_casa.setID(_id);
 
 			if (setNode != null)
 			{
@@ -78,7 +77,7 @@ public class gRPC_Client
 			{
 				final var c = _request.getCasa();
 
-				return new NodeLink(c.getIdentificatore(), c.getIP(), c.getPort());
+				return new NodeLink(c.getN(), c.getIdentificatore(), c.getIP(), c.getPort());
 			}
 			else
 			{
@@ -118,7 +117,7 @@ public class gRPC_Client
 	//endregion
 
 	//region DHT gRPC
-	public static Serializable gRPC(NodeLink server, RichiestaDHT req, BigInteger key, Serializable object) throws StatusRuntimeException, IOException, ClassNotFoundException
+	public static Serializable gRPC(NodeLink server, RichiestaDHT req, String key, Serializable object) throws StatusRuntimeException, IOException, ClassNotFoundException
 	{
 		if (server == null)
 			return null;
@@ -126,7 +125,7 @@ public class gRPC_Client
 		try (final var hfs = new FastStub())
 		{
 			final var _oggetto = Home.oggetto.newBuilder()
-					.setKey(ByteString.copyFrom(key.toByteArray()))
+					.setKey(key)
 					.setObj(ByteString.copyFrom(GB.serialize(object)))
 					.build();
 
@@ -153,8 +152,8 @@ public class gRPC_Client
 
 		switch (req)
 		{
-			case incBigInteger:
-				return stub.incBigInteger(o);
+			case inc:
+				return stub.inc(o);
 
 			case getPeerList:
 				return stub.getPeerList(o);

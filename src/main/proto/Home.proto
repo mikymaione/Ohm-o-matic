@@ -25,7 +25,7 @@ service HomeService {
     rpc get (oggetto) returns (oggettoRes);
     rpc remove (oggetto) returns (oggettoRes);
 
-    rpc incBigInteger (oggetto) returns (oggettoRes);
+    rpc inc (oggetto) returns (oggettoRes);
     //DHT generic
 
     //DHT peer list
@@ -37,17 +37,19 @@ service HomeService {
 
 //Request
 message oggetto {
-    bytes Key = 1;
+    string Key = 1;
     bytes Obj = 2;
 }
 
 message casa {
-    bytes ID = 1;
+    string ID = 1;
 
     string identificatore = 2;
 
     string IP = 3;
     int32 port = 4;
+
+    int32 N = 5;
 }
 
 message messaggio {

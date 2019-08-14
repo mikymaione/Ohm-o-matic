@@ -17,7 +17,6 @@ import org.knowm.xchart.style.markers.SeriesMarkers;
 
 import javax.swing.*;
 import java.awt.*;
-import java.math.BigInteger;
 import java.util.*;
 
 public class Grafico implements AutoCloseable
@@ -28,7 +27,7 @@ public class Grafico implements AutoCloseable
 	private final SwingWrapper<XYChart> swing;
 	private final String nome;
 
-	private final HashMap<NodeLink, BigInteger> ultimoAggiornamentoGrafico = new HashMap<>();
+	private final HashMap<NodeLink, Integer> ultimoAggiornamentoGrafico = new HashMap<>();
 	private final HashMap<Date, Double> condominioGrafico = new HashMap<>();
 	private final HashMap<Date, Double> mioGrafico = new HashMap<>();
 
@@ -126,8 +125,8 @@ public class Grafico implements AutoCloseable
 		{
 			for (final var peer : peerList)
 			{
-				final var lastNumero = ultimoAggiornamentoGrafico.getOrDefault(peer, BigInteger.ZERO);
-				final var curNumero = chord.getOrDefault(peer.ID, BigInteger.ZERO);
+				final var lastNumero = ultimoAggiornamentoGrafico.getOrDefault(peer, 0);
+				final var curNumero = chord.getOrDefault(peer.ID, 0);
 				ultimoAggiornamentoGrafico.put(peer, curNumero);
 
 				final var statisticheaAltroPeer = chord.getIncrementals(peer.ID, lastNumero, curNumero);

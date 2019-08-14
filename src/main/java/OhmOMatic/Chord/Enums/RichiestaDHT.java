@@ -12,7 +12,7 @@ public enum RichiestaDHT
 	getPeerList,
 	removeFromPeerList,
 
-	incBigInteger,
+	inc,
 
 	transfer,
 	get,

@@ -18,7 +18,6 @@ import OhmOMatic.Global.GB;
 import OhmOMatic.RicartAgrawala.Enums.RichiestaRicartAgrawala;
 import OhmOMatic.RicartAgrawala.gRPC.gRPC_Client;
 
-import java.math.BigInteger;
 import java.util.HashMap;
 
 public class MutualExclusion implements AutoCloseable
@@ -35,7 +34,7 @@ public class MutualExclusion implements AutoCloseable
 	private int our_sequence_number = 0;
 
 	private boolean requesting_critical_section = false;
-	private final HashMap<BigInteger, Boolean> reply_deferred = new HashMap<>();
+	private final HashMap<String, Boolean> reply_deferred = new HashMap<>();
 
 	private final Chord chord;
 

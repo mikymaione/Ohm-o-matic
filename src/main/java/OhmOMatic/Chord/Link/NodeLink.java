@@ -11,16 +11,14 @@ Implementazione in Java di Chord:
 */
 package OhmOMatic.Chord.Link;
 
-import OhmOMatic.Global.GB;
-
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.util.Objects;
 
 public class NodeLink implements Serializable
 {
 
-	public final BigInteger ID;
+	public int N;
+	public final String ID;
 
 	public final String IP;
 	public final int port;
@@ -30,15 +28,16 @@ public class NodeLink implements Serializable
 
 	public NodeLink(final String IP, final int port)
 	{
-		this("", IP, port);
+		this(0, "", IP, port);
 	}
 
-	public NodeLink(final String identificatore, final String IP, final int port)
+	public NodeLink(final int N, final String identificatore, final String IP, final int port)
 	{
+		this.N = N;
 		this.IP = IP;
 		this.port = port;
 		this.identificatore = identificatore;
-		this.ID = GB.StringToBigInteger(indirizzo());
+		this.ID = indirizzo();
 	}
 
 	@Override

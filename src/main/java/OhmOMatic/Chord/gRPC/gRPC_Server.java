@@ -17,7 +17,6 @@ import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.util.function.Function;
 
 public class gRPC_Server
@@ -38,7 +37,7 @@ public class gRPC_Server
 				try
 				{
 					final var destinatario = request.getDestinatario();
-					final var n_ = new NodeLink(destinatario.getIdentificatore(), destinatario.getIP(), destinatario.getPort());
+					final var n_ = new NodeLink(destinatario.getN(), destinatario.getIdentificatore(), destinatario.getIP(), destinatario.getPort());
 
 					final var R = callback.apply(n_);
 
@@ -94,7 +93,7 @@ public class gRPC_Server
 					final var mittente = request.getMittente();
 					final var mID = mittente.getID();
 
-					return local.find_successor(new BigInteger(mID.toByteArray()));
+					return local.find_successor(mID);
 				});
 			}
 
@@ -107,7 +106,7 @@ public class gRPC_Server
 			//endregion
 
 			//region Funzioni DHT
-			private void elaboraDHT(Home.oggetto request, StreamObserver<Home.oggettoRes> responseObserver, Function<Pair<BigInteger, Serializable>, Serializable> callback)
+			private void elaboraDHT(Home.oggetto request, StreamObserver<Home.oggettoRes> responseObserver, Function<Pair<String, Serializable>, Serializable> callback)
 			{
 				var _standardRes = Common.standardRes.newBuilder();
 				var _oggetto = Home.oggetto.newBuilder();
@@ -115,10 +114,9 @@ public class gRPC_Server
 
 				try
 				{
-					final var _key = new BigInteger(request.getKey().toByteArray());
 					final var _obj = GB.deserialize(request.getObj().toByteArray());
 
-					final var R = callback.apply(new Pair<>(_key, _obj));
+					final var R = callback.apply(new Pair<>(request.getKey(), _obj));
 
 					_oggetto
 							.setKey(request.getKey())
@@ -176,10 +174,10 @@ public class gRPC_Server
 			}
 
 			@Override
-			public void incBigInteger(Home.oggetto request, StreamObserver<Home.oggettoRes> responseObserver)
+			public void inc(Home.oggetto request, StreamObserver<Home.oggettoRes> responseObserver)
 			{
 				elaboraDHT(request, responseObserver, e ->
-						local.incBigInteger(e.getKey()));
+						local.inc(e.getKey()));
 			}
 
 			@Override

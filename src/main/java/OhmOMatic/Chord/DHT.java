@@ -15,7 +15,6 @@ import OhmOMatic.Chord.Link.NodeLink;
 import OhmOMatic.Global.Pair;
 
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -25,11 +24,11 @@ class DHT
 {
 
 	// S(N): O(㏒ N)
-	private final HashMap<BigInteger, Serializable> _data = new HashMap<>();
-	private final BigInteger keyListaPeers;
+	private final HashMap<String, Serializable> _data = new HashMap<>();
+	private final String keyListaPeers;
 
 
-	DHT(BigInteger keyListaPeers)
+	DHT(String keyListaPeers)
 	{
 		this.keyListaPeers = keyListaPeers;
 	}
@@ -97,12 +96,12 @@ class DHT
 		return false;
 	}
 
-	BigInteger[] getKeys()
+	String[] getKeys()
 	{
 		synchronized (_data)
 		{
 			final var keySet = _data.keySet();
-			final var R = new BigInteger[keySet.size()];
+			final var R = new String[keySet.size()];
 
 			var x = -1;
 			for (final var k : keySet)
@@ -112,7 +111,7 @@ class DHT
 		}
 	}
 
-	Pair<BigInteger, Serializable>[] getData()
+	Pair<String, Serializable>[] getData()
 	{
 		synchronized (_data)
 		{
@@ -127,7 +126,7 @@ class DHT
 		}
 	}
 
-	Serializable get(final BigInteger key)
+	Serializable get(final String key)
 	{
 		synchronized (_data)
 		{
@@ -135,7 +134,7 @@ class DHT
 		}
 	}
 
-	Boolean put(final BigInteger key, final Serializable value)
+	Boolean put(final String key, final Serializable value)
 	{
 		synchronized (_data)
 		{
@@ -148,12 +147,12 @@ class DHT
 		}
 	}
 
-	Serializable incBigInteger(BigInteger key)
+	Serializable inc(String key)
 	{
 		synchronized (_data)
 		{
-			var val = (BigInteger) _data.getOrDefault(key, BigInteger.ZERO);
-			val = val.add(BigInteger.ONE);
+			var val = (Integer) _data.getOrDefault(key, 0);
+			val += 1;
 
 			_data.put(key, val);
 
@@ -161,7 +160,7 @@ class DHT
 		}
 	}
 
-	Boolean remove(BigInteger key)
+	Boolean remove(String key)
 	{
 		synchronized (_data)
 		{
@@ -171,7 +170,7 @@ class DHT
 		}
 	}
 
-	void removeAll(HashSet<BigInteger> daRimuovere)
+	void removeAll(HashSet<String> daRimuovere)
 	{
 		synchronized (_data)
 		{
@@ -180,7 +179,7 @@ class DHT
 		}
 	}
 
-	void forEachAndRemoveAll(Consumer<Map.Entry<BigInteger, Serializable>> callback, HashSet<BigInteger> daRimuovere)
+	void forEachAndRemoveAll(Consumer<Map.Entry<String, Serializable>> callback, HashSet<String> daRimuovere)
 	{
 		synchronized (_data)
 		{

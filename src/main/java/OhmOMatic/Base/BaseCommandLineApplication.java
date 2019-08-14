@@ -10,18 +10,17 @@ import org.apache.commons.cli.*;
 import org.apache.http.client.utils.URIBuilder;
 
 import java.io.PrintWriter;
-import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
 
 public class BaseCommandLineApplication
 {
 
-	protected static BigInteger stringToBigInteger(String s, int default_)
+	protected static String stringToString(String s, int default_)
 	{
 		final var i = stringToInt(s, default_);
 
-		return BigInteger.valueOf(i);
+		return String.valueOf(i);
 	}
 
 	protected static int stringToInt(String s, int default_)
