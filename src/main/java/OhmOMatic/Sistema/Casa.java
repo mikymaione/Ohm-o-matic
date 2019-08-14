@@ -7,7 +7,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package OhmOMatic.Sistema;
 
 import OhmOMatic.Chord.Chord;
-import OhmOMatic.Chord.Link.NodeLink;
 import OhmOMatic.Global.Pair;
 import OhmOMatic.Global.Waiter;
 import OhmOMatic.ProtoBuffer.Common.standardRes;
@@ -16,33 +15,29 @@ import OhmOMatic.ProtoBuffer.Home.listaCase;
 import OhmOMatic.Simulation.SmartMeterSimulator;
 import OhmOMatic.Sistema.Base.BufferImplWithOverlap;
 import OhmOMatic.Sistema.Base.MeanListener;
-import org.knowm.xchart.SwingWrapper;
-import org.knowm.xchart.XYChart;
-import org.knowm.xchart.XYChartBuilder;
-import org.knowm.xchart.style.Styler;
-import org.knowm.xchart.style.markers.SeriesMarkers;
+import OhmOMatic.Sistema.Grafico.Grafico;
 
-import javax.swing.*;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
-import java.awt.*;
-import java.math.BigInteger;
-import java.util.*;
+import java.util.Date;
 
 public class Casa implements MeanListener, AutoCloseable
 {
 
+	private final Waiter calcoloStatistiche;
 	private final SmartMeterSimulator smartMeterSimulator;
 
-	private WebTarget webTargetRest;
+	private final WebTarget webTargetRest;
 
 	private final String identificatore;
 	private final String RESTAddress;
 	private final String myAddress;
 	private final int myPort;
 
+	private final Grafico grafico;
 	private final Chord chord;
+
 
 	public Casa(final String identificatore_, final String indirizzoREST_, final String mioIndirizzo_, final int miaPorta_, final Chord chord_)
 	{
@@ -54,37 +49,31 @@ public class Casa implements MeanListener, AutoCloseable
 		myAddress = mioIndirizzo_;
 		myPort = miaPorta_;
 
+		grafico = new Grafico(identificatore, chord);
+
 		smartMeterSimulator = new SmartMeterSimulator(
 				new BufferImplWithOverlap(24, 12, this)
 		);
 		smartMeterSimulator.setName("__smartMeterSimulator");
+
+		calcoloStatistiche = new Waiter("calcoloStatistiche", grafico::calcolaStatistiche, 2000);
+
+		webTargetRest = ClientBuilder.newClient().target(RESTAddress + "/OOM");
 	}
 
 
 	@Override
 	public void close()
 	{
-		if (chart_frame != null)
-			chart_frame.dispose();
+		grafico.close();
 	}
 
 	//region Chiamate WS
-	private WebTarget getWebTarget()
-	{
-		if (webTargetRest == null)
-			webTargetRest = ClientBuilder.newClient().target(RESTAddress + "/OOM");
-
-		return webTargetRest;
-	}
-
 	public void iscriviCasa()
 	{
 		try
 		{
-			var webTarget = getWebTarget();
-
-			var wt = webTarget
-					.path("iscriviCasa");
+			var wt = webTargetRest.path("iscriviCasa");
 
 			final var par = casa.newBuilder()
 					.setIP(myAddress)
@@ -112,10 +101,7 @@ public class Casa implements MeanListener, AutoCloseable
 	{
 		try
 		{
-			var webTarget = getWebTarget();
-
-			var wt = webTarget
-					.path("disiscriviCasa");
+			var wt = webTargetRest.path("disiscriviCasa");
 
 			final var par = casa.newBuilder()
 					.setIP(myAddress)
@@ -138,142 +124,17 @@ public class Casa implements MeanListener, AutoCloseable
 	}
 	//endregion
 
-	//region Funzioni sul calcolo del consumo energetico
-	private final Waiter calcoloStatistiche = new Waiter("calcoloStatistiche", this::calcolaStatistiche, 2000);
-
-	final HashMap<NodeLink, BigInteger> ultimoAggiornamentoGrafico = new HashMap<>();
-	final HashMap<Date, Double> condominioGrafico = new HashMap<>();
-	final HashMap<Date, Double> mioGrafico = new HashMap<>();
-
-	private void calcolaStatistiche()
-	{
-		final var peerList = chord.getPeerList();
-
-		if (peerList != null)
-		{
-			//Pair<Double, Date> mean
-			for (final var peer : peerList)
-			{
-				final var lastNumero = ultimoAggiornamentoGrafico.getOrDefault(peer, BigInteger.ZERO);
-				final var curNumero = chord.getOrDefault(peer.ID, BigInteger.ZERO);
-				ultimoAggiornamentoGrafico.put(peer, curNumero);
-
-				final var statisticheaAltroPeer = chord.getIncrementals(peer.ID, lastNumero, curNumero);
-
-				for (var statisticaAltroPeer : statisticheaAltroPeer)
-					if (statisticaAltroPeer != null)
-					{
-						final var p = Pair.<Double, Date>fromSerializable(statisticaAltroPeer);
-						final var attuale = condominioGrafico.getOrDefault(p.getValue(), 0d) + p.getKey();
-
-						condominioGrafico.put(p.getValue(), attuale);
-
-						if (peer.ID.equals(chord.getID()))
-						{
-							final var attuale_m = mioGrafico.getOrDefault(p.getValue(), 0d) + p.getKey();
-							mioGrafico.put(p.getValue(), attuale_m);
-						}
-					}
-			}
-
-			if (mioGrafico.size() > 0 && condominioGrafico.size() > 0)
-			{
-				var mieSorted = new ArrayList<Pair<Double, Date>>(mioGrafico.size());
-				var condominiali = new ArrayList<Pair<Double, Date>>(condominioGrafico.size());
-
-				for (final var s : condominioGrafico.entrySet())
-					condominiali.add(new Pair<>(s.getValue(), s.getKey()));
-
-				for (final var m : mioGrafico.entrySet())
-					mieSorted.add(new Pair<>(m.getValue(), m.getKey()));
-
-				condominiali.sort(Comparator.comparing(Pair::getValue));
-				mieSorted.sort(Comparator.comparing(Pair::getValue));
-
-				aggiornaChart(convertiPerChart(mieSorted), convertiPerChart(condominiali));
-			}
-		}
-	}
-
-	public void richiediAlCondominioDiPoterConsumareOltreLaMedia()
-	{
-
-	}
-	//endregion
-
-
-	//region Chart
-	private XYChart chart;
-	private JFrame chart_frame;
-	private SwingWrapper<XYChart> swing;
-
-	private void creaChart()
-	{
-		final var dim = Toolkit.getDefaultToolkit().getScreenSize();
-
-		chart = new XYChartBuilder()
-				.title("Consumo energetico")
-				.yAxisTitle("kW⋅h")
-				.xAxisTitle("s")
-				.width(dim.width / 2)
-				.height(dim.height / 2)
-				.build();
-
-		var stiler = chart.getStyler();
-		stiler.setLegendPosition(Styler.LegendPosition.InsideSE);
-		stiler.setLocale(Locale.ITALY);
-		stiler.setDatePattern("HH:mm:ss");
-		stiler.setYAxisMin(0d);
-
-		swing = new SwingWrapper<>(chart);
-	}
-
-	private Pair<ArrayList<Double>, ArrayList<Date>> convertiPerChart(ArrayList<Pair<Double, Date>> mie)
-	{
-		var mioConsumo = new ArrayList<Double>(mie.size());
-		var mioTempo = new ArrayList<Date>(mie.size());
-
-		for (final var e : mie)
-		{
-			mioConsumo.add(e.getKey());
-			mioTempo.add(e.getValue());
-		}
-
-		return new Pair<>(mioConsumo, mioTempo);
-	}
-
-	private void aggiornaChart(Pair<ArrayList<Double>, ArrayList<Date>> mieiConsumi, Pair<ArrayList<Double>, ArrayList<Date>> condominioConsumi)
-	{
-		if (chart.getSeriesMap().isEmpty())
-		{
-			chart.addSeries("Mio", mieiConsumi.getValue(), mieiConsumi.getKey(), null).setMarker(SeriesMarkers.NONE);
-			chart.addSeries("Condominio", condominioConsumi.getValue(), condominioConsumi.getKey(), null).setMarker(SeriesMarkers.NONE);
-
-			chart_frame = swing.displayChart();
-			chart_frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-			chart_frame.setTitle(identificatore);
-		}
-		else
-		{
-			chart.updateXYSeries("Mio", mieiConsumi.getValue(), mieiConsumi.getKey(), null);
-			chart.updateXYSeries("Condominio", condominioConsumi.getValue(), condominioConsumi.getKey(), null);
-
-			swing.repaintChart();
-		}
-	}
-	//endregion
-
 
 	//region Gestione Smart meter
 	public void avviaSmartMeter()
 	{
-		creaChart();
 		calcoloStatistiche.start();
 		smartMeterSimulator.start();
 	}
 
 	public void fermaSmartMeter()
 	{
+		calcoloStatistiche.stopMeGently();
 		smartMeterSimulator.stopMeGently();
 	}
 
