@@ -18,16 +18,14 @@ import OhmOMatic.Global.GB;
 import OhmOMatic.RicartAgrawala.Enums.RichiestaRicartAgrawala;
 import OhmOMatic.RicartAgrawala.gRPC.gRPC_Client;
 
-import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.HashMap;
-import java.util.HashSet;
 
 public class MutualExclusion implements AutoCloseable
 {
 
 	private final NodeLink me;
-	private final int numeroMutex;
+	private final int numberOfResources;
 
 	private final Object shared_vars = new Object();
 
@@ -42,11 +40,11 @@ public class MutualExclusion implements AutoCloseable
 	private final Chord chord;
 
 
-	public MutualExclusion(final int numeroMutex, final NodeLink me, Chord chord)
+	public MutualExclusion(final int numberOfResources, final NodeLink me, Chord chord)
 	{
 		this.me = me;
 		this.chord = chord;
-		this.numeroMutex = numeroMutex;
+		this.numberOfResources = numberOfResources;
 	}
 
 	@Override
@@ -55,29 +53,22 @@ public class MutualExclusion implements AutoCloseable
 		//
 	}
 
-	private NodeLink[] getNodi()
-	{
-		return chord.getPeerList();
-	}
-
 	//region Client
 	// Request entry to our critical section
 	public void invokeMutualExclusion(Runnable critical_region_callback)
 	{
-		GB.sleep(5000);
-
-		final var Nodi = getNodi();
+		final var peerList = chord.getPeerList();
 
 		synchronized (shared_vars)
 		{
 			// Choose a sequence number
 			requesting_critical_section = true;
 			our_sequence_number = highest_sequence_number + 1;
-			outstanding_reply_count = Nodi.length - 1;
+			outstanding_reply_count = peerList.length - numberOfResources;
 		}
 
 		// Send a request message containing our sequence number and our node number to all other nodes
-		for (final var nodo : Nodi)
+		for (final var nodo : peerList)
 			if (!nodo.equals(me))
 				GB.waitfor(() -> gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.request, our_sequence_number, me), 250);
 
@@ -86,21 +77,19 @@ public class MutualExclusion implements AutoCloseable
 		{
 			synchronized (shared_vars)
 			{
-				return outstanding_reply_count == 0;
+				return outstanding_reply_count < 1;
 			}
 		}, 100);
 
 		// Critical section processing can be performed at this point
-		addToCriticalDHTList(me);
 		critical_region_callback.run();
 
 		synchronized (shared_vars)
 		{
 			requesting_critical_section = false;
 		}
-		removeFromCriticalDHTList(me);
 
-		for (final var nodo : Nodi)
+		for (final var nodo : peerList)
 			if (!nodo.equals(me))
 			{
 				final boolean ok;
@@ -114,45 +103,10 @@ public class MutualExclusion implements AutoCloseable
 				}
 
 				if (ok)
-					GB.waitfor(() -> gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.reply, me), 250);
+					GB.waitfor(() -> gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.reply), 250);
 			}
 	}
 	//endregion
-
-	private Serializable get(final String key)
-	{
-		return chord.get(GB.SHA1BI(key));
-	}
-
-	private void put(final String key, final Serializable object)
-	{
-		chord.put(GB.SHA1BI(key), object);
-	}
-
-	public void initCriticalDHTList()
-	{
-		chord.put(GB.SHA1BI("RicartAgrawala_InCriticalSection"), new HashSet<NodeLink>(2));
-	}
-
-	private HashSet<NodeLink> getCriticalDHTList()
-	{
-		return (HashSet<NodeLink>) get("RicartAgrawala_InCriticalSection");
-	}
-
-	private void addToCriticalDHTList(NodeLink n)
-	{
-		final var RicartAgrawala_InCriticalSection = getCriticalDHTList();
-		RicartAgrawala_InCriticalSection.add(n);
-		put("RicartAgrawala_InCriticalSection", RicartAgrawala_InCriticalSection);
-	}
-
-	private void removeFromCriticalDHTList(NodeLink n)
-	{
-		final var RicartAgrawala_InCriticalSection = getCriticalDHTList();
-		RicartAgrawala_InCriticalSection.remove(n);
-		put("RicartAgrawala_InCriticalSection", RicartAgrawala_InCriticalSection);
-	}
-
 
 	//region Server
 	public void reply()
@@ -173,15 +127,10 @@ public class MutualExclusion implements AutoCloseable
 		{
 			highest_sequence_number = Math.max(highest_sequence_number, caller_sequence_number);
 
-			final var RicartAgrawala_InCriticalSection = getCriticalDHTList();
-
-			if (RicartAgrawala_InCriticalSection.size() == numeroMutex - 1)
-				defer_it =
-						requesting_critical_section &&
-								((caller_sequence_number > our_sequence_number) ||
-										(caller_sequence_number == our_sequence_number && caller.ID.compareTo(me.ID) > 0));
-			else
-				defer_it = RicartAgrawala_InCriticalSection.size() == numeroMutex;
+			defer_it =
+					requesting_critical_section &&
+							((caller_sequence_number > our_sequence_number) ||
+									(caller_sequence_number == our_sequence_number && caller.ID.compareTo(me.ID) > 0));
 		}
 
 		if (defer_it)
@@ -190,7 +139,7 @@ public class MutualExclusion implements AutoCloseable
 				reply_deferred.put(caller.ID, true);
 			}
 		else
-			GB.waitfor(() -> gRPC_Client.gRPC(caller, RichiestaRicartAgrawala.reply, me), 250);
+			GB.waitfor(() -> gRPC_Client.gRPC(caller, RichiestaRicartAgrawala.reply), 250);
 	}
 	//endregion
 

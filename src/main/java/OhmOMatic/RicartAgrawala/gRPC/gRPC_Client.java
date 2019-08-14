@@ -19,44 +19,56 @@ import java.io.IOException;
 public class gRPC_Client
 {
 	//region Ricart & Agrawala gRPC
-	public static boolean gRPC(NodeLink server, RichiestaRicartAgrawala req, NodeLink me)
+	public static boolean gRPC(NodeLink server, RichiestaRicartAgrawala req)
 	{
-		return gRPC(server, req, -1, me);
+		final var _oggetto = RicartAgrawalaOuterClass.mutualExMsg.newBuilder()
+				.build();
+
+		return gRPC(server, req, _oggetto);
 	}
 
 	public static boolean gRPC(NodeLink server, RichiestaRicartAgrawala req, int our_sequence_number, NodeLink me)
 	{
-		if (server != null)
-			try (final var hfs = new FastStub())
+		try
+		{
+			final var _oggetto = RicartAgrawalaOuterClass.mutualExMsg.newBuilder()
+					.setNodeLink(ByteString.copyFrom(GB.serialize(me)))
+					.setOurSequenceNumber(our_sequence_number)
+					.build();
+
+			return gRPC(server, req, _oggetto);
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	private static boolean gRPC(NodeLink server, RichiestaRicartAgrawala req, RicartAgrawalaOuterClass.mutualExMsg _oggetto)
+	{
+		if (server == null)
+			return false;
+
+		try (final var hfs = new FastStub())
+		{
+			final var stub = hfs.getRicartAgrawala(server);
+
+			final Common.standardRes _request;
+			switch (req)
 			{
-				final var _oggetto = RicartAgrawalaOuterClass.mutualExMsg.newBuilder()
-						.setNodeLink(ByteString.copyFrom(GB.serialize(me)))
-						.setOurSequenceNumber(our_sequence_number)
-						.build();
-
-				final var stub = hfs.getRicartAgrawala(server);
-
-				final Common.standardRes _request;
-				switch (req)
-				{
-					case reply:
-						_request = stub.reply(_oggetto);
-						break;
-					case request:
-						_request = stub.request(_oggetto);
-						break;
-					default:
-						throw new UnsupportedOperationException("Switch non implementato!");
-				}
-
-				return _request.getOk();
-			}
-			catch (IOException e)
-			{
-				e.printStackTrace();
+				case reply:
+					_request = stub.reply(_oggetto);
+					break;
+				case request:
+					_request = stub.request(_oggetto);
+					break;
+				default:
+					throw new UnsupportedOperationException("Switch non implementato!");
 			}
 
-		return false;
+			return _request.getOk();
+		}
 	}
 	//endregion
 

@@ -42,7 +42,9 @@ public class gRPC_Server
 
 				try
 				{
-					final var nodo = GB.<NodeLink>deserializeT(request.getNodeLink().toByteArray());
+					final var nl = request.getNodeLink();
+
+					final var nodo = (nl.isEmpty() ? null : GB.<NodeLink>deserializeT(request.getNodeLink().toByteArray()));
 					final var our_sequence_number = request.getOurSequenceNumber();
 
 					callback.accept(new reqParam(nodo, our_sequence_number));

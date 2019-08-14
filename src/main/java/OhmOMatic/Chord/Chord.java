@@ -260,9 +260,6 @@ public class Chord implements AutoCloseable
 		{
 			dht.createPeerList();
 			System.out.println("Creata peer list");
-
-			mutualExclusion.initCriticalDHTList();
-			System.out.println("Creata mutex list");
 		}
 		else
 		{
