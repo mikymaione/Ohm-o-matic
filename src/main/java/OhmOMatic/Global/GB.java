@@ -22,6 +22,7 @@ import java.util.concurrent.Callable;
 public final class GB
 {
 
+	public static final Integer fingerLength = 8;
 	private static final int randomSeed = new Date().getSeconds();
 	private static Random randomFN = new Random(randomSeed);
 
@@ -33,7 +34,7 @@ public final class GB
 		return new BigInteger(SHA1(s));
 	}
 
-	public static byte[] SHA1(String s)
+	private static byte[] SHA1(String s)
 	{
 		try
 		{

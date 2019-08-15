@@ -118,7 +118,7 @@ public class Grafico implements AutoCloseable
 	}
 
 
-	public void calcolaStatistiche()
+	public synchronized void calcolaStatistiche()
 	{
 		final var peerList = chord.getPeerList();
 

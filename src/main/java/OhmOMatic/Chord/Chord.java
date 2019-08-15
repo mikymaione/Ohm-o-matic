@@ -47,8 +47,6 @@ public class Chord implements AutoCloseable
 
 
 	//===================================== Chord =====================================
-	//private static final Integer mBit = 160; //SHA1 versione normale
-	private static final Integer mBit = 8; //versione semplificata
 	private Integer next = 1;
 
 	private final BigInteger keyListaPeers;
@@ -83,7 +81,7 @@ public class Chord implements AutoCloseable
 	{
 		n = address;
 
-		_fingerTable = new HashMap<>(mBit);
+		_fingerTable = new HashMap<>(GB.fingerLength);
 
 		keyListaPeers = GB.SHA1BI("Chiave speciale per lista dei peer");
 		dht = new DHT(keyListaPeers);
@@ -170,9 +168,9 @@ public class Chord implements AutoCloseable
 	{
 		synchronized (_fingerTable)
 		{
-			var lista = new NodeLink[mBit];
+			var lista = new NodeLink[GB.fingerLength];
 
-			for (var i = 0; i < mBit; i++)
+			for (var i = 0; i < GB.fingerLength; i++)
 				lista[i] = _fingerTable.get(i + 1);
 
 			return lista;
@@ -224,7 +222,7 @@ public class Chord implements AutoCloseable
 	{
 		synchronized (_fingerTable)
 		{
-			for (Integer i = mBit; i > 0; i--)
+			for (Integer i = GB.fingerLength; i > 0; i--)
 			{
 				final var iThFinger = _fingerTable.get(i);
 
@@ -372,7 +370,7 @@ public class Chord implements AutoCloseable
 	//endregion
 
 	//region DHT
-	public void putIncremental(final Serializable object)
+	public synchronized void putIncremental(final Serializable object)
 	{
 		final var curNumero = incBigInteger(n.ID);
 		final var chiave = n.ID.add(curNumero);
@@ -380,7 +378,7 @@ public class Chord implements AutoCloseable
 		put(chiave, object);
 	}
 
-	public Serializable[] getIncrementals(final BigInteger key, final BigInteger lastNumero, final BigInteger curNumero)
+	public synchronized Serializable[] getIncrementals(final BigInteger key, final BigInteger lastNumero, final BigInteger curNumero)
 	{
 		final var from_ = lastNumero.intValue();
 		final var to_ = curNumero.intValue();
@@ -406,7 +404,10 @@ public class Chord implements AutoCloseable
 			if (r instanceof BigInteger)
 				return (BigInteger) r;
 			else
+			{
+				System.out.println(key + " inc non trovata");
 				GB.sleep(_sleepTime);
+			}
 		}
 	}
 
@@ -420,7 +421,10 @@ public class Chord implements AutoCloseable
 			if (Boolean.TRUE.equals(r))
 				return r;
 			else
+			{
+				System.out.println(key + " remove non trovata");
 				GB.sleep(_sleepTime);
+			}
 		}
 	}
 
@@ -439,7 +443,10 @@ public class Chord implements AutoCloseable
 			var r = _functionDHT(RichiestaDHT.get, key, null);
 
 			if (Boolean.FALSE.equals(r))
+			{
+				System.out.println(key + " get non trovata");
 				GB.sleep(_sleepTime);
+			}
 			else
 				return r;
 		}
@@ -455,13 +462,17 @@ public class Chord implements AutoCloseable
 			if (Boolean.TRUE.equals(r))
 				return r;
 			else
+			{
+				System.out.println(key + " put non trovata");
 				GB.sleep(_sleepTime);
+			}
 		}
 	}
 
 	// T(N): O(1)
 	public Serializable transfer(final BigInteger key, final Serializable object)
 	{
+		System.out.println(key + " transfer!");
 		return dht.put(key, object);
 	}
 
@@ -567,7 +578,7 @@ public class Chord implements AutoCloseable
 	{
 		next++;
 
-		if (next > mBit)
+		if (next > GB.fingerLength)
 			next = 1;
 
 		var i = GB.getPowerOfTwo(next - 1);
