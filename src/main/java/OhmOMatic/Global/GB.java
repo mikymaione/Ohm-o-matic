@@ -77,8 +77,12 @@ public final class GB
 		return incluso(id, a.ID, b.ID);
 	}
 
-	private static boolean incluso(BigInteger id, BigInteger start, BigInteger end)
+	private static boolean incluso(BigInteger i, BigInteger s, BigInteger e)
 	{
+		final BigInteger id = i.mod(shaBitsB);
+		final BigInteger start = s.mod(shaBitsB);
+		final BigInteger end = e.mod(shaBitsB);
+
 		if (end.compareTo(start) <= 0)
 			return start.compareTo(id) < 0 || id.compareTo(end) <= 0;
 		else
@@ -90,8 +94,12 @@ public final class GB
 		return finger_incluso(key.ID, x.ID, y);
 	}
 
-	private static boolean finger_incluso(BigInteger key, BigInteger start, BigInteger end)
+	private static boolean finger_incluso(BigInteger i, BigInteger s, BigInteger e)
 	{
+		final BigInteger key = i.mod(shaBitsB);
+		final BigInteger start = s.mod(shaBitsB);
+		final BigInteger end = e.mod(shaBitsB);
+
 		if (start.equals(end))
 			return true;
 		else if (end.compareTo(start) < 0)

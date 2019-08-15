@@ -482,32 +482,33 @@ public class Chord implements AutoCloseable
 
 	private Serializable _functionDHT(final RichiestaDHT req, final BigInteger key, final Serializable object)
 	{
-		final var successor = find_successor(key);
+		while (true)
+		{
+			final var successor = find_successor(key);
 
-		//System.out.println("[" + GB.DateToString() + "] DHT." + req + " > " + n_ + ": " + key + "=" + object);
+			//System.out.println("[" + GB.DateToString() + "] DHT." + req + " > " + n_ + ": " + key + "=" + object);
 
-		if (n.equals(successor))
-			switch (req)
-			{
-				case incBigInteger:
-					return dht.incBigInteger(key);
+			if (n.equals(successor))
+				switch (req)
+				{
+					case incBigInteger:
+						return dht.incBigInteger(key);
 
-				case getPeerList:
-					return dht.getPeerList();
-				case addToPeerList:
-					return dht.addToPeerList(object);
-				case removeFromPeerList:
-					return dht.removeFromPeerList(object);
+					case getPeerList:
+						return dht.getPeerList();
+					case addToPeerList:
+						return dht.addToPeerList(object);
+					case removeFromPeerList:
+						return dht.removeFromPeerList(object);
 
-				case get:
-					return dht.get(key);
-				case put:
-					return dht.put(key, object);
-				case remove:
-					return dht.remove(key);
-			}
-		else
-			while (true)
+					case get:
+						return dht.get(key);
+					case put:
+						return dht.put(key, object);
+					case remove:
+						return dht.remove(key);
+				}
+			else
 				try
 				{
 					return gRPC_Client.gRPC(successor, req, key, object);
@@ -530,6 +531,7 @@ public class Chord implements AutoCloseable
 					e.printStackTrace();
 					break;
 				}
+		}
 
 		return null;
 	}
