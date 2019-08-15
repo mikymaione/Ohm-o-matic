@@ -11,13 +11,14 @@ import OhmOMatic.ProtoBuffer.Home.casa;
 import OhmOMatic.ProtoBuffer.Home.listaCase;
 import OhmOMatic.ProtoBuffer.Stat.parametriStatisticaReq;
 import OhmOMatic.ProtoBuffer.Stat.parametriStatisticheReq;
+import OhmOMatic.REST.Backend.Backend;
 
 import javax.ws.rs.*;
-import java.util.ArrayList;
+import java.util.LinkedList;
 
 
 @Path("OOM")
-public final class OOM
+public final class OOM extends Backend
 {
 
 	//region Casa
@@ -27,22 +28,16 @@ public final class OOM
 	@Produces("application/x-protobuf")
 	public listaCase iscriviCasa(casa par)
 	{
-		var iscrizione_casa_nel_DB_ok = true;
-		var iscrizione_casa_nel_DB_errore = "excepsions!";
+		synchronized (elencoCase)
+		{
+			elencoCase.add(par);
 
-		//iscrizione casa nel DB
-		//.........
-		//.........
-		//.........
-		//iscrizione casa nel DB
-
-		final var resElencoCase = listaCase
-				.newBuilder()
-				.setStandardResponse(buildStandardRes(iscrizione_casa_nel_DB_ok, iscrizione_casa_nel_DB_errore))
-				.addAllCase(getElencoCase())
-				.build();
-
-		return resElencoCase;
+			return listaCase
+					.newBuilder()
+					.setStandardResponse(buildStandardRes())
+					.addAllCase(elencoCase)
+					.build();
+		}
 	}
 
 	@PUT
@@ -51,16 +46,13 @@ public final class OOM
 	@Produces("application/x-protobuf")
 	public standardRes disiscriviCasa(casa par)
 	{
-		final var res = buildStandardRes(false, "excepsions!");
-
-		return res;
-	}
-
-	private ArrayList<casa> getElencoCase()
-	{
-		final var elenco_case = new ArrayList<casa>();
-
-		return elenco_case;
+		synchronized (elencoCase)
+		{
+			if (elencoCase.remove(par))
+				return buildStandardRes();
+			else
+				return buildStandardRes("Non sono riuscito a rimuovere la casa " + par.getIdentificatore());
+		}
 	}
 
 	@GET
@@ -68,13 +60,14 @@ public final class OOM
 	@Produces("application/x-protobuf")
 	public listaCase elencoCase()
 	{
-		final var res = listaCase
-				.newBuilder()
-				.setStandardResponse(buildStandardRes(false, "excepsions!"))
-				.addAllCase(getElencoCase())
-				.build();
-
-		return res;
+		synchronized (elencoCase)
+		{
+			return listaCase
+					.newBuilder()
+					.setStandardResponse(buildStandardRes())
+					.addAllCase(elencoCase)
+					.build();
+		}
 	}
 	//endregion
 
@@ -86,9 +79,17 @@ public final class OOM
 	@Produces("application/x-protobuf")
 	public standardRes aggiungiStatisticaLocale(parametriStatisticaReq par)
 	{
-		final var res = buildStandardRes(false, "excepsions!");
+		synchronized (statisticheCasa)
+		{
+			final var lista = statisticheCasa.getOrDefault(par.getHomeData(), new LinkedList<>());
 
-		return res;
+			lista.add(par.getParamStats());
+
+			if (!statisticheCasa.containsKey(par.getHomeData()))
+				statisticheCasa.put(par.getHomeData(), lista);
+
+			return buildStandardRes();
+		}
 	}
 
 	@PUT
@@ -97,9 +98,12 @@ public final class OOM
 	@Produces("application/x-protobuf")
 	public standardRes aggiungiStatisticaGlobale(parametriStatisticaReq par)
 	{
-		final var res = buildStandardRes(false, "excepsions!");
+		synchronized (statisticheCondominio)
+		{
+			statisticheCondominio.add(par.getParamStats());
 
-		return res;
+			return buildStandardRes();
+		}
 	}
 
 
@@ -109,9 +113,8 @@ public final class OOM
 	@Produces("application/x-protobuf")
 	public standardRes ultimeStatisticheCasa(parametriStatisticaReq par)
 	{
-		final var res = buildStandardRes(false, "excepsions!");
 
-		return res;
+		return buildStandardRes();
 	}
 
 	@POST
@@ -120,7 +123,7 @@ public final class OOM
 	@Produces("application/x-protobuf")
 	public standardRes ultimeStatisticheCondominio(parametriStatisticheReq par)
 	{
-		final var res = buildStandardRes(false, "excepsions!");
+		final var res = buildStandardRes();
 
 		return res;
 	}
@@ -132,7 +135,7 @@ public final class OOM
 	@Produces("application/x-protobuf")
 	public standardRes deviazioneStandardMediaCasa(parametriStatisticaReq par)
 	{
-		final var res = buildStandardRes(false, "excepsions!");
+		final var res = buildStandardRes();
 
 		return res;
 	}
@@ -143,20 +146,9 @@ public final class OOM
 	@Produces("application/x-protobuf")
 	public standardRes deviazioneStandardMediaCondominio(parametriStatisticheReq par)
 	{
-		final var res = buildStandardRes(false, "excepsions!");
+		final var res = buildStandardRes();
 
 		return res;
-	}
-	//endregion
-
-	//region Common functions
-	private standardRes buildStandardRes(final boolean Ok, final String errore)
-	{
-		return standardRes
-				.newBuilder()
-				.setOk(Ok)
-				.setErrore(errore)
-				.build();
 	}
 	//endregion
 }
