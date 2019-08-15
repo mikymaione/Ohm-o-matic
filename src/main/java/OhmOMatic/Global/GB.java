@@ -22,7 +22,7 @@ import static org.apache.commons.codec.digest.MessageDigestAlgorithms.SHA3_512;
 public final class GB
 {
 
-	public static final int FingerTableLength = 4;
+	public static final int FingerTableLength = 8;
 	public static final int ShaBit = 512;
 	private static final BigInteger ShaBitB = BigInteger.valueOf(ShaBit);
 	private static final int randomSeed = new Date().getSeconds();
@@ -67,19 +67,19 @@ public final class GB
 		return bi.longValueExact();
 	}
 
-	public static boolean incluso(NodeLink id, NodeLink a, NodeLink b)
+	public static boolean incluso(NodeLink id, NodeLink start, NodeLink end)
 	{
-		return incluso(id.ID, a.ID, b.ID);
+		return incluso(id.ID, start.ID, end.ID);
 	}
 
-	public static boolean incluso(String id, NodeLink a, NodeLink b)
+	public static boolean incluso(NodeLink id, NodeLink start, String end)
 	{
-		return incluso(id, a.ID, b.ID);
+		return incluso(id.ID, start.ID, end);
 	}
 
-	public static boolean incluso(NodeLink iThFinger, NodeLink n, String id)
+	public static boolean incluso(String id, NodeLink start, NodeLink end)
 	{
-		return incluso(iThFinger.ID, n.ID, id);
+		return incluso(id, start.ID, end.ID);
 	}
 
 	private static boolean incluso(String id, String start, String end)
@@ -88,27 +88,20 @@ public final class GB
 		final var _start = stringToModBit(start);
 		final var _end = stringToModBit(end);
 
-		if (_end.compareTo(_start) <= 0)
-			return _start.compareTo(_id) < 0 || _id.compareTo(_end) < 0;
-		else
-			return _start.compareTo(_id) < 0 && _id.compareTo(_end) < 0;
-	}
+		if (_start.compareTo(_end) > 0)
+		{
+			if (_id.compareTo(_start) < 0 && _id.compareTo(_end) <= 0)
+				return true;
 
-	public static boolean inclusoR(String id, NodeLink start, NodeLink end)
-	{
-		return inclusoR(id, start.ID, end.ID);
-	}
+			if (_id.compareTo(_start) > 0)
+				return true;
+		}
 
-	private static boolean inclusoR(String id, String start, String end)
-	{
-		final var _id = stringToModBit(id);
-		final var _start = stringToModBit(start);
-		final var _end = stringToModBit(end);
+		if (_start.compareTo(_end) < 0)
+			if (_id.compareTo(_start) > 0 && _id.compareTo(_end) <= 0)
+				return true;
 
-		if (_end.compareTo(_start) <= 0)
-			return _start.compareTo(_id) < 0 || _id.compareTo(_end) <= 0;
-		else
-			return _start.compareTo(_id) < 0 && _id.compareTo(_end) <= 0;
+		return _start.compareTo(_end) == 0 && (_start.compareTo(_id) != 0);
 	}
 
 	public static byte[] serialize(final Serializable obj) throws IOException

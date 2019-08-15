@@ -202,7 +202,7 @@ public class Chord implements AutoCloseable
 
 		//if (id ∈ (n, successor])
 		if (successor != null)
-			if (GB.inclusoR(id, n, successor))
+			if (GB.incluso(id, n, successor))
 				return successor;
 
 		// forward the query around the circle
