@@ -132,20 +132,21 @@ public class Grafico implements AutoCloseable
 
 				final var statisticheaAltroPeer = chord.getIncrementals(peer.ID, lastNumero, curNumero);
 
-				for (var statisticaAltroPeer : statisticheaAltroPeer)
-					if (statisticaAltroPeer != null)
-					{
-						final var p = Pair.<Double, Date>fromSerializable(statisticaAltroPeer);
-						final var attuale = condominioGrafico.getOrDefault(p.getValue(), 0d) + p.getKey();
-
-						condominioGrafico.put(p.getValue(), attuale);
-
-						if (peer.ID.equals(chord.getID()))
+				if (statisticheaAltroPeer != null)
+					for (var statisticaAltroPeer : statisticheaAltroPeer)
+						if (statisticaAltroPeer != null)
 						{
-							final var attuale_m = mioGrafico.getOrDefault(p.getValue(), 0d) + p.getKey();
-							mioGrafico.put(p.getValue(), attuale_m);
+							final var p = Pair.<Double, Date>fromSerializable(statisticaAltroPeer);
+							final var attuale = condominioGrafico.getOrDefault(p.getValue(), 0d) + p.getKey();
+
+							condominioGrafico.put(p.getValue(), attuale);
+
+							if (peer.ID.equals(chord.getID()))
+							{
+								final var attuale_m = mioGrafico.getOrDefault(p.getValue(), 0d) + p.getKey();
+								mioGrafico.put(p.getValue(), attuale_m);
+							}
 						}
-					}
 			}
 
 			if (mioGrafico.size() > 0 && condominioGrafico.size() > 0)

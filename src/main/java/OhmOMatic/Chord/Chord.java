@@ -81,9 +81,9 @@ public class Chord implements AutoCloseable
 	{
 		n = address;
 
-		_fingerTable = new HashMap<>(GB.fingerLength);
+		_fingerTable = new HashMap<>(GB.numberOfFingers);
 
-		keyListaPeers = GB.SHA1BI("Chiave speciale per lista dei peer");
+		keyListaPeers = GB.SHA("Chiave speciale per lista dei peer");
 		dht = new DHT(keyListaPeers);
 
 		stabilizingRoutines = Set.of(
@@ -168,9 +168,9 @@ public class Chord implements AutoCloseable
 	{
 		synchronized (_fingerTable)
 		{
-			var lista = new NodeLink[GB.fingerLength];
+			var lista = new NodeLink[GB.numberOfFingers];
 
-			for (var i = 0; i < GB.fingerLength; i++)
+			for (var i = 0; i < GB.numberOfFingers; i++)
 				lista[i] = _fingerTable.get(i + 1);
 
 			return lista;
@@ -222,7 +222,7 @@ public class Chord implements AutoCloseable
 	{
 		synchronized (_fingerTable)
 		{
-			for (Integer i = GB.fingerLength; i > 0; i--)
+			for (Integer i = GB.numberOfFingers; i > 0; i--)
 			{
 				final var iThFinger = _fingerTable.get(i);
 
@@ -382,6 +382,10 @@ public class Chord implements AutoCloseable
 	{
 		final var from_ = lastNumero.intValue();
 		final var to_ = curNumero.intValue();
+
+		if (to_ - from_ < 0)
+			return null;
+
 		final var lista = new Serializable[to_ - from_];
 
 		var x = -1;
@@ -578,11 +582,12 @@ public class Chord implements AutoCloseable
 	{
 		next++;
 
-		if (next > GB.fingerLength)
+		if (next > GB.numberOfFingers)
 			next = 1;
 
 		var i = GB.getPowerOfTwo(next - 1);
 		i = n.ID.add(i);
+		i = i.mod(GB.shaBitsB);
 
 		final var successor = find_successor(i);
 		setFinger(next, successor);

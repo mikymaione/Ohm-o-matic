@@ -38,7 +38,7 @@ public class NodeLink implements Serializable
 		this.IP = IP;
 		this.port = port;
 		this.identificatore = identificatore;
-		this.ID = GB.SHA1BI(indirizzo());
+		this.ID = GB.SHA(indirizzo());
 	}
 
 	@Override

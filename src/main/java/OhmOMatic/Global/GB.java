@@ -7,52 +7,42 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package OhmOMatic.Global;
 
 import OhmOMatic.Chord.Link.NodeLink;
+import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.*;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.concurrent.Callable;
 
+import static org.apache.commons.codec.digest.MessageDigestAlgorithms.SHA3_512;
+
 public final class GB
 {
 
-	public static final Integer fingerLength = 8;
+	public static final Integer numberOfFingers = 32;
+
+	private static final int shaBits = 512;
+	public static final BigInteger shaBitsB = BigInteger.valueOf(shaBits);
+	private static final DigestUtils duSHA3_512 = new DigestUtils(SHA3_512);
+	private static final HashMap<String, BigInteger> _shaStrings = new HashMap<>();
+	private static final HashMap<Integer, BigInteger> _powerOfTwo = new HashMap<>();
+
 	private static final int randomSeed = new Date().getSeconds();
-	private static Random randomFN = new Random(randomSeed);
-
-	private static HashMap<Integer, BigInteger> _powerOfTwo = new HashMap<>();
+	private static final Random randomFN = new Random(randomSeed);
 
 
-	public static BigInteger SHA1BI(String s)
+	public static BigInteger SHA(final String s)
 	{
-		return new BigInteger(SHA1(s));
-	}
+		if (_shaStrings.containsKey(s))
+			return _shaStrings.get(s);
 
-	private static byte[] SHA1(String s)
-	{
-		try
-		{
-			final var bytes = s.getBytes(StandardCharsets.UTF_8);
+		final var b = new BigInteger(duSHA3_512.digest(s));
+		_shaStrings.put(s, b);
 
-			var sha1 = MessageDigest.getInstance("SHA-1");
-
-			sha1.reset();
-			sha1.update(bytes);
-
-			return sha1.digest();
-		}
-		catch (NoSuchAlgorithmException e)
-		{
-			e.printStackTrace();
-		}
-
-		return new byte[0];
+		return b;
 	}
 
 	public static BigInteger getPowerOfTwo(final Integer k)
@@ -60,9 +50,9 @@ public final class GB
 		if (_powerOfTwo.size() == 0)
 		{
 			final var due = BigInteger.valueOf(2);
-			var curVal = BigInteger.valueOf(1); //2^0
+			var curVal = BigInteger.valueOf(1); // 2^0
 
-			for (Integer i = 0; i <= 160; i++)
+			for (Integer i = 0; i <= shaBits; i++)
 			{
 				_powerOfTwo.put(i, curVal);
 				curVal = curVal.multiply(due);
