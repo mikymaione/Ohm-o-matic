@@ -84,7 +84,7 @@ public final class CliCasa extends BaseCommandLineApplication
 
 		do
 		{
-			printOptions("", commands);
+			printOptions(" ", commands);
 
 			final var line = scanner.nextLine();
 

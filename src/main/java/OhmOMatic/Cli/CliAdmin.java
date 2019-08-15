@@ -59,7 +59,7 @@ public final class CliAdmin extends BaseCommandLineApplication
 
 		do
 		{
-			printOptions("", commands);
+			printOptions(" ", commands);
 
 			final var line = scanner.nextLine();
 

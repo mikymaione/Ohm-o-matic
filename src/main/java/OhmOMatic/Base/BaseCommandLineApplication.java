@@ -9,7 +9,6 @@ package OhmOMatic.Base;
 import org.apache.commons.cli.*;
 import org.apache.http.client.utils.URIBuilder;
 
-import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -59,14 +58,11 @@ public class BaseCommandLineApplication
 				.build();
 	}
 
+	private final static HelpFormatter formatter = new HelpFormatter();
+
 	protected static void printOptions(String app, Options options)
 	{
-		final var formatter = new HelpFormatter();
-		final var writer = new PrintWriter(System.out);
-
-		formatter.printUsage(writer, 80, app, options);
-
-		writer.flush();
+		formatter.printHelp(app, options);
 	}
 
 
