@@ -7,6 +7,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package OhmOMatic.Global;
 
 import OhmOMatic.Chord.Link.NodeLink;
+import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.*;
 import java.math.BigInteger;
@@ -16,14 +17,26 @@ import java.util.HashMap;
 import java.util.Random;
 import java.util.concurrent.Callable;
 
+import static org.apache.commons.codec.digest.MessageDigestAlgorithms.SHA3_512;
+
 public final class GB
 {
 
+	public static final int FingerTableLength = 4;
+	public static final int ShaBit = 512;
+	private static final BigInteger ShaBitB = BigInteger.valueOf(ShaBit);
 	private static final int randomSeed = new Date().getSeconds();
-	private static Random randomFN = new Random(randomSeed);
+	private static final Random randomFN = new Random(randomSeed);
+	private static final HashMap<Integer, BigInteger> _powerOfTwo = new HashMap<>();
 
-	private static HashMap<Integer, BigInteger> _powerOfTwo = new HashMap<>();
 
+	private static BigInteger stringToBigInteger(String s)
+	{
+		final var du = new DigestUtils(SHA3_512);
+		final var bytes = du.digest(s);
+
+		return new BigInteger(bytes);
+	}
 
 	public static long getPowerOfTwo(final Integer k)
 	{
@@ -36,7 +49,7 @@ public final class GB
 		{
 			var curVal = BigInteger.valueOf(1); // 2^0
 
-			for (Integer i = 0; i <= 160; i++)
+			for (Integer i = 0; i <= FingerTableLength; i++)
 			{
 				_powerOfTwo.put(i, curVal);
 				curVal = curVal.multiply(BigInteger.TWO);
@@ -44,6 +57,14 @@ public final class GB
 		}
 
 		return _powerOfTwo.get(k);
+	}
+
+	public static Long stringToModBit(String s)
+	{
+		var bi = stringToBigInteger(s);
+		bi = bi.mod(ShaBitB);
+
+		return bi.longValueExact();
 	}
 
 	public static boolean incluso(NodeLink id, NodeLink a, NodeLink b)
@@ -56,27 +77,38 @@ public final class GB
 		return incluso(id, a.ID, b.ID);
 	}
 
+	public static boolean incluso(NodeLink iThFinger, NodeLink n, String id)
+	{
+		return incluso(iThFinger.ID, n.ID, id);
+	}
+
 	private static boolean incluso(String id, String start, String end)
 	{
-		if (end.compareTo(start) <= 0)
-			return start.compareTo(id) < 0 || id.compareTo(end) <= 0;
+		final var _id = stringToModBit(id);
+		final var _start = stringToModBit(start);
+		final var _end = stringToModBit(end);
+
+		if (_end.compareTo(_start) <= 0)
+			return _start.compareTo(_id) < 0 || _id.compareTo(_end) < 0;
 		else
-			return start.compareTo(id) < 0 && id.compareTo(end) <= 0;
+			return _start.compareTo(_id) < 0 && _id.compareTo(_end) < 0;
 	}
 
-	public static boolean finger_incluso(NodeLink key, NodeLink x, String y)
+	public static boolean inclusoR(String id, NodeLink start, NodeLink end)
 	{
-		return finger_incluso(key.ID, x.ID, y);
+		return inclusoR(id, start.ID, end.ID);
 	}
 
-	private static boolean finger_incluso(String key, String start, String end)
+	private static boolean inclusoR(String id, String start, String end)
 	{
-		if (start.equals(end))
-			return true;
-		else if (end.compareTo(start) < 0)
-			return start.compareTo(key) < 0 || key.compareTo(end) < 0;
+		final var _id = stringToModBit(id);
+		final var _start = stringToModBit(start);
+		final var _end = stringToModBit(end);
+
+		if (_end.compareTo(_start) <= 0)
+			return _start.compareTo(_id) < 0 || _id.compareTo(_end) <= 0;
 		else
-			return start.compareTo(key) < 0 && key.compareTo(end) < 0;
+			return _start.compareTo(_id) < 0 && _id.compareTo(_end) <= 0;
 	}
 
 	public static byte[] serialize(final Serializable obj) throws IOException
@@ -178,5 +210,6 @@ public final class GB
 	{
 		return key + "_valore_" + n;
 	}
+
 
 }

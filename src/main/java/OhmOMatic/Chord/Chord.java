@@ -46,8 +46,6 @@ public class Chord implements AutoCloseable
 
 
 	//===================================== Chord =====================================
-	//private static final Integer mBit = 160; //SHA1 versione normale
-	private static final Integer mBit = 8; //versione semplificata
 	private Integer next = 1;
 
 	private static final String keyListaPeers = "Lista dei peer";
@@ -73,16 +71,16 @@ public class Chord implements AutoCloseable
 	//endregion
 
 	//region Constructor & Destructors
-	public Chord(final int numero, final String identificatore, final String ip, final int port) throws IOException
+	public Chord(final String identificatore, final String ip, final int port) throws IOException
 	{
-		this(new NodeLink(numero, identificatore, ip, port));
+		this(new NodeLink(identificatore, ip, port));
 	}
 
 	public Chord(final NodeLink address) throws IOException
 	{
 		n = address;
 
-		_fingerTable = new HashMap<>(mBit);
+		_fingerTable = new HashMap<>(GB.FingerTableLength);
 
 		dht = new DHT(keyListaPeers);
 
@@ -168,9 +166,9 @@ public class Chord implements AutoCloseable
 	{
 		synchronized (_fingerTable)
 		{
-			var lista = new NodeLink[mBit];
+			var lista = new NodeLink[GB.FingerTableLength];
 
-			for (var i = 0; i < mBit; i++)
+			for (var i = 0; i < GB.FingerTableLength; i++)
 				lista[i] = _fingerTable.get(i + 1);
 
 			return lista;
@@ -204,7 +202,7 @@ public class Chord implements AutoCloseable
 
 		//if (id ∈ (n, successor])
 		if (successor != null)
-			if (GB.incluso(id, n, successor))
+			if (GB.inclusoR(id, n, successor))
 				return successor;
 
 		// forward the query around the circle
@@ -222,12 +220,12 @@ public class Chord implements AutoCloseable
 	{
 		synchronized (_fingerTable)
 		{
-			for (Integer i = mBit; i > 0; i--)
+			for (Integer i = GB.FingerTableLength; i > 0; i--)
 			{
 				final var iThFinger = _fingerTable.get(i);
 
 				if (iThFinger != null && !n.equals(iThFinger))
-					if (GB.finger_incluso(iThFinger, n, id))
+					if (GB.incluso(iThFinger, n, id))
 					{
 						final var vivo = gRPC_Client.gRPC(iThFinger, RichiestaChord.ping);
 
@@ -370,7 +368,7 @@ public class Chord implements AutoCloseable
 	//endregion
 
 	//region DHT
-	public void putIncremental(final Serializable object)
+	public synchronized void putIncremental(final Serializable object)
 	{
 		final var curNumero = inc(n.ID);
 		final var chiave = GB.creaChiaveValore(n.ID, curNumero);
@@ -378,7 +376,7 @@ public class Chord implements AutoCloseable
 		put(chiave, object);
 	}
 
-	public Serializable[] getIncrementals(final String key, final int lastNumero, final int curNumero)
+	public synchronized Serializable[] getIncrementals(final String key, final int lastNumero, final int curNumero)
 	{
 		final var lista = new Serializable[curNumero - lastNumero];
 
@@ -402,7 +400,10 @@ public class Chord implements AutoCloseable
 			if (r instanceof Integer)
 				return (Integer) r;
 			else
+			{
+				System.out.println(key + " inc fallita");
 				GB.sleep(_sleepTime);
+			}
 		}
 	}
 
@@ -416,7 +417,10 @@ public class Chord implements AutoCloseable
 			if (Boolean.TRUE.equals(r))
 				return r;
 			else
+			{
+				System.out.println(key + " remove fallita");
 				GB.sleep(_sleepTime);
+			}
 		}
 	}
 
@@ -435,7 +439,10 @@ public class Chord implements AutoCloseable
 			var r = _functionDHT(RichiestaDHT.get, key, null);
 
 			if (Boolean.FALSE.equals(r))
+			{
+				System.out.println(key + " non trovata");
 				GB.sleep(_sleepTime);
+			}
 			else
 				return r;
 		}
@@ -451,13 +458,17 @@ public class Chord implements AutoCloseable
 			if (Boolean.TRUE.equals(r))
 				return r;
 			else
+			{
+				System.out.println(key + " put fallita");
 				GB.sleep(_sleepTime);
+			}
 		}
 	}
 
 	// T(N): O(1)
 	public Serializable transfer(final String key, final Serializable object)
 	{
+		System.out.println("Transfer " + key);
 		return dht.put(key, object);
 	}
 
@@ -563,11 +574,12 @@ public class Chord implements AutoCloseable
 	{
 		next++;
 
-		if (next > mBit)
+		if (next > GB.FingerTableLength)
 			next = 1;
 
 		var i = GB.getPowerOfTwo(next - 1);
 		i = n.N + i;
+		i = i % GB.ShaBit;
 
 		final var successor = find_successor(String.valueOf(i));
 		setFinger(next, successor);
@@ -602,8 +614,8 @@ public class Chord implements AutoCloseable
 				if (!n.equals(successor))
 					try
 					{
-						final var info = "[" + GB.DateToString() + "] handoff > " + successor + ": " + key;
-						System.out.println(info);
+						//final var info = "[" + GB.DateToString() + "] handoff > " + successor + ": " + key;
+						//System.out.println(info);
 
 						daFare.add(key);
 						final var risultatoTrasferimento = gRPC_Client.gRPC(successor, RichiestaDHT.transfer, key, dht.get(key));
@@ -611,7 +623,7 @@ public class Chord implements AutoCloseable
 						if (Boolean.TRUE.equals(risultatoTrasferimento))
 						{
 							daRimuovere.add(key);
-							System.out.println(info + " OK!");
+							//System.out.println(info + " OK!");
 						}
 					}
 					catch (StatusRuntimeException ex)

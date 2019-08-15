@@ -49,7 +49,7 @@ message casa {
     string IP = 3;
     int32 port = 4;
 
-    int32 N = 5;
+    int64 N = 5;
 }
 
 message messaggio {

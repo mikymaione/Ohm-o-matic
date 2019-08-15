@@ -77,7 +77,7 @@ public class gRPC_Client
 			{
 				final var c = _request.getCasa();
 
-				return new NodeLink(c.getN(), c.getIdentificatore(), c.getIP(), c.getPort());
+				return new NodeLink(c.getIdentificatore(), c.getIP(), c.getPort());
 			}
 			else
 			{

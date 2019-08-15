@@ -33,13 +33,12 @@ public final class CliCasa extends BaseCommandLineApplication
 			final var peer_address = cmd.getOptionValue("j");
 			final var peer_port = stringToInt(cmd.getOptionValue("p"), -1);
 			final var nome = cmd.getOptionValue("i");
-			final var identificatore = stringToInt(cmd.getOptionValue("n"), 0);
 
-			try (final var chord = new Chord(identificatore, nome, mio_peer_address, mio_peer_port))
+			try (final var chord = new Chord(nome, mio_peer_address, mio_peer_port))
 			{
 				try (final var casa = new Casa(nome, rest_url, mio_peer_address, mio_peer_port, chord))
 				{
-					System.out.println("Casa " + identificatore + " avviata!");
+					System.out.println("Casa " + nome + " avviata!");
 
 					if (peer_port > -1)
 						chord.join(peer_address, peer_port);

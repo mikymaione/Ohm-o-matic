@@ -138,7 +138,10 @@ class DHT
 	{
 		synchronized (_data)
 		{
-			_data.put(key, value);
+			final var r = _data.put(key, value);
+
+			if (r != null)
+				System.out.println("overwrite " + key + ": " + r + " > " + value);
 
 			return true;
 		}

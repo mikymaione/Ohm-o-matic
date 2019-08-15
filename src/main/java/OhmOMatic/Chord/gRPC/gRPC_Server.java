@@ -37,7 +37,7 @@ public class gRPC_Server
 				try
 				{
 					final var destinatario = request.getDestinatario();
-					final var n_ = new NodeLink(destinatario.getN(), destinatario.getIdentificatore(), destinatario.getIP(), destinatario.getPort());
+					final var n_ = new NodeLink(destinatario.getIdentificatore(), destinatario.getIP(), destinatario.getPort());
 
 					final var R = callback.apply(n_);
 
@@ -81,8 +81,7 @@ public class gRPC_Server
 			@Override
 			public void ping(Home.messaggio request, StreamObserver<Home.casaRes> responseObserver)
 			{
-				elaboraChord(request, responseObserver, n ->
-						local.ping());
+				elaboraChord(request, responseObserver, n -> local.ping());
 			}
 
 			@Override
@@ -100,8 +99,7 @@ public class gRPC_Server
 			@Override
 			public void getPredecessor(Home.messaggio request, StreamObserver<Home.casaRes> responseObserver)
 			{
-				elaboraChord(request, responseObserver, n ->
-						local.getPredecessor());
+				elaboraChord(request, responseObserver, n -> local.getPredecessor());
 			}
 			//endregion
 
