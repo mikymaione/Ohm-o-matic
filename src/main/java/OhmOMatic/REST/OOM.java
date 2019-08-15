@@ -12,9 +12,7 @@ import OhmOMatic.ProtoBuffer.Home.listaCase;
 import OhmOMatic.ProtoBuffer.Stat.parametriStatisticaReq;
 import OhmOMatic.ProtoBuffer.Stat.parametriStatisticheReq;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
+import javax.ws.rs.*;
 import java.util.ArrayList;
 
 
@@ -25,6 +23,8 @@ public final class OOM
 	//region Casa
 	@PUT
 	@Path("/iscriviCasa")
+	@Consumes("application/x-protobuf")
+	@Produces("application/x-protobuf")
 	public listaCase iscriviCasa(casa par)
 	{
 		var iscrizione_casa_nel_DB_ok = true;
@@ -35,7 +35,6 @@ public final class OOM
 		//.........
 		//.........
 		//iscrizione casa nel DB
-
 
 		final var resElencoCase = listaCase
 				.newBuilder()
@@ -48,6 +47,8 @@ public final class OOM
 
 	@PUT
 	@Path("/disiscriviCasa")
+	@Consumes("application/x-protobuf")
+	@Produces("application/x-protobuf")
 	public standardRes disiscriviCasa(casa par)
 	{
 		final var res = buildStandardRes(false, "excepsions!");
@@ -64,6 +65,7 @@ public final class OOM
 
 	@GET
 	@Path("/elencoCase")
+	@Produces("application/x-protobuf")
 	public listaCase elencoCase()
 	{
 		final var res = listaCase
@@ -80,6 +82,8 @@ public final class OOM
 	//region Statistiche
 	@PUT
 	@Path("/aggiungiStatisticaLocale")
+	@Consumes("application/x-protobuf")
+	@Produces("application/x-protobuf")
 	public standardRes aggiungiStatisticaLocale(parametriStatisticaReq par)
 	{
 		final var res = buildStandardRes(false, "excepsions!");
@@ -89,6 +93,8 @@ public final class OOM
 
 	@PUT
 	@Path("/aggiungiStatisticaGlobale")
+	@Consumes("application/x-protobuf")
+	@Produces("application/x-protobuf")
 	public standardRes aggiungiStatisticaGlobale(parametriStatisticaReq par)
 	{
 		final var res = buildStandardRes(false, "excepsions!");
@@ -97,8 +103,10 @@ public final class OOM
 	}
 
 
-	@GET
+	@POST
 	@Path("/ultimeStatisticheCasa")
+	@Consumes("application/x-protobuf")
+	@Produces("application/x-protobuf")
 	public standardRes ultimeStatisticheCasa(parametriStatisticaReq par)
 	{
 		final var res = buildStandardRes(false, "excepsions!");
@@ -106,8 +114,10 @@ public final class OOM
 		return res;
 	}
 
-	@GET
+	@POST
 	@Path("/ultimeStatisticheCondominio")
+	@Consumes("application/x-protobuf")
+	@Produces("application/x-protobuf")
 	public standardRes ultimeStatisticheCondominio(parametriStatisticheReq par)
 	{
 		final var res = buildStandardRes(false, "excepsions!");
@@ -116,8 +126,10 @@ public final class OOM
 	}
 
 
-	@GET
+	@POST
 	@Path("/deviazioneStandardMediaCasa")
+	@Consumes("application/x-protobuf")
+	@Produces("application/x-protobuf")
 	public standardRes deviazioneStandardMediaCasa(parametriStatisticaReq par)
 	{
 		final var res = buildStandardRes(false, "excepsions!");
@@ -125,8 +137,10 @@ public final class OOM
 		return res;
 	}
 
-	@GET
+	@POST
 	@Path("/deviazioneStandardMediaCondominio")
+	@Consumes("application/x-protobuf")
+	@Produces("application/x-protobuf")
 	public standardRes deviazioneStandardMediaCondominio(parametriStatisticheReq par)
 	{
 		final var res = buildStandardRes(false, "excepsions!");
@@ -136,7 +150,7 @@ public final class OOM
 	//endregion
 
 	//region Common functions
-	private standardRes buildStandardRes(boolean Ok, String errore)
+	private standardRes buildStandardRes(final boolean Ok, final String errore)
 	{
 		return standardRes
 				.newBuilder()

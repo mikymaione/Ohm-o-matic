@@ -10,36 +10,23 @@ import OhmOMatic.Base.BaseCommandLineApplication;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 
-import java.io.IOException;
 import java.net.URI;
 
 public final class RestServer extends BaseCommandLineApplication
 {
 
-	//le rotte (e quindi le funzionalità) si trovano nel file OhmOMatic.REST.OOM.java
-
+	// Le rotte (e quindi le funzionalità) si trovano nel file OhmOMatic.REST.OOM.java
 	private static final String Server_URI = "http://localhost:8080/OOM/";
-
 
 	public static void main(String[] args)
 	{
-		var rc = new ResourceConfig()
+		final var rc = new ResourceConfig()
 				.packages("OhmOMatic");
 
 		GrizzlyHttpServerFactory.createHttpServer(URI.create(Server_URI), rc);
 
 		System.out.println("Ohm-o-matic - Server avviato!");
 		System.out.println(String.format("Visita %s", Server_URI));
-		System.out.println("Premere invio per terminare...");
-
-		try
-		{
-			System.in.read();
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-		}
 	}
 
 

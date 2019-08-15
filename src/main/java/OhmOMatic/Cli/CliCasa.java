@@ -78,11 +78,12 @@ public final class CliCasa extends BaseCommandLineApplication
 	//region Opzioni command line
 	private static void LeggiComandiInterattivi(Casa casa, Chord chord, Scanner scanner)
 	{
+		final var commands = createOptionsInteractiveProgram();
+
 		var inEsecuzione = true;
 
 		do
 		{
-			final var commands = createOptionsInteractiveProgram();
 			printOptions("", commands);
 
 			final var line = scanner.nextLine();

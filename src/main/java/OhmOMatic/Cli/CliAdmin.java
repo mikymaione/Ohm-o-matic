@@ -13,6 +13,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 import java.net.URISyntaxException;
+import java.util.Scanner;
 
 public final class CliAdmin extends BaseCommandLineApplication
 {
@@ -31,49 +32,12 @@ public final class CliAdmin extends BaseCommandLineApplication
 				final var server_url = cmd.getOptionValue("u");
 				final var server_port = cmd.getOptionValue("p");
 
-				var admin = new Admin(stringToURI(server_url, server_port, "OOM"));
+				final var admin = new Admin(stringToURI(server_url, server_port, "OOM"));
 
-
-				if (cmd.hasOption("e")) //Elenco case
+				try (var scanner = new Scanner(System.in))
 				{
-					admin.elencoCase();
+					LeggiComandiInterattivi(admin, scanner);
 				}
-
-
-				if (cmd.hasOption("s")) //Ultime N statistiche casa
-				{
-					final var ops = cmd.getOptionValues("s");
-					final var id = ops[0];
-					final var n = stringToInt(ops[1], 1);
-
-					admin.ultimeStatisticheCasa(id, n);
-				}
-
-				if (cmd.hasOption("g")) //Ultime N statistiche condominio
-				{
-					final var n_s = cmd.getOptionValue("g");
-					final var n = stringToInt(n_s, 1);
-
-					admin.ultimeStatisticheCondominio(n);
-				}
-
-				if (cmd.hasOption("y")) //Deviazione standard e media delle ultime N statistiche prodotte da una specifica casa
-				{
-					final var ops = cmd.getOptionValues("s");
-					final var id = ops[0];
-					final var n = stringToInt(ops[1], 1);
-
-					admin.deviazioneStandardMediaCasa(id, n);
-				}
-
-				if (cmd.hasOption("x")) //Deviazione standard e media delle ultime N statistiche complessive condominiali
-				{
-					final var n_s = cmd.getOptionValue("g");
-					final var n = stringToInt(n_s, 1);
-
-					admin.deviazioneStandardMediaCondominio(n);
-				}
-
 			}
 			catch (URISyntaxException e)
 			{
@@ -87,6 +51,110 @@ public final class CliAdmin extends BaseCommandLineApplication
 	}
 
 	//region Opzioni command line
+	private static void LeggiComandiInterattivi(Admin admin, Scanner scanner)
+	{
+		final var commands = createOptionsInteractiveProgram();
+
+		var inEsecuzione = true;
+
+		do
+		{
+			printOptions("", commands);
+
+			final var line = scanner.nextLine();
+
+			try
+			{
+				final var cmd = getCommandLine(commands, line.split(" "));
+
+				if (cmd.hasOption("q"))
+					inEsecuzione = false;
+				else if (cmd.hasOption("e")) //Elenco case
+					admin.elencoCase();
+				else if (cmd.hasOption("s")) //Ultime N statistiche casa
+				{
+					final var ops = cmd.getOptionValues("s");
+					final var id = ops[0];
+					final var n = stringToInt(ops[1], 1);
+
+					admin.ultimeStatisticheCasa(id, n);
+				}
+				else if (cmd.hasOption("g")) //Ultime N statistiche condominio
+				{
+					final var n_s = cmd.getOptionValue("g");
+					final var n = stringToInt(n_s, 1);
+
+					admin.ultimeStatisticheCondominio(n);
+				}
+				else if (cmd.hasOption("y")) //Deviazione standard e media delle ultime N statistiche prodotte da una specifica casa
+				{
+					final var ops = cmd.getOptionValues("s");
+					final var id = ops[0];
+					final var n = stringToInt(ops[1], 1);
+
+					admin.deviazioneStandardMediaCasa(id, n);
+				}
+				else if (cmd.hasOption("x")) //Deviazione standard e media delle ultime N statistiche complessive condominiali
+				{
+					final var n_s = cmd.getOptionValue("g");
+					final var n = stringToInt(n_s, 1);
+
+					admin.deviazioneStandardMediaCondominio(n);
+				}
+			}
+			catch (ParseException e)
+			{
+				System.out.println("Il comando " + line + " non esiste!");
+			}
+		}
+		while (inEsecuzione);
+	}
+
+	private static Options createOptionsInteractiveProgram()
+	{
+		final var quit = Option.builder("q")
+				.desc("Quit")
+				.build();
+
+		final var elencoCase = Option.builder("e")
+				.desc("Elenco case")
+				.build();
+
+		final var ultimeStatisticheCasa = Option.builder("s")
+				.desc("Ultime N statistiche casa")
+				.hasArgs()
+				.argName("i")
+				.argName("N")
+				.build();
+
+		final var ultimeStatisticheCondominio = Option.builder("g")
+				.desc("Ultime N statistiche condominio")
+				.hasArg()
+				.argName("N")
+				.build();
+
+		final var deviazioneStandardMediaCasa = Option.builder("y")
+				.desc("Deviazione standard e media delle ultime N statistiche prodotte da una specifica casa")
+				.hasArgs()
+				.argName("i")
+				.argName("N")
+				.build();
+
+		final var deviazioneStandardMediaCondominio = Option.builder("x")
+				.desc("Deviazione standard e media delle ultime N statistiche complessive condominiali")
+				.hasArg()
+				.argName("N")
+				.build();
+
+		return new Options()
+				.addOption(quit)
+				.addOption(elencoCase)
+				.addOption(ultimeStatisticheCasa)
+				.addOption(ultimeStatisticheCondominio)
+				.addOption(deviazioneStandardMediaCasa)
+				.addOption(deviazioneStandardMediaCondominio);
+	}
+
 	private static Options createOptions()
 	{
 		final var url = Option.builder("u")
@@ -103,50 +171,9 @@ public final class CliAdmin extends BaseCommandLineApplication
 				.argName("PORT")
 				.build();
 
-
-		final var elencoCase = Option.builder("e")
-				.desc("Elenco case")
-				.build();
-
-
-		final var ultimeStatisticheCasa = Option.builder("s")
-				.desc("Ultime N statistiche casa")
-				.hasArgs()
-				.argName("i")
-				.argName("N")
-				.build();
-
-		final var ultimeStatisticheCondominio = Option.builder("g")
-				.desc("Ultime N statistiche condominio")
-				.hasArg()
-				.argName("N")
-				.build();
-
-
-		final var deviazioneStandardMediaCasa = Option.builder("y")
-				.desc("Deviazione standard e media delle ultime N statistiche prodotte da una specifica casa")
-				.hasArgs()
-				.argName("i")
-				.argName("N")
-				.build();
-
-		final var deviazioneStandardMediaCondominio = Option.builder("x")
-				.desc("Deviazione standard e media delle ultime N statistiche complessive condominiali")
-				.hasArg()
-				.argName("N")
-				.build();
-
-
-		final var options = new Options()
+		return new Options()
 				.addOption(url)
-				.addOption(port)
-				.addOption(elencoCase)
-				.addOption(ultimeStatisticheCasa)
-				.addOption(ultimeStatisticheCondominio)
-				.addOption(deviazioneStandardMediaCasa)
-				.addOption(deviazioneStandardMediaCondominio);
-
-		return options;
+				.addOption(port);
 	}
 	//endregion
 
