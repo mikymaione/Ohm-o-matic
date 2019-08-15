@@ -301,12 +301,19 @@ public class Chord implements AutoCloseable
 
 					try
 					{
-						//System.out.println("[" + GB.DateToString() + "] leave > " + n_ + ": " + e.getKey() + "=" + e.getValue());
+						final var info = "[" + GB.DateToString() + "] leave > " + n_ + ": " + e.getKey() + "=" + e.getValue();
+						System.out.println(info);
+
 						daFare.add(e.getKey());
 						final var risultatoTrasferimento = gRPC_Client.gRPC(n_, RichiestaDHT.transfer, e.getKey(), e.getValue());
 
 						if (Boolean.TRUE.equals(risultatoTrasferimento))
+						{
 							daRimuovere.add(e.getKey());
+							System.out.println(info + " OK!");
+						}
+						else
+							System.out.println(info + " KO!");
 					}
 					catch (StatusRuntimeException ex)
 					{
