@@ -22,10 +22,11 @@ import static org.apache.commons.codec.digest.MessageDigestAlgorithms.SHA3_512;
 public final class GB
 {
 
-	public static final Integer numberOfFingers = 32;
+	public static final Integer numberOfFingers = 8;
 
 	private static final int shaBits = 512;
 	public static final BigInteger shaBitsB = BigInteger.valueOf(shaBits);
+
 	private static final DigestUtils duSHA3_512 = new DigestUtils(SHA3_512);
 	private static final HashMap<String, BigInteger> _shaStrings = new HashMap<>();
 	private static final HashMap<Integer, BigInteger> _powerOfTwo = new HashMap<>();
@@ -49,13 +50,12 @@ public final class GB
 	{
 		if (_powerOfTwo.size() == 0)
 		{
-			final var due = BigInteger.valueOf(2);
-			var curVal = BigInteger.valueOf(1); // 2^0
+			var curVal = BigInteger.ONE; // 2^0
 
 			for (Integer i = 0; i <= shaBits; i++)
 			{
 				_powerOfTwo.put(i, curVal);
-				curVal = curVal.multiply(due);
+				curVal = curVal.multiply(BigInteger.TWO);
 			}
 		}
 

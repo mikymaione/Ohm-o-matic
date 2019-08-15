@@ -589,7 +589,6 @@ public class Chord implements AutoCloseable
 
 		var i = GB.getPowerOfTwo(next - 1);
 		i = n.ID.add(i);
-		i = i.mod(GB.shaBitsB);
 
 		final var successor = find_successor(i);
 		setFinger(next, successor);
