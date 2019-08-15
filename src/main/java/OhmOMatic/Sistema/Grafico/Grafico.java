@@ -47,7 +47,7 @@ public class Grafico implements AutoCloseable
 				.yAxisTitle("kW⋅h")
 				.xAxisTitle("s")
 				.width(dim.width / 2)
-				.height(dim.height / 2)
+				.height(((dim.height - 40) / 2) - 32)
 				.build();
 
 		var stiler = chart.getStyler();
