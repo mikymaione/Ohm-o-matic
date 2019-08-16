@@ -13,29 +13,43 @@ import "Home.proto";
 
 
 service StatService {
-    rpc aggiungiStatisticaLocale (parametriStatisticaReq) returns (standardRes);
-    rpc aggiungiStatisticaGlobale (parametriStatisticaReq) returns (standardRes);
+    rpc aggiungiStatisticaLocale (statisticheCasa) returns (standardRes);
+    rpc aggiungiStatisticaGlobale (statisticheCondominio) returns (standardRes);
 
-    rpc ultimeStatisticheCasa (parametriStatisticaReq) returns (statisticheRes);
-    rpc ultimeStatisticheCondominio (parametriStatisticaReq) returns (statisticheRes);
-    rpc deviazioneStandardMediaCasa (parametriStatisticaReq) returns (statisticheRes);
-    rpc deviazioneStandardMediaCondominio (parametriStatisticaReq) returns (statisticheRes);
+    rpc ultimeStatisticheCasa (getStatisticheCasa) returns (statisticheRes);
+    rpc ultimeStatisticheCondominio (getStatisticheCondominio) returns (statisticheRes);
+    rpc deviazioneStandardMediaCasa (getStatisticheCasa) returns (statisticheRes);
+    rpc deviazioneStandardMediaCondominio (getStatisticheCondominio) returns (statisticheRes);
 }
 
 //region Request
-message parametriStatisticheReq {
+message statistica {
+    int64 data = 1;
+    double valore = 2;
+}
+
+message getStatisticheCasa {
+    casa Casa = 1;
     int32 N = 2;
 }
 
-message parametriStatisticaReq {
-    casa homeData = 1;
-    parametriStatisticheReq paramStats = 2;
+message getStatisticheCondominio {
+    int32 N = 1;
+}
+
+message statisticheCasa {
+    casa Casa = 1;
+    repeated statistica Statistiche = 2;
+}
+
+message statisticheCondominio {
+    repeated statistica Statistiche = 1;
 }
 //endregion
 
 //region Reponse
 message statisticheRes {
     standardRes StandardRes = 1;
-    parametriStatisticaReq Statistica = 2;
+    repeated statistica Statistiche = 2;
 }
 //endregion

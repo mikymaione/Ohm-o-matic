@@ -9,8 +9,7 @@ package OhmOMatic.REST;
 import OhmOMatic.ProtoBuffer.Common.standardRes;
 import OhmOMatic.ProtoBuffer.Home.casa;
 import OhmOMatic.ProtoBuffer.Home.listaCase;
-import OhmOMatic.ProtoBuffer.Stat.parametriStatisticaReq;
-import OhmOMatic.ProtoBuffer.Stat.parametriStatisticheReq;
+import OhmOMatic.ProtoBuffer.Stat;
 import OhmOMatic.REST.Backend.Backend;
 
 import javax.ws.rs.*;
@@ -32,11 +31,7 @@ public final class OOM extends Backend
 		{
 			elencoCase.add(par);
 
-			return listaCase
-					.newBuilder()
-					.setStandardResponse(buildStandardRes())
-					.addAllCase(elencoCase)
-					.build();
+			return buildListaCase();
 		}
 	}
 
@@ -62,11 +57,7 @@ public final class OOM extends Backend
 	{
 		synchronized (elencoCase)
 		{
-			return listaCase
-					.newBuilder()
-					.setStandardResponse(buildStandardRes())
-					.addAllCase(elencoCase)
-					.build();
+			return buildListaCase();
 		}
 	}
 	//endregion
@@ -77,16 +68,18 @@ public final class OOM extends Backend
 	@Path("/aggiungiStatisticaLocale")
 	@Consumes("application/x-protobuf")
 	@Produces("application/x-protobuf")
-	public standardRes aggiungiStatisticaLocale(parametriStatisticaReq par)
+	public standardRes aggiungiStatisticaLocale(Stat.statisticheCasa par)
 	{
 		synchronized (statisticheCasa)
 		{
-			final var lista = statisticheCasa.getOrDefault(par.getHomeData(), new LinkedList<>());
+			final var casa = par.getCasa();
+			final var id = casa.getIdentificatore();
+			final var lista = statisticheCasa.getOrDefault(id, new LinkedList<>());
 
-			lista.add(par.getParamStats());
+			lista.addAll(par.getStatisticheList());
 
-			if (!statisticheCasa.containsKey(par.getHomeData()))
-				statisticheCasa.put(par.getHomeData(), lista);
+			if (!statisticheCasa.containsKey(id))
+				statisticheCasa.put(id, lista);
 
 			return buildStandardRes();
 		}
@@ -96,11 +89,11 @@ public final class OOM extends Backend
 	@Path("/aggiungiStatisticaGlobale")
 	@Consumes("application/x-protobuf")
 	@Produces("application/x-protobuf")
-	public standardRes aggiungiStatisticaGlobale(parametriStatisticaReq par)
+	public standardRes aggiungiStatisticaGlobale(Stat.statisticheCondominio par)
 	{
 		synchronized (statisticheCondominio)
 		{
-			statisticheCondominio.add(par.getParamStats());
+			statisticheCondominio.addAll(par.getStatisticheList());
 
 			return buildStandardRes();
 		}
@@ -111,44 +104,44 @@ public final class OOM extends Backend
 	@Path("/ultimeStatisticheCasa")
 	@Consumes("application/x-protobuf")
 	@Produces("application/x-protobuf")
-	public standardRes ultimeStatisticheCasa(parametriStatisticaReq par)
+	public Stat.statisticheRes ultimeStatisticheCasa(Stat.getStatisticheCasa par)
 	{
+		final var casa = par.getCasa();
+		final var id = casa.getIdentificatore();
+		final var lista = statisticheCasa.getOrDefault(id, new LinkedList<>());
 
-		return buildStandardRes();
+		return buildStatisticheRes(lista, par.getN());
 	}
 
 	@POST
 	@Path("/ultimeStatisticheCondominio")
 	@Consumes("application/x-protobuf")
 	@Produces("application/x-protobuf")
-	public standardRes ultimeStatisticheCondominio(parametriStatisticheReq par)
+	public Stat.statisticheRes ultimeStatisticheCondominio(Stat.getStatisticheCondominio par)
 	{
-		final var res = buildStandardRes();
-
-		return res;
+		return buildStatisticheRes(statisticheCondominio);
 	}
-
 
 	@POST
 	@Path("/deviazioneStandardMediaCasa")
 	@Consumes("application/x-protobuf")
 	@Produces("application/x-protobuf")
-	public standardRes deviazioneStandardMediaCasa(parametriStatisticaReq par)
+	public Stat.statisticheRes deviazioneStandardMediaCasa(Stat.getStatisticheCasa par)
 	{
-		final var res = buildStandardRes();
+		final var casa = par.getCasa();
+		final var id = casa.getIdentificatore();
+		final var lista = statisticheCasa.getOrDefault(id, new LinkedList<>());
 
-		return res;
+		return buildStatisticheRes(lista, par.getN());
 	}
 
 	@POST
 	@Path("/deviazioneStandardMediaCondominio")
 	@Consumes("application/x-protobuf")
 	@Produces("application/x-protobuf")
-	public standardRes deviazioneStandardMediaCondominio(parametriStatisticheReq par)
+	public Stat.statisticheRes deviazioneStandardMediaCondominio(Stat.getStatisticheCondominio par)
 	{
-		final var res = buildStandardRes();
-
-		return res;
+		return buildStatisticheRes(statisticheCondominio);
 	}
 	//endregion
 }

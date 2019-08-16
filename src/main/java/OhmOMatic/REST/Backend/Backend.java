@@ -16,12 +16,48 @@ import java.util.LinkedList;
 
 public class Backend
 {
+	
 	protected final HashSet<Home.casa> elencoCase = new HashSet<>();
-	protected final HashMap<Home.casa, LinkedList<Stat.parametriStatisticheReq>> statisticheCasa = new HashMap<>();
-	protected final LinkedList<Stat.parametriStatisticheReq> statisticheCondominio = new LinkedList<>();
+	protected final HashMap<String, LinkedList<Stat.statistica>> statisticheCasa = new HashMap<>();
+	protected final LinkedList<Stat.statistica> statisticheCondominio = new LinkedList<>();
 
 
 	//region Common functions
+	protected Stat.statisticheRes buildStatisticheRes(Iterable<Stat.statistica> statistiche, final int N)
+	{
+		final var listaN = new LinkedList<Stat.statistica>();
+
+		var x = 0;
+		for (var s : statistiche)
+		{
+			listaN.add(s);
+			x++;
+
+			if (x > N)
+				break;
+		}
+
+		return buildStatisticheRes(listaN);
+	}
+
+	protected Stat.statisticheRes buildStatisticheRes(Iterable<Stat.statistica> statistiche)
+	{
+		return Stat.statisticheRes
+				.newBuilder()
+				.setStandardRes(buildStandardRes())
+				.addAllStatistiche(statistiche)
+				.build();
+	}
+
+	protected Home.listaCase buildListaCase()
+	{
+		return Home.listaCase
+				.newBuilder()
+				.setStandardResponse(buildStandardRes())
+				.addAllCase(elencoCase)
+				.build();
+	}
+
 	protected Common.standardRes buildStandardRes()
 	{
 		return Common.standardRes
