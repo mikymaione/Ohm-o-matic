@@ -21,6 +21,10 @@ public class Backend
 	protected final HashMap<String, LinkedList<Stat.statistica>> statisticheCasa = new HashMap<>();
 	protected final LinkedList<Stat.statistica> statisticheCondominio = new LinkedList<>();
 
+	protected LinkedList<Stat.statistica> getStatisticaCasa(Home.casa casa)
+	{
+		return statisticheCasa.getOrDefault(casa.getIdentificatore(), new LinkedList<>());
+	}
 
 	protected Stat.deviazioneStandardMedia buildDeviazioneStandardMedia(LinkedList<Stat.statistica> lista)
 	{

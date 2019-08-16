@@ -13,7 +13,6 @@ import OhmOMatic.ProtoBuffer.Stat;
 import OhmOMatic.REST.Backend.Backend;
 
 import javax.ws.rs.*;
-import java.util.LinkedList;
 
 
 @Path("OOM")
@@ -74,7 +73,7 @@ public final class OOM extends Backend
 		{
 			final var casa = par.getCasa();
 			final var id = casa.getIdentificatore();
-			final var lista = statisticheCasa.getOrDefault(id, new LinkedList<>());
+			final var lista = getStatisticaCasa(casa);
 
 			lista.addAll(par.getStatisticheList());
 
@@ -106,11 +105,10 @@ public final class OOM extends Backend
 	@Produces("application/x-protobuf")
 	public Stat.statisticheRes ultimeStatisticheCasa(Stat.getStatisticheCasa par)
 	{
-		final var casa = par.getCasa();
-		final var id = casa.getIdentificatore();
-		final var lista = statisticheCasa.getOrDefault(id, new LinkedList<>());
-
-		return buildStatisticheRes(lista, par.getN());
+		synchronized (statisticheCasa)
+		{
+			return buildStatisticheRes(getStatisticaCasa(par.getCasa()), par.getN());
+		}
 	}
 
 	@POST
@@ -119,7 +117,10 @@ public final class OOM extends Backend
 	@Produces("application/x-protobuf")
 	public Stat.statisticheRes ultimeStatisticheCondominio(Stat.getStatisticheCondominio par)
 	{
-		return buildStatisticheRes(statisticheCondominio);
+		synchronized (statisticheCondominio)
+		{
+			return buildStatisticheRes(statisticheCondominio);
+		}
 	}
 
 	@POST
@@ -128,11 +129,10 @@ public final class OOM extends Backend
 	@Produces("application/x-protobuf")
 	public Stat.deviazioneStandardMedia deviazioneStandardMediaCasa(Stat.getStatisticheCasa par)
 	{
-		final var casa = par.getCasa();
-		final var id = casa.getIdentificatore();
-		final var lista = statisticheCasa.getOrDefault(id, new LinkedList<>());
-
-		return buildDeviazioneStandardMedia(lista);
+		synchronized (statisticheCasa)
+		{
+			return buildDeviazioneStandardMedia(getStatisticaCasa(par.getCasa()));
+		}
 	}
 
 	@POST
@@ -141,7 +141,10 @@ public final class OOM extends Backend
 	@Produces("application/x-protobuf")
 	public Stat.deviazioneStandardMedia deviazioneStandardMediaCondominio(Stat.getStatisticheCondominio par)
 	{
-		return buildDeviazioneStandardMedia(statisticheCondominio);
+		synchronized (statisticheCondominio)
+		{
+			return buildDeviazioneStandardMedia(statisticheCondominio);
+		}
 	}
 	//endregion
 }
