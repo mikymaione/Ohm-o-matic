@@ -19,8 +19,8 @@ service StatService {
     rpc ultimeStatisticheCasa (getStatisticheCasa) returns (statisticheRes);
     rpc ultimeStatisticheCondominio (getStatisticheCondominio) returns (statisticheRes);
 
-    rpc deviazioneStandardMediaCasa (getStatisticheCasa) returns (deviazioneStandardMedia);
-    rpc deviazioneStandardMediaCondominio (getStatisticheCondominio) returns (deviazioneStandardMedia);
+    rpc deviazioneStandardMediaCasa (getStatisticheCasa) returns (deviazioneStandardMediaRes);
+    rpc deviazioneStandardMediaCondominio (getStatisticheCondominio) returns (deviazioneStandardMediaRes);
 }
 
 //region Request
@@ -54,6 +54,11 @@ message deviazioneStandardMedia {
 //endregion
 
 //region Reponse
+message deviazioneStandardMediaRes {
+    standardRes StandardRes = 1;
+    deviazioneStandardMedia Statistiche = 2;
+}
+
 message statisticheRes {
     standardRes StandardRes = 1;
     repeated statistica Statistiche = 2;

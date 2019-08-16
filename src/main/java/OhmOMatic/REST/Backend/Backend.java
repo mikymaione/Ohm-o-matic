@@ -26,7 +26,7 @@ public class Backend
 		return statisticheCasa.getOrDefault(casa.getIdentificatore(), new LinkedList<>());
 	}
 
-	protected Stat.deviazioneStandardMedia buildDeviazioneStandardMedia(LinkedList<Stat.statistica> lista)
+	protected Stat.deviazioneStandardMediaRes buildDeviazioneStandardMedia(LinkedList<Stat.statistica> lista)
 	{
 		var media = 0d;
 		for (final var s : lista)
@@ -40,10 +40,15 @@ public class Backend
 
 		deviazioneStandard = Math.sqrt(deviazioneStandard / lista.size());
 
-		return Stat.deviazioneStandardMedia
+		final var valori = Stat.deviazioneStandardMedia
 				.newBuilder()
 				.setDeviazioneStandard(deviazioneStandard)
-				.setMedia(media)
+				.setMedia(media);
+
+		return Stat.deviazioneStandardMediaRes
+				.newBuilder()
+				.setStatistiche(valori)
+				.setStandardRes(buildStandardRes())
 				.build();
 	}
 

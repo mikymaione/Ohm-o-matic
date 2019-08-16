@@ -32,11 +32,12 @@ public final class CliAdmin extends BaseCommandLineApplication
 				final var server_url = cmd.getOptionValue("u");
 				final var server_port = cmd.getOptionValue("p");
 
-				final var admin = new Admin(stringToURI(server_url, server_port, "OOM"));
-
-				try (var scanner = new Scanner(System.in))
+				try (final var admin = new Admin(stringToURI(server_url, server_port, "OOM")))
 				{
-					LeggiComandiInterattivi(admin, scanner);
+					try (final var scanner = new Scanner(System.in))
+					{
+						LeggiComandiInterattivi(admin, scanner);
+					}
 				}
 			}
 			catch (URISyntaxException e)
@@ -118,27 +119,27 @@ public final class CliAdmin extends BaseCommandLineApplication
 
 		final var ultimeStatisticheCasa = Option.builder("s")
 				.desc("Ultime N statistiche casa")
-				.hasArgs()
+				.numberOfArgs(2)
 				.argName("i")
 				.argName("N")
 				.build();
 
 		final var ultimeStatisticheCondominio = Option.builder("g")
 				.desc("Ultime N statistiche condominio")
-				.hasArg()
+				.numberOfArgs(1)
 				.argName("N")
 				.build();
 
 		final var deviazioneStandardMediaCasa = Option.builder("y")
 				.desc("Deviazione standard e media delle ultime N statistiche prodotte da una specifica casa")
-				.hasArgs()
+				.numberOfArgs(2)
 				.argName("i")
 				.argName("N")
 				.build();
 
 		final var deviazioneStandardMediaCondominio = Option.builder("x")
 				.desc("Deviazione standard e media delle ultime N statistiche complessive condominiali")
-				.hasArg()
+				.numberOfArgs(1)
 				.argName("N")
 				.build();
 

@@ -98,7 +98,6 @@ public final class OOM extends Backend
 		}
 	}
 
-
 	@POST
 	@Path("/ultimeStatisticheCasa")
 	@Consumes("application/x-protobuf")
@@ -127,7 +126,7 @@ public final class OOM extends Backend
 	@Path("/deviazioneStandardMediaCasa")
 	@Consumes("application/x-protobuf")
 	@Produces("application/x-protobuf")
-	public Stat.deviazioneStandardMedia deviazioneStandardMediaCasa(Stat.getStatisticheCasa par)
+	public Stat.deviazioneStandardMediaRes deviazioneStandardMediaCasa(Stat.getStatisticheCasa par)
 	{
 		synchronized (statisticheCasa)
 		{
@@ -139,7 +138,7 @@ public final class OOM extends Backend
 	@Path("/deviazioneStandardMediaCondominio")
 	@Consumes("application/x-protobuf")
 	@Produces("application/x-protobuf")
-	public Stat.deviazioneStandardMedia deviazioneStandardMediaCondominio(Stat.getStatisticheCondominio par)
+	public Stat.deviazioneStandardMediaRes deviazioneStandardMediaCondominio(Stat.getStatisticheCondominio par)
 	{
 		synchronized (statisticheCondominio)
 		{

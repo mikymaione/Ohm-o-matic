@@ -6,14 +6,18 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Sistema;
 
+import OhmOMatic.ProtoBuffer.Home;
 import OhmOMatic.ProtoBuffer.Home.listaCase;
+import OhmOMatic.ProtoBuffer.Stat;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import java.net.URI;
+import java.util.Date;
 
-public final class Admin
+public final class Admin implements AutoCloseable
 {
 
 	private Client client;
@@ -26,14 +30,25 @@ public final class Admin
 		webTarget = client.target(indirizzo + "/OOM");
 	}
 
+	@Override
+	public void close()
+	{
+		client.close();
+	}
+
+	//region Funzioni comuni
+	private WebTarget getWebTarget(final String path)
+	{
+		return webTarget.path(path);
+	}
+	//endregion
 
 	//region Funzioni case
 	public void elencoCase()
 	{
 		try
 		{
-			var wt = webTarget
-					.path("elencoCase");
+			final var wt = getWebTarget("elencoCase");
 
 			final var lista = wt
 					.request()
@@ -43,13 +58,12 @@ public final class Admin
 
 			if (res.getOk())
 			{
-				System.out.println("OK!");
 				System.out.println("Lista case presenti nel sistema:");
 
 				final var elenco = lista.getCaseList();
 
 				for (var c : elenco)
-					System.out.println(String.format("-Casa %s (%s:%d)", c.getID(), c.getIP(), c.getPort()));
+					System.out.println(String.format("-Casa %s (%s:%d)", c.getIdentificatore(), c.getIP(), c.getPort()));
 			}
 			else
 				System.out.println(res.getErrore());
@@ -61,25 +75,150 @@ public final class Admin
 	}
 	//endregion
 
+
 	//region Statistiche
 	public void ultimeStatisticheCasa(String id, int n)
 	{
+		try
+		{
+			final var wt = getWebTarget("ultimeStatisticheCasa");
 
+			final var params = Stat.getStatisticheCasa
+					.newBuilder()
+					.setN(n)
+					.setCasa(
+							Home.casa
+									.newBuilder()
+									.setIdentificatore(id)
+					)
+					.build();
+
+			final var stats = wt
+					.request()
+					.post(Entity.entity(params, "application/x-protobuf"), Stat.statisticheRes.class);
+
+			final var res = stats.getStandardRes();
+
+			if (res.getOk())
+			{
+				System.out.println("Ultime " + n + " statistiche casa " + id + ":");
+
+				for (var s : stats.getStatisticheList())
+					System.out.println(new Date(s.getData()) + ": " + s.getValore());
+			}
+			else
+				System.out.println(res.getErrore());
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 
 	public void ultimeStatisticheCondominio(int n)
 	{
+		try
+		{
+			final var wt = getWebTarget("ultimeStatisticheCondominio");
 
+			final var params = Stat.getStatisticheCondominio
+					.newBuilder()
+					.setN(n)
+					.build();
+
+			final var stats = wt
+					.request()
+					.post(Entity.entity(params, "application/x-protobuf"), Stat.statisticheRes.class);
+
+			final var res = stats.getStandardRes();
+
+			if (res.getOk())
+			{
+				System.out.println("Ultime " + n + " statistiche condominio:");
+
+				for (var s : stats.getStatisticheList())
+					System.out.println(new Date(s.getData()) + ": " + s.getValore());
+			}
+			else
+				System.out.println(res.getErrore());
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 
 	public void deviazioneStandardMediaCasa(String id, int n)
 	{
+		try
+		{
+			final var wt = getWebTarget("deviazioneStandardMediaCasa");
 
+			final var params = Stat.getStatisticheCasa
+					.newBuilder()
+					.setN(n)
+					.setCasa(
+							Home.casa
+									.newBuilder()
+									.setIdentificatore(id)
+					)
+					.build();
+
+			final var stats = wt
+					.request()
+					.post(Entity.entity(params, "application/x-protobuf"), Stat.deviazioneStandardMediaRes.class);
+
+			final var res = stats.getStandardRes();
+
+			if (res.getOk())
+			{
+				final var statistiche = stats.getStatistiche();
+
+				System.out.println("Casa " + id + ":");
+				System.out.println("-Media: " + statistiche.getMedia());
+				System.out.println("-Deviazione standard: " + statistiche.getDeviazioneStandard());
+			}
+			else
+				System.out.println(res.getErrore());
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 
 	public void deviazioneStandardMediaCondominio(int n)
 	{
+		try
+		{
+			final var wt = getWebTarget("deviazioneStandardMediaCondominio");
 
+			final var params = Stat.getStatisticheCondominio
+					.newBuilder()
+					.setN(n)
+					.build();
+
+			final var stats = wt
+					.request()
+					.post(Entity.entity(params, "application/x-protobuf"), Stat.deviazioneStandardMediaRes.class);
+
+			final var res = stats.getStandardRes();
+
+			if (res.getOk())
+			{
+				final var statistiche = stats.getStatistiche();
+
+				System.out.println("Condominio:");
+				System.out.println("-Media: " + statistiche.getMedia());
+				System.out.println("-Deviazione standard: " + statistiche.getDeviazioneStandard());
+			}
+			else
+				System.out.println(res.getErrore());
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 	//endregion
 
