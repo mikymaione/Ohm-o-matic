@@ -16,13 +16,33 @@ import java.util.LinkedList;
 
 public class Backend
 {
-	
+
 	protected final HashSet<Home.casa> elencoCase = new HashSet<>();
 	protected final HashMap<String, LinkedList<Stat.statistica>> statisticheCasa = new HashMap<>();
 	protected final LinkedList<Stat.statistica> statisticheCondominio = new LinkedList<>();
 
 
-	//region Common functions
+	protected Stat.deviazioneStandardMedia buildDeviazioneStandardMedia(LinkedList<Stat.statistica> lista)
+	{
+		var media = 0d;
+		for (final var s : lista)
+			media += s.getValore();
+
+		media /= lista.size();
+
+		var deviazioneStandard = 0d;
+		for (final var s : lista)
+			deviazioneStandard += Math.pow(s.getValore() - media, 2);
+
+		deviazioneStandard = Math.sqrt(deviazioneStandard / lista.size());
+
+		return Stat.deviazioneStandardMedia
+				.newBuilder()
+				.setDeviazioneStandard(deviazioneStandard)
+				.setMedia(media)
+				.build();
+	}
+
 	protected Stat.statisticheRes buildStatisticheRes(Iterable<Stat.statistica> statistiche, final int N)
 	{
 		final var listaN = new LinkedList<Stat.statistica>();
@@ -74,7 +94,6 @@ public class Backend
 				.setErrore(errore)
 				.build();
 	}
-	//endregion
 
 
 }

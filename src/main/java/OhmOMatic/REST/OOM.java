@@ -126,22 +126,22 @@ public final class OOM extends Backend
 	@Path("/deviazioneStandardMediaCasa")
 	@Consumes("application/x-protobuf")
 	@Produces("application/x-protobuf")
-	public Stat.statisticheRes deviazioneStandardMediaCasa(Stat.getStatisticheCasa par)
+	public Stat.deviazioneStandardMedia deviazioneStandardMediaCasa(Stat.getStatisticheCasa par)
 	{
 		final var casa = par.getCasa();
 		final var id = casa.getIdentificatore();
 		final var lista = statisticheCasa.getOrDefault(id, new LinkedList<>());
 
-		return buildStatisticheRes(lista, par.getN());
+		return buildDeviazioneStandardMedia(lista);
 	}
 
 	@POST
 	@Path("/deviazioneStandardMediaCondominio")
 	@Consumes("application/x-protobuf")
 	@Produces("application/x-protobuf")
-	public Stat.statisticheRes deviazioneStandardMediaCondominio(Stat.getStatisticheCondominio par)
+	public Stat.deviazioneStandardMedia deviazioneStandardMediaCondominio(Stat.getStatisticheCondominio par)
 	{
-		return buildStatisticheRes(statisticheCondominio);
+		return buildDeviazioneStandardMedia(statisticheCondominio);
 	}
 	//endregion
 }
