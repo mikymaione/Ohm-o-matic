@@ -34,7 +34,7 @@ public final class OOM extends Backend
 		}
 	}
 
-	@PUT
+	@POST
 	@Path("/disiscriviCasa")
 	@Consumes("application/x-protobuf")
 	@Produces("application/x-protobuf")
