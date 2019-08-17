@@ -6,16 +6,20 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.REST.Backend;
 
+import OhmOMatic.Global.Pair;
 import OhmOMatic.ProtoBuffer.Common;
 import OhmOMatic.ProtoBuffer.Home;
 import OhmOMatic.ProtoBuffer.Stat;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 
 public class Backend
 {
+
+	protected static final LinkedList<Pair<Date, String>> notifiche = new LinkedList<>();
 
 	protected static final HashSet<Home.casa> elencoCase = new HashSet<>();
 	protected static final HashMap<String, LinkedList<Stat.statistica>> statisticheCasa = new HashMap<>();

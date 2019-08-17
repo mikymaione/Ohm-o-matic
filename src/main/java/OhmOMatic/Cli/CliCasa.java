@@ -35,7 +35,7 @@ public final class CliCasa extends BaseCommandLineApplication
 
 			try (
 					final var chord = new Chord(identificatore, mio_peer_address, mio_peer_port);
-					final var casa = new Casa(identificatore, rest_url, chord)
+					final var casa = new Casa(identificatore, rest_url, mio_peer_address, mio_peer_port, chord)
 			)
 			{
 				System.out.println("Casa " + identificatore + " avviata!");

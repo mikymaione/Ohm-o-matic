@@ -9,6 +9,7 @@ package OhmOMatic.Sistema.gRPC;
 import OhmOMatic.Global.Pair;
 import OhmOMatic.ProtoBuffer.Common;
 import OhmOMatic.ProtoBuffer.Home;
+import OhmOMatic.ProtoBuffer.PushNotification;
 import OhmOMatic.ProtoBuffer.Stat;
 
 import javax.ws.rs.client.Client;
@@ -363,7 +364,70 @@ public class gRPCtoRESTserver implements AutoCloseable
 
 		return false;
 	}
+
+	public boolean boostRichiesto(final String identificatore, final String myAddress, final int myPort)
+	{
+		try
+		{
+			final var par = Home.casa.newBuilder()
+					.setIdentificatore(identificatore)
+					.setIP(myAddress)
+					.setPort(myPort)
+					.build();
+
+			final var wt = getWebTarget("boostRichiesto");
+			final var res = wt
+					.request()
+					.post(Entity.entity(par, "application/x-protobuf"), Common.standardRes.class);
+
+			if (res.getOk())
+				return true;
+			else
+				System.out.println(res.getErrore());
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+
+		return false;
+	}
 	//endregion
 
+
+	//region Notifiche push
+	public boolean getNotifiche()
+	{
+		try
+		{
+			final var wt = getWebTarget("getNotifiche");
+			final var lista = wt
+					.request()
+					.get(PushNotification.notificaRes.class);
+
+			final var res = lista.getStandardRes();
+
+			if (res.getOk())
+			{
+				System.out.println("Nuove notifiche:");
+
+				final var elenco = lista.getNotificheList();
+
+				for (var n : elenco)
+					System.out.println("-" + new Date(n.getData()) + ": " + n.getMsg());
+
+				return true;
+			}
+			else
+				System.out.println(res.getErrore());
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+
+		return false;
+	}
+	//endregion
 
 }

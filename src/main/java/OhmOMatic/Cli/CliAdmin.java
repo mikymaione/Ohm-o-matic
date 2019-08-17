@@ -9,6 +9,7 @@ package OhmOMatic.Cli;
 import OhmOMatic.Base.BaseCommandLineApplication;
 import OhmOMatic.Global.GB;
 import OhmOMatic.Sistema.Admin;
+import OhmOMatic.Sistema.LongPolling;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
@@ -29,9 +30,12 @@ public final class CliAdmin extends BaseCommandLineApplication
 
 			try (
 					final var admin = new Admin(rest_url);
-					final var scanner = new Scanner(System.in)
+					final var scanner = new Scanner(System.in);
+					final var longPolling = new LongPolling(rest_url)
 			)
 			{
+				longPolling.start();
+
 				LeggiComandiInterattivi(scanner, CliAdmin::createOptionsInteractiveProgram, inpts ->
 				{
 					if (inpts.hasOption("q"))

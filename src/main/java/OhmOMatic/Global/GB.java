@@ -175,6 +175,18 @@ public final class GB
 		return sdf.format(d);
 	}
 
+	public static void loopUntil(Callable<Boolean> callback)
+	{
+		try
+		{
+			while (!callback.call()) ;
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+
 	public static void waitfor(Callable<Boolean> callback, int millisecondi)
 	{
 		try

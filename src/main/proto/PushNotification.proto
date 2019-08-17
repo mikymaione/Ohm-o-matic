@@ -9,46 +9,15 @@ syntax = "proto3";
 package OhmOMatic.ProtoBuffer;
 
 import "Common.proto";
-import "Home.proto";
 
-//region Request
-message statistica {
+//Response
+message notifica {
     int64 data = 1;
-    double valore = 2;
+    string msg = 2;
 }
 
-message getStatisticheCasa {
-    casa Casa = 1;
-    int32 N = 2;
-}
-
-message getStatisticheCondominio {
-    int32 N = 1;
-}
-
-message statisticheCasa {
-    casa Casa = 1;
-    statistica Statistiche = 2;
-}
-
-message statisticheCondominio {
-    repeated statistica Statistiche = 1;
-}
-
-message deviazioneStandardMedia {
-    double deviazioneStandard = 1;
-    double media = 2;
-}
-//endregion
-
-//region Reponse
-message deviazioneStandardMediaRes {
+message notificaRes {
     standardRes StandardRes = 1;
-    deviazioneStandardMedia Statistiche = 2;
+    repeated notifica Notifiche = 2;
 }
-
-message statisticheRes {
-    standardRes StandardRes = 1;
-    repeated statistica Statistiche = 2;
-}
-//endregion
+//Response

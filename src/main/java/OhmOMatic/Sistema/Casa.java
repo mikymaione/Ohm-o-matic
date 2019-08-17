@@ -15,11 +15,12 @@ import OhmOMatic.Sistema.Base.MeanListener;
 import OhmOMatic.Sistema.Grafico.Grafico;
 import OhmOMatic.Sistema.gRPC.gRPCtoRESTserver;
 
-import java.net.URISyntaxException;
 import java.util.Date;
 
 public class Casa extends gRPCtoRESTserver implements MeanListener, AutoCloseable
 {
+
+	private final gRPCtoRESTserver _gRPCtoRESTserver;
 
 	private final Thread invioStatisticheCondominiali;
 	private final Waiter calcoloStatistiche;
@@ -30,15 +31,23 @@ public class Casa extends gRPCtoRESTserver implements MeanListener, AutoCloseabl
 	private final Grafico grafico;
 	private final Chord chord;
 
+	final String ip;
+	final int port;
 
-	public Casa(final String identificatore_, final String indirizzoREST_, final Chord chord_) throws URISyntaxException
+
+	public Casa(final String identificatore, final String indirizzoREST, final String ip, final int port, final Chord chord)
 	{
-		super(indirizzoREST_);
+		super(indirizzoREST);
 
-		chord = chord_;
-		identificatore = identificatore_;
+		this.port = port;
+		this.ip = ip;
 
-		grafico = new Grafico(indirizzoREST_, identificatore, chord);
+		this.chord = chord;
+		this.identificatore = identificatore;
+
+		_gRPCtoRESTserver = new gRPCtoRESTserver(indirizzoREST);
+
+		grafico = new Grafico(indirizzoREST, identificatore, chord);
 
 		smartMeterSimulator = new SmartMeterSimulator(
 				new BufferImplWithOverlap(24, 12, this)
@@ -53,6 +62,7 @@ public class Casa extends gRPCtoRESTserver implements MeanListener, AutoCloseabl
 	public void close()
 	{
 		grafico.close();
+		_gRPCtoRESTserver.close();
 	}
 
 
@@ -78,6 +88,8 @@ public class Casa extends gRPCtoRESTserver implements MeanListener, AutoCloseabl
 		chord.invokeMutualExclusion(() ->
 		{
 			System.out.println("Boost!");
+
+			_gRPCtoRESTserver.boostRichiesto(identificatore, ip, port);
 
 			try
 			{

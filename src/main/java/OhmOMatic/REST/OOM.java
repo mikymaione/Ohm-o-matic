@@ -6,18 +6,56 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.REST;
 
+import OhmOMatic.Global.GB;
+import OhmOMatic.Global.Pair;
 import OhmOMatic.ProtoBuffer.Common.standardRes;
 import OhmOMatic.ProtoBuffer.Home.casa;
 import OhmOMatic.ProtoBuffer.Home.listaCase;
+import OhmOMatic.ProtoBuffer.PushNotification;
 import OhmOMatic.ProtoBuffer.Stat;
 import OhmOMatic.REST.Backend.Backend;
 
 import javax.ws.rs.*;
+import java.util.Date;
 
 
 @Path("OOM")
 public final class OOM extends Backend
 {
+
+	//region Notiche push
+	@GET
+	@Path("/getNotifiche")
+	@Produces("application/x-protobuf")
+	public PushNotification.notificaRes getNotifiche()
+	{
+		var R = PushNotification.notificaRes
+				.newBuilder()
+				.setStandardRes(buildStandardRes());
+
+		GB.waitfor(() ->
+		{
+			synchronized (notifiche)
+			{
+				return notifiche.size() > 0;
+			}
+		}, 500);
+
+		synchronized (notifiche)
+		{
+			for (var n : notifiche)
+				R.addNotifiche(PushNotification.notifica.newBuilder()
+						.setData(n.getKey().getTime())
+						.setMsg(n.getValue())
+				);
+
+			notifiche.clear();
+
+			return R.build();
+		}
+	}
+	//endregion
+
 
 	//region Casa
 	@POST
@@ -29,6 +67,11 @@ public final class OOM extends Backend
 		synchronized (elencoCase)
 		{
 			elencoCase.add(par);
+
+			synchronized (notifiche)
+			{
+				notifiche.add(new Pair<>(new Date(), "Casa " + par.getIdentificatore() + " si è aggiunta!"));
+			}
 
 			return buildListaCase();
 		}
@@ -43,7 +86,14 @@ public final class OOM extends Backend
 		synchronized (elencoCase)
 		{
 			if (elencoCase.remove(par))
+			{
+				synchronized (notifiche)
+				{
+					notifiche.add(new Pair<>(new Date(), "Casa " + par.getIdentificatore() + " è uscita!"));
+				}
+
 				return buildStandardRes();
+			}
 			else
 				return buildStandardRes("Non sono riuscito a rimuovere la casa " + par.getIdentificatore());
 		}
@@ -145,5 +195,22 @@ public final class OOM extends Backend
 			return buildDeviazioneStandardMedia(statisticheCondominio);
 		}
 	}
+
+
+	@POST
+	@Path("/boostRichiesto")
+	@Consumes("application/x-protobuf")
+	@Produces("application/x-protobuf")
+	public standardRes boostRichiesto(casa par)
+	{
+		synchronized (notifiche)
+		{
+			notifiche.add(new Pair<>(new Date(), "Casa " + par.getIdentificatore() + " ha usato Boost... è super efficace!"));
+		}
+
+		return buildStandardRes();
+	}
 	//endregion
+
+
 }
