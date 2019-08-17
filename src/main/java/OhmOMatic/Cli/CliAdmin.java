@@ -7,6 +7,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package OhmOMatic.Cli;
 
 import OhmOMatic.Base.BaseCommandLineApplication;
+import OhmOMatic.Global.GB;
 import OhmOMatic.Sistema.Admin;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -28,12 +29,12 @@ public final class CliAdmin extends BaseCommandLineApplication
 
 			final var rest_url = cmd.getOptionValue("r");
 
-			try (final var admin = new Admin(rest_url))
+			try (
+					final var admin = new Admin(rest_url);
+					final var scanner = new Scanner(System.in)
+			)
 			{
-				try (final var scanner = new Scanner(System.in))
-				{
-					LeggiComandiInterattivi(admin, scanner);
-				}
+				LeggiComandiInterattivi(admin, scanner);
 			}
 		}
 		catch (ParseException e)
@@ -51,7 +52,7 @@ public final class CliAdmin extends BaseCommandLineApplication
 
 		do
 		{
-			printOptions(" ", commands);
+			printOptions(commands);
 
 			final var line = scanner.nextLine();
 
@@ -67,26 +68,26 @@ public final class CliAdmin extends BaseCommandLineApplication
 				{
 					final var ops = cmd.getOptionValues("s");
 					final var id = ops[0];
-					final var n = stringToInt(ops[1], 1);
+					final var n = GB.stringToInt(ops[1], 1);
 
 					admin.ultimeStatisticheCasa(id, n);
 				}
 				else if (cmd.hasOption("g")) //Ultime N statistiche condominio
 				{
-					final var n = stringToInt(cmd.getOptionValue("g"), 1);
+					final var n = GB.stringToInt(cmd.getOptionValue("g"), 1);
 					admin.ultimeStatisticheCondominio(n);
 				}
 				else if (cmd.hasOption("y")) //Deviazione standard e media delle ultime N statistiche prodotte da una specifica casa
 				{
 					final var ops = cmd.getOptionValues("y");
 					final var id = ops[0];
-					final var n = stringToInt(ops[1], 1);
+					final var n = GB.stringToInt(ops[1], 1);
 
 					admin.deviazioneStandardMediaCasa(id, n);
 				}
 				else if (cmd.hasOption("x")) //Deviazione standard e media delle ultime N statistiche complessive condominiali
 				{
-					final var n = stringToInt(cmd.getOptionValue("x"), 1);
+					final var n = GB.stringToInt(cmd.getOptionValue("x"), 1);
 					admin.deviazioneStandardMediaCondominio(n);
 				}
 			}

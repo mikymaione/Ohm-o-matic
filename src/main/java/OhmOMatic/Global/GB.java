@@ -25,7 +25,7 @@ public final class GB
 	public static final Integer numberOfFingers = 8;
 
 	private static final int shaBits = 512;
-	public static final BigInteger shaBitsB = BigInteger.valueOf(shaBits);
+	private static final BigInteger shaBitsB = BigInteger.valueOf(shaBits);
 
 	private static final DigestUtils duSHA3_512 = new DigestUtils(SHA3_512);
 	private static final HashMap<String, BigInteger> _shaStrings = new HashMap<>();
@@ -137,6 +137,22 @@ public final class GB
 		}
 	}
 
+	public static int stringToInt(String s, int default_)
+	{
+		var r = default_;
+
+		try
+		{
+			r = Integer.parseUnsignedInt(s);
+		}
+		catch (Exception e)
+		{
+			//non integer
+		}
+
+		return r;
+	}
+
 	public static boolean stringIsBlank(final String s)
 	{
 		return (s == null || s.equals("") || s.equals(" "));
@@ -201,17 +217,6 @@ public final class GB
 				n.getMinutes(),
 				n.getSeconds()
 		);
-	}
-
-	public static <A, B> int countThisValue(final HashMap<A, B> mappa, final B valore)
-	{
-		var x = 0;
-
-		for (var e : mappa.values())
-			if (e.equals(valore))
-				x++;
-
-		return x;
 	}
 
 }

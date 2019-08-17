@@ -7,37 +7,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package OhmOMatic.Base;
 
 import org.apache.commons.cli.*;
-import org.apache.http.client.utils.URIBuilder;
-
-import java.math.BigInteger;
-import java.net.URI;
-import java.net.URISyntaxException;
 
 public class BaseCommandLineApplication
 {
-
-	protected static BigInteger stringToBigInteger(String s, int default_)
-	{
-		final var i = stringToInt(s, default_);
-
-		return BigInteger.valueOf(i);
-	}
-
-	protected static int stringToInt(String s, int default_)
-	{
-		var r = default_;
-
-		try
-		{
-			r = Integer.parseUnsignedInt(s);
-		}
-		catch (Exception e)
-		{
-			//non integer
-		}
-
-		return r;
-	}
 
 	protected static CommandLine getCommandLine(Options options, String[] args) throws ParseException
 	{
@@ -46,21 +18,14 @@ public class BaseCommandLineApplication
 		return parser.parse(options, args);
 	}
 
-	protected static URI stringToURI(String url, String port, String root) throws URISyntaxException
-	{
-		final var port_ = Integer.parseUnsignedInt(port);
-
-		return new URIBuilder()
-				.setScheme("http")
-				.setHost(url)
-				.setPort(port_)
-				.setPath(root)
-				.build();
-	}
-
 	private final static HelpFormatter formatter = new HelpFormatter();
 
-	protected static void printOptions(String app, Options options)
+	protected static void printOptions(final Options options)
+	{
+		printOptions(" ", options);
+	}
+
+	protected static void printOptions(final String app, final Options options)
 	{
 		formatter.printHelp(app, options);
 	}

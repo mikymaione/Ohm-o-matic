@@ -7,10 +7,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package OhmOMatic.REST;
 
 import OhmOMatic.Base.BaseCommandLineApplication;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import java.net.URI;
+import java.util.Scanner;
 
 public final class RestServer extends BaseCommandLineApplication
 {
@@ -18,16 +22,64 @@ public final class RestServer extends BaseCommandLineApplication
 	// Le rotte (e quindi le funzionalità) si trovano nel file OhmOMatic.REST.OOM.java
 	private static final String Server_URI = "http://localhost:8080/OOM/";
 
+
 	public static void main(String[] args)
 	{
 		final var rc = new ResourceConfig()
 				.packages("OhmOMatic");
 
-		GrizzlyHttpServerFactory.createHttpServer(URI.create(Server_URI), rc);
+		final var server = GrizzlyHttpServerFactory.createHttpServer(URI.create(Server_URI), rc);
 
 		System.out.println("Ohm-o-matic - Server avviato!");
 		System.out.println(String.format("Visita %s", Server_URI));
+
+		try (final var scanner = new Scanner(System.in))
+		{
+			LeggiComandiInterattivi(scanner);
+		}
+
+		server.shutdown();
 	}
+
+
+	//region Opzioni command line
+	private static void LeggiComandiInterattivi(Scanner scanner)
+	{
+		final var commands = createOptionsInteractiveProgram();
+
+		var inEsecuzione = true;
+
+		do
+		{
+			printOptions(commands);
+
+			final var line = scanner.nextLine();
+
+			try
+			{
+				final var cmd = getCommandLine(commands, line.split(" "));
+
+				if (cmd.hasOption("q"))
+					inEsecuzione = false;
+			}
+			catch (ParseException e)
+			{
+				System.out.println("Il comando " + line + " non esiste!");
+			}
+		}
+		while (inEsecuzione);
+	}
+
+	private static Options createOptionsInteractiveProgram()
+	{
+		final var quit = Option.builder("q")
+				.desc("Quit")
+				.build();
+
+		return new Options()
+				.addOption(quit);
+	}
+	//endregion
 
 
 }

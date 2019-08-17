@@ -8,6 +8,7 @@ package OhmOMatic.Cli;
 
 import OhmOMatic.Base.BaseCommandLineApplication;
 import OhmOMatic.Chord.Chord;
+import OhmOMatic.Global.GB;
 import OhmOMatic.Sistema.Casa;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -29,42 +30,42 @@ public final class CliCasa extends BaseCommandLineApplication
 
 			final var rest_url = cmd.getOptionValue("r");
 			final var mio_peer_address = cmd.getOptionValue("k");
-			final var mio_peer_port = stringToInt(cmd.getOptionValue("q"), -1);
+			final var mio_peer_port = GB.stringToInt(cmd.getOptionValue("q"), -1);
 			final var peer_address = cmd.getOptionValue("j");
-			final var peer_port = stringToInt(cmd.getOptionValue("p"), -1);
+			final var peer_port = GB.stringToInt(cmd.getOptionValue("p"), -1);
 			final var identificatore = cmd.getOptionValue("i");
 
-			try (final var chord = new Chord(identificatore, mio_peer_address, mio_peer_port))
+			try (
+					final var chord = new Chord(identificatore, mio_peer_address, mio_peer_port);
+					final var casa = new Casa(identificatore, rest_url, chord)
+			)
 			{
-				try (final var casa = new Casa(identificatore, rest_url, chord))
+				System.out.println("Casa " + identificatore + " avviata!");
+
+				if (casa.iscriviCasa(identificatore, mio_peer_address, mio_peer_port))
 				{
-					System.out.println("Casa " + identificatore + " avviata!");
+					System.out.println("Casa iscritta sul server!");
 
-					if (casa.iscriviCasa(identificatore, mio_peer_address, mio_peer_port))
+					if (peer_port > -1)
+						chord.join(peer_address, peer_port);
+					else
+						chord.join(mio_peer_address, mio_peer_port);
+
+					System.out.println("Casa nel condominio!");
+
+					casa.avviaSmartMeter();
+					System.out.println("Smart meter avviato!");
+
+					try (var scanner = new Scanner(System.in))
 					{
-						System.out.println("Casa iscritta sul server!");
-
-						if (peer_port > -1)
-							chord.join(peer_address, peer_port);
-						else
-							chord.join(mio_peer_address, mio_peer_port);
-
-						System.out.println("Casa nel condominio!");
-
-						casa.avviaSmartMeter();
-						System.out.println("Smart meter avviato!");
-
-						try (var scanner = new Scanner(System.in))
-						{
-							LeggiComandiInterattivi(casa, chord, scanner);
-						}
-
-						casa.fermaSmartMeter();
-						System.out.println("Smart meter fermato!");
-
-						if (casa.disiscriviCasa(identificatore, mio_peer_address, mio_peer_port))
-							System.out.println("Casa fuori dal condominio!");
+						LeggiComandiInterattivi(casa, chord, scanner);
 					}
+
+					casa.fermaSmartMeter();
+					System.out.println("Smart meter fermato!");
+
+					if (casa.disiscriviCasa(identificatore, mio_peer_address, mio_peer_port))
+						System.out.println("Casa fuori dal condominio!");
 				}
 			}
 		}
@@ -85,7 +86,7 @@ public final class CliCasa extends BaseCommandLineApplication
 
 		do
 		{
-			printOptions(" ", commands);
+			printOptions(commands);
 
 			final var line = scanner.nextLine();
 

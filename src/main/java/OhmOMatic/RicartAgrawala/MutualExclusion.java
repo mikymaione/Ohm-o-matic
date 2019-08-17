@@ -21,7 +21,7 @@ import OhmOMatic.RicartAgrawala.gRPC.gRPC_Client;
 import java.math.BigInteger;
 import java.util.HashMap;
 
-public final class MutualExclusion implements AutoCloseable
+public final class MutualExclusion
 {
 
 	private final NodeLink me;
@@ -47,11 +47,6 @@ public final class MutualExclusion implements AutoCloseable
 		this.numberOfResources = numberOfResources;
 	}
 
-	@Override
-	public void close()
-	{
-		//
-	}
 
 	//region Client
 	// Request entry to our critical section
