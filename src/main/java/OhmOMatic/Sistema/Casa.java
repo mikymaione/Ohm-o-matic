@@ -9,45 +9,34 @@ package OhmOMatic.Sistema;
 import OhmOMatic.Chord.Chord;
 import OhmOMatic.Global.Pair;
 import OhmOMatic.Global.Waiter;
-import OhmOMatic.ProtoBuffer.Common.standardRes;
-import OhmOMatic.ProtoBuffer.Home.casa;
-import OhmOMatic.ProtoBuffer.Home.listaCase;
 import OhmOMatic.Simulation.SmartMeterSimulator;
 import OhmOMatic.Sistema.Base.BufferImplWithOverlap;
 import OhmOMatic.Sistema.Base.MeanListener;
 import OhmOMatic.Sistema.Grafico.Grafico;
+import OhmOMatic.Sistema.gRPC.gRPCtoRESTserver;
 
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
+import java.net.URISyntaxException;
 import java.util.Date;
 
-public class Casa implements MeanListener, AutoCloseable
+public class Casa extends gRPCtoRESTserver implements MeanListener, AutoCloseable
 {
 
 	private final Waiter calcoloStatistiche;
 	private final SmartMeterSimulator smartMeterSimulator;
 
-	private final WebTarget webTargetRest;
-
 	private final String identificatore;
-	private final String RESTAddress;
-	private final String myAddress;
-	private final int myPort;
 
 	private final Grafico grafico;
 	private final Chord chord;
 
 
-	public Casa(final String identificatore_, final String indirizzoREST_, final String mioIndirizzo_, final int miaPorta_, final Chord chord_)
+	public Casa(final String identificatore_, final String indirizzoREST_, final Chord chord_) throws URISyntaxException
 	{
+		super(indirizzoREST_);
+
 		chord = chord_;
 
 		identificatore = identificatore_;
-		RESTAddress = indirizzoREST_;
-
-		myAddress = mioIndirizzo_;
-		myPort = miaPorta_;
 
 		grafico = new Grafico(identificatore, chord);
 
@@ -57,72 +46,13 @@ public class Casa implements MeanListener, AutoCloseable
 		smartMeterSimulator.setName("__smartMeterSimulator");
 
 		calcoloStatistiche = new Waiter("calcoloStatistiche", grafico::calcolaStatistiche, 2000);
-
-		webTargetRest = ClientBuilder.newClient().target(RESTAddress + "/OOM");
 	}
-
 
 	@Override
 	public void close()
 	{
 		grafico.close();
 	}
-
-	//region Chiamate WS
-	public void iscriviCasa()
-	{
-		try
-		{
-			var wt = webTargetRest.path("iscriviCasa");
-
-			final var par = casa.newBuilder()
-					.setIP(myAddress)
-					.setPort(myPort)
-					.build();
-
-			final var resListaCase = wt
-					.request()
-					.put(Entity.entity(par, "application/x-protobuf"), listaCase.class);
-
-			final var res = resListaCase.getStandardResponse();
-
-			if (res.getOk())
-				System.out.println("OK!");
-			else
-				System.out.println(res.getErrore());
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-	}
-
-	public void disiscriviCasa()
-	{
-		try
-		{
-			var wt = webTargetRest.path("disiscriviCasa");
-
-			final var par = casa.newBuilder()
-					.setIP(myAddress)
-					.setPort(myPort)
-					.build();
-
-			final var res = wt
-					.request()
-					.put(Entity.entity(par, "application/x-protobuf"), standardRes.class);
-
-			if (res.getOk())
-				System.out.println("OK!");
-			else
-				System.out.println(res.getErrore());
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-	}
-	//endregion
 
 
 	//region Gestione Smart meter
@@ -163,6 +93,7 @@ public class Casa implements MeanListener, AutoCloseable
 	public void meanGenerated(Pair<Double, Date> mean)
 	{
 		chord.putIncremental(mean);
+		aggiungiStatisticaLocale(identificatore, mean.getValue(), mean.getKey());
 	}
 	//endregion
 

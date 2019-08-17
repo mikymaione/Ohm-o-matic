@@ -40,11 +40,11 @@ message getStatisticheCondominio {
 
 message statisticheCasa {
     casa Casa = 1;
-    repeated statistica Statistiche = 2;
+    statistica Statistiche = 2;
 }
 
 message statisticheCondominio {
-    repeated statistica Statistiche = 1;
+    statistica Statistiche = 1;
 }
 
 message deviazioneStandardMedia {

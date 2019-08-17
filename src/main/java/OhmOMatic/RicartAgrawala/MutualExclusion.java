@@ -21,7 +21,7 @@ import OhmOMatic.RicartAgrawala.gRPC.gRPC_Client;
 import java.math.BigInteger;
 import java.util.HashMap;
 
-public class MutualExclusion implements AutoCloseable
+public final class MutualExclusion implements AutoCloseable
 {
 
 	private final NodeLink me;

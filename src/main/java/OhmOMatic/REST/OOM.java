@@ -75,7 +75,7 @@ public final class OOM extends Backend
 			final var id = casa.getIdentificatore();
 			final var lista = getStatisticaCasa(casa);
 
-			lista.addAll(par.getStatisticheList());
+			lista.add(par.getStatistiche());
 
 			if (!statisticheCasa.containsKey(id))
 				statisticheCasa.put(id, lista);
@@ -92,7 +92,7 @@ public final class OOM extends Backend
 	{
 		synchronized (statisticheCondominio)
 		{
-			statisticheCondominio.addAll(par.getStatisticheList());
+			statisticheCondominio.add(par.getStatistiche());
 
 			return buildStandardRes();
 		}

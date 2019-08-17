@@ -16,7 +16,7 @@ import com.google.protobuf.ByteString;
 
 import java.io.IOException;
 
-public class gRPC_Client
+public final class gRPC_Client
 {
 	//region Ricart & Agrawala gRPC
 	public static boolean gRPC(NodeLink server, RichiestaRicartAgrawala req)

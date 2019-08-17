@@ -36,34 +36,35 @@ public final class CliCasa extends BaseCommandLineApplication
 
 			try (final var chord = new Chord(identificatore, mio_peer_address, mio_peer_port))
 			{
-				try (final var casa = new Casa(identificatore, rest_url, mio_peer_address, mio_peer_port, chord))
+				try (final var casa = new Casa(identificatore, rest_url, chord))
 				{
 					System.out.println("Casa " + identificatore + " avviata!");
 
-					if (peer_port > -1)
-						chord.join(peer_address, peer_port);
-					else
-						chord.join(mio_peer_address, mio_peer_port);
-
-					//casa.iscriviCasa();
-					System.out.println("Casa iscritta sul server!");
-
-					//casa.entraNelCondominio();
-					System.out.println("Casa nel condominio!");
-
-					casa.avviaSmartMeter();
-					System.out.println("Smart meter avviato!");
-
-					try (var scanner = new Scanner(System.in))
+					if (casa.iscriviCasa(mio_peer_address, mio_peer_port))
 					{
-						LeggiComandiInterattivi(casa, chord, scanner);
+						System.out.println("Casa iscritta sul server!");
+
+						if (peer_port > -1)
+							chord.join(peer_address, peer_port);
+						else
+							chord.join(mio_peer_address, mio_peer_port);
+
+						System.out.println("Casa nel condominio!");
+
+						casa.avviaSmartMeter();
+						System.out.println("Smart meter avviato!");
+
+						try (var scanner = new Scanner(System.in))
+						{
+							LeggiComandiInterattivi(casa, chord, scanner);
+						}
+
+						casa.fermaSmartMeter();
+						System.out.println("Smart meter fermato!");
+
+						if (casa.disiscriviCasa(mio_peer_address, mio_peer_port))
+							System.out.println("Casa fuori dal condominio!");
 					}
-
-					casa.fermaSmartMeter();
-					System.out.println("Smart meter fermato!");
-
-					//casa.disiscriviCasa();
-					System.out.println("Casa fuori dal condominio!");
 				}
 			}
 		}

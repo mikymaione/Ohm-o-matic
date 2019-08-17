@@ -16,7 +16,7 @@ import io.grpc.stub.StreamObserver;
 
 import java.util.function.Consumer;
 
-public class gRPC_Server
+public final class gRPC_Server
 {
 
 	static class reqParam
