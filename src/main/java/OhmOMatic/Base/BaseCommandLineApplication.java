@@ -15,6 +15,9 @@ import java.util.function.Supplier;
 public class BaseCommandLineApplication
 {
 
+	private final static HelpFormatter formatter = new HelpFormatter();
+
+
 	protected static Option OP(String opt, String desc)
 	{
 		return Option.builder(opt)
@@ -74,9 +77,7 @@ public class BaseCommandLineApplication
 		return parser.parse(options, args);
 	}
 
-	private final static HelpFormatter formatter = new HelpFormatter();
-
-	protected static void printOptions(final Options options)
+	private static void printOptions(final Options options)
 	{
 		printOptions(" ", options);
 	}
