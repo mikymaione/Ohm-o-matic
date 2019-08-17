@@ -40,6 +40,7 @@ public class Grafico implements AutoCloseable
 	private final HashMap<NodeLink, BigInteger> ultimoAggiornamentoGrafico = new HashMap<>();
 	private final HashMap<Date, Double> condominioGrafico = new HashMap<>();
 	private final HashMap<Date, Double> mioGrafico = new HashMap<>();
+	private final LinkedList<Pair<Date, Double>> daInviareCondominio = new LinkedList<>();
 
 	private final Chord chord;
 
@@ -153,20 +154,24 @@ public class Grafico implements AutoCloseable
 				final var statisticheaAltroPeer = chord.getIncrementals(peer.ID, lastNumero, curNumero);
 
 				if (statisticheaAltroPeer != null)
-					for (var statisticaAltroPeer : statisticheaAltroPeer)
-						if (statisticaAltroPeer != null)
-						{
-							final var p = Pair.<Double, Date>fromSerializable(statisticaAltroPeer);
-							final var attuale = condominioGrafico.getOrDefault(p.getValue(), 0d) + p.getKey();
-
-							condominioGrafico.put(p.getValue(), attuale);
-
-							if (peer.ID.equals(chord.getID()))
+					synchronized (daInviareCondominio)
+					{
+						for (var statisticaAltroPeer : statisticheaAltroPeer)
+							if (statisticaAltroPeer != null)
 							{
-								final var attuale_m = mioGrafico.getOrDefault(p.getValue(), 0d) + p.getKey();
-								mioGrafico.put(p.getValue(), attuale_m);
+								final var p = Pair.<Double, Date>fromSerializable(statisticaAltroPeer);
+								final var attuale = condominioGrafico.getOrDefault(p.getValue(), 0d) + p.getKey();
+
+								condominioGrafico.put(p.getValue(), attuale);
+								daInviareCondominio.add(new Pair<>(p.getValue(), attuale));
+
+								if (peer.ID.equals(chord.getID()))
+								{
+									final var attuale_m = mioGrafico.getOrDefault(p.getValue(), 0d) + p.getKey();
+									mioGrafico.put(p.getValue(), attuale_m);
+								}
 							}
-						}
+					}
 			}
 
 			if (mioGrafico.size() > 0 && condominioGrafico.size() > 0)
@@ -181,7 +186,11 @@ public class Grafico implements AutoCloseable
 		{
 			GB.waitfor(() ->
 			{
-				_gRPCtoRESTserver.aggiungiStatisticaGlobale(new Date(), 6);
+				synchronized (daInviareCondominio)
+				{
+					_gRPCtoRESTserver.aggiungiStatisticaGlobale(daInviareCondominio);
+					daInviareCondominio.clear();
+				}
 
 				synchronized (sharedVars)
 				{

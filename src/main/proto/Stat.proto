@@ -44,7 +44,7 @@ message statisticheCasa {
 }
 
 message statisticheCondominio {
-    statistica Statistiche = 1;
+    repeated statistica Statistiche = 1;
 }
 
 message deviazioneStandardMedia {

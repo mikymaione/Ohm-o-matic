@@ -92,7 +92,7 @@ public final class OOM extends Backend
 	{
 		synchronized (statisticheCondominio)
 		{
-			statisticheCondominio.add(par.getStatistiche());
+			statisticheCondominio.addAll(par.getStatisticheList());
 
 			return buildStandardRes();
 		}

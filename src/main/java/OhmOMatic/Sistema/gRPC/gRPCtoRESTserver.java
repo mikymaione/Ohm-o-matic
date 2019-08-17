@@ -6,6 +6,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 package OhmOMatic.Sistema.gRPC;
 
+import OhmOMatic.Global.Pair;
 import OhmOMatic.ProtoBuffer.Common;
 import OhmOMatic.ProtoBuffer.Home;
 import OhmOMatic.ProtoBuffer.Stat;
@@ -15,6 +16,7 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import java.util.Date;
+import java.util.LinkedList;
 
 public class gRPCtoRESTserver implements AutoCloseable
 {
@@ -174,23 +176,24 @@ public class gRPCtoRESTserver implements AutoCloseable
 		return false;
 	}
 
-	public boolean aggiungiStatisticaGlobale(final Date data, final double valore)
+	public boolean aggiungiStatisticaGlobale(LinkedList<Pair<Date, Double>> daInviareCondominio)
 	{
 		try
 		{
-			final var params = Stat.statisticheCondominio
-					.newBuilder()
-					.setStatistiche(Stat.statistica
-							.newBuilder()
-							.setData(data.getTime())
-							.setValore(valore)
-					)
-					.build();
+			var paramsB = Stat.statisticheCondominio
+					.newBuilder();
+
+			for (var s : daInviareCondominio)
+				paramsB.addStatistiche(Stat.statistica
+						.newBuilder()
+						.setData(s.getKey().getTime())
+						.setValore(s.getValue())
+				);
 
 			final var wt = getWebTarget("aggiungiStatisticaGlobale");
 			final var res = wt
 					.request()
-					.post(Entity.entity(params, "application/x-protobuf"), Common.standardRes.class);
+					.post(Entity.entity(paramsB.build(), "application/x-protobuf"), Common.standardRes.class);
 
 			if (res.getOk())
 				return true;
