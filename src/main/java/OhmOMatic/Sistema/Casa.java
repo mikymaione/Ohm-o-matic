@@ -21,6 +21,7 @@ import java.util.Date;
 public class Casa extends gRPCtoRESTserver implements MeanListener, AutoCloseable
 {
 
+	private final Thread invioStatisticheCondominiali;
 	private final Waiter calcoloStatistiche;
 	private final SmartMeterSimulator smartMeterSimulator;
 
@@ -35,10 +36,9 @@ public class Casa extends gRPCtoRESTserver implements MeanListener, AutoCloseabl
 		super(indirizzoREST_);
 
 		chord = chord_;
-
 		identificatore = identificatore_;
 
-		grafico = new Grafico(identificatore, chord);
+		grafico = new Grafico(indirizzoREST_, identificatore, chord);
 
 		smartMeterSimulator = new SmartMeterSimulator(
 				new BufferImplWithOverlap(24, 12, this)
@@ -46,6 +46,7 @@ public class Casa extends gRPCtoRESTserver implements MeanListener, AutoCloseabl
 		smartMeterSimulator.setName("__smartMeterSimulator");
 
 		calcoloStatistiche = new Waiter("calcoloStatistiche", grafico::calcolaStatistiche, 2000);
+		invioStatisticheCondominiali = new Thread(grafico::invioStatisticheCondominiali);
 	}
 
 	@Override
@@ -58,14 +59,16 @@ public class Casa extends gRPCtoRESTserver implements MeanListener, AutoCloseabl
 	//region Gestione Smart meter
 	public void avviaSmartMeter()
 	{
+		invioStatisticheCondominiali.start();
 		calcoloStatistiche.start();
 		smartMeterSimulator.start();
 	}
 
 	public void fermaSmartMeter()
 	{
-		calcoloStatistiche.stopMeGently();
 		smartMeterSimulator.stopMeGently();
+		calcoloStatistiche.stopMeGently();
+		invioStatisticheCondominiali.stop();
 	}
 
 	public void boost()

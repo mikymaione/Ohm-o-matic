@@ -19,21 +19,24 @@ import java.io.IOException;
 public final class gRPC_Client
 {
 	//region Ricart & Agrawala gRPC
-	public static boolean gRPC(NodeLink server, RichiestaRicartAgrawala req)
+	public static boolean gRPC(final NodeLink server, final RichiestaRicartAgrawala req, final String identificativoRisorsa)
 	{
-		final var _oggetto = RicartAgrawalaOuterClass.mutualExMsg.newBuilder()
+		final var _oggetto = RicartAgrawalaOuterClass.mutualExMsg
+				.newBuilder()
+				.setIdentificativoRisorsa(identificativoRisorsa)
 				.build();
 
 		return gRPC(server, req, _oggetto);
 	}
 
-	public static boolean gRPC(NodeLink server, RichiestaRicartAgrawala req, int our_sequence_number, NodeLink me)
+	public static boolean gRPC(final NodeLink server, final RichiestaRicartAgrawala req, final String identificativoRisorsa, final int our_sequence_number, final NodeLink me)
 	{
 		try
 		{
 			final var _oggetto = RicartAgrawalaOuterClass.mutualExMsg.newBuilder()
 					.setNodeLink(ByteString.copyFrom(GB.serialize(me)))
 					.setOurSequenceNumber(our_sequence_number)
+					.setIdentificativoRisorsa(identificativoRisorsa)
 					.build();
 
 			return gRPC(server, req, _oggetto);
@@ -45,7 +48,7 @@ public final class gRPC_Client
 		}
 	}
 
-	private static boolean gRPC(NodeLink server, RichiestaRicartAgrawala req, RicartAgrawalaOuterClass.mutualExMsg _oggetto)
+	private static boolean gRPC(final NodeLink server, final RichiestaRicartAgrawala req, final RicartAgrawalaOuterClass.mutualExMsg _oggetto)
 	{
 		if (server == null)
 			return false;

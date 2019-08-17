@@ -8,7 +8,10 @@ package OhmOMatic.Sistema.Grafico;
 
 import OhmOMatic.Chord.Chord;
 import OhmOMatic.Chord.Link.NodeLink;
+import OhmOMatic.Global.GB;
 import OhmOMatic.Global.Pair;
+import OhmOMatic.RicartAgrawala.MutualExclusion;
+import OhmOMatic.Sistema.gRPC.gRPCtoRESTserver;
 import org.knowm.xchart.SwingWrapper;
 import org.knowm.xchart.XYChart;
 import org.knowm.xchart.XYChartBuilder;
@@ -23,6 +26,12 @@ import java.util.*;
 public class Grafico implements AutoCloseable
 {
 
+	private final gRPCtoRESTserver _gRPCtoRESTserver;
+
+	private final MutualExclusion mutexInvioStatisticheCondominio;
+	private boolean invioStatisticheCondominioInEsecuzione = true;
+	private final Object sharedVars = new Object();
+
 	private JFrame chart_frame;
 	private final XYChart chart;
 	private final SwingWrapper<XYChart> swing;
@@ -35,10 +44,14 @@ public class Grafico implements AutoCloseable
 	private final Chord chord;
 
 
-	public Grafico(String nome, Chord chord)
+	public Grafico(final String indirizzoREST, final String nome, final Chord chord)
 	{
 		this.nome = nome;
 		this.chord = chord;
+
+		_gRPCtoRESTserver = new gRPCtoRESTserver(indirizzoREST);
+
+		mutexInvioStatisticheCondominio = new MutualExclusion("InvioStatisticheCondominio", 1, chord);
 
 		final var dim = Toolkit.getDefaultToolkit().getScreenSize();
 
@@ -62,6 +75,13 @@ public class Grafico implements AutoCloseable
 	@Override
 	public void close()
 	{
+		synchronized (sharedVars)
+		{
+			invioStatisticheCondominioInEsecuzione = false;
+		}
+
+		_gRPCtoRESTserver.close();
+
 		if (chart_frame != null)
 			chart_frame.dispose();
 	}
@@ -152,6 +172,23 @@ public class Grafico implements AutoCloseable
 			if (mioGrafico.size() > 0 && condominioGrafico.size() > 0)
 				aggiornaChart(mioGrafico, condominioGrafico);
 		}
+	}
+
+
+	public void invioStatisticheCondominiali()
+	{
+		mutexInvioStatisticheCondominio.invokeMutualExclusion(() ->
+		{
+			GB.waitfor(() ->
+			{
+				_gRPCtoRESTserver.aggiungiStatisticaGlobale(new Date(), 6);
+
+				synchronized (sharedVars)
+				{
+					return !invioStatisticheCondominioInEsecuzione;
+				}
+			}, 2000);
+		});
 	}
 
 

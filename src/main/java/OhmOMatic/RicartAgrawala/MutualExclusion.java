@@ -39,12 +39,15 @@ public final class MutualExclusion
 
 	private final Chord chord;
 
+	private final String identificativoRisorsa;
 
-	public MutualExclusion(final int numberOfResources, final NodeLink me, Chord chord)
+
+	public MutualExclusion(final String identificativoRisorsa, final int numberOfResources, final Chord chord)
 	{
-		this.me = me;
+		this.me = chord.getNodeLink();
 		this.chord = chord;
 		this.numberOfResources = numberOfResources;
+		this.identificativoRisorsa = identificativoRisorsa;
 	}
 
 
@@ -65,7 +68,7 @@ public final class MutualExclusion
 		// Send a request message containing our sequence number and our node number to all other nodes
 		for (final var nodo : peerList)
 			if (!nodo.equals(me))
-				GB.waitfor(() -> gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.request, our_sequence_number, me), 250);
+				GB.waitfor(() -> gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.request, identificativoRisorsa, our_sequence_number, me), 250);
 
 		// Now wait for a reply from each of the other nodes
 		GB.waitfor(() ->
@@ -98,24 +101,31 @@ public final class MutualExclusion
 				}
 
 				if (ok)
-					GB.waitfor(() -> gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.reply), 250);
+					GB.waitfor(() -> gRPC_Client.gRPC(nodo, RichiestaRicartAgrawala.reply, identificativoRisorsa), 250);
 			}
 	}
 	//endregion
 
 	//region Server
-	public void reply()
+	public void reply(final String _identificativoRisorsa)
 	{
 		synchronized (shared_vars)
 		{
-			outstanding_reply_count--;
+			if (identificativoRisorsa.equals(_identificativoRisorsa))
+				outstanding_reply_count--;
 		}
 	}
 
 	// caller_sequence_number is the sequence number begin requested,
 	// caller is the node making the request;
-	public void request(Integer caller_sequence_number, NodeLink caller)
+	public void request(final String _identificativoRisorsa, final Integer caller_sequence_number, final NodeLink caller)
 	{
+		synchronized (shared_vars)
+		{
+			if (!identificativoRisorsa.equals(_identificativoRisorsa))
+				return;
+		}
+
 		final boolean defer_it;
 
 		synchronized (shared_vars)
@@ -134,7 +144,7 @@ public final class MutualExclusion
 				reply_deferred.put(caller.ID, true);
 			}
 		else
-			GB.waitfor(() -> gRPC_Client.gRPC(caller, RichiestaRicartAgrawala.reply), 250);
+			GB.waitfor(() -> gRPC_Client.gRPC(caller, RichiestaRicartAgrawala.reply, identificativoRisorsa), 250);
 	}
 	//endregion
 

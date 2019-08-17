@@ -21,13 +21,15 @@ public final class gRPC_Server
 
 	static class reqParam
 	{
-		NodeLink n;
-		int sequence_number;
+		final NodeLink n;
+		final int sequence_number;
+		final String identificativoRisorsa;
 
-		reqParam(final NodeLink n, final int sequence_number)
+		reqParam(final String identificativoRisorsa, final NodeLink n, final int sequence_number)
 		{
 			this.n = n;
 			this.sequence_number = sequence_number;
+			this.identificativoRisorsa = identificativoRisorsa;
 		}
 	}
 
@@ -43,11 +45,13 @@ public final class gRPC_Server
 				try
 				{
 					final var nl = request.getNodeLink();
-
 					final var nodo = (nl.isEmpty() ? null : GB.<NodeLink>deserializeT(request.getNodeLink().toByteArray()));
-					final var our_sequence_number = request.getOurSequenceNumber();
 
-					callback.accept(new reqParam(nodo, our_sequence_number));
+					callback.accept(new reqParam(
+							request.getIdentificativoRisorsa(),
+							nodo,
+							request.getOurSequenceNumber())
+					);
 
 					_standardRes
 							.setOk(true);
@@ -69,13 +73,13 @@ public final class gRPC_Server
 			@Override
 			public void reply(RicartAgrawalaOuterClass.mutualExMsg request, StreamObserver<Common.standardRes> responseObserver)
 			{
-				elabora(request, responseObserver, p -> local.reply());
+				elabora(request, responseObserver, p -> local.reply(p.identificativoRisorsa));
 			}
 
 			@Override
 			public void request(RicartAgrawalaOuterClass.mutualExMsg request, StreamObserver<Common.standardRes> responseObserver)
 			{
-				elabora(request, responseObserver, p -> local.request(p.sequence_number, p.n));
+				elabora(request, responseObserver, p -> local.request(p.identificativoRisorsa, p.sequence_number, p.n));
 			}
 
 		};

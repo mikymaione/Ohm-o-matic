@@ -37,7 +37,7 @@ public class Chord implements AutoCloseable
 
 	//region Fields
 	//=============================== Mutual Exclusion ================================
-	private final MutualExclusion mutualExclusion;
+	private final MutualExclusion mutexBoost;
 	//=============================== Mutual Exclusion ================================
 
 	//====================================== DHT ======================================
@@ -96,12 +96,12 @@ public class Chord implements AutoCloseable
 		setPredecessor(null);
 		setSuccessor(n);
 
-		mutualExclusion = new MutualExclusion(2, n, this);
+		mutexBoost = new MutualExclusion("Boost", 2, this);
 
 		gRPC_listner = ServerBuilder
 				.forPort(n.port)
 				.addService(OhmOMatic.Chord.gRPC.gRPC_Server.getListnerServer(this))
-				.addService(OhmOMatic.RicartAgrawala.gRPC.gRPC_Server.getListnerServer(mutualExclusion))
+				.addService(OhmOMatic.RicartAgrawala.gRPC.gRPC_Server.getListnerServer(mutexBoost))
 				.build()
 				.start();
 	}
@@ -126,6 +126,7 @@ public class Chord implements AutoCloseable
 		System.out.println("Trasferimento dati ad altri peers terminato!");
 	}
 	//endregion
+
 
 	//region Proprietà
 	public NodeLink getNodeLink()
@@ -673,7 +674,7 @@ public class Chord implements AutoCloseable
 	//region Mutual Exlusion
 	public void invokeMutualExclusion(Runnable critical_region_callback)
 	{
-		mutualExclusion.invokeMutualExclusion(critical_region_callback);
+		mutexBoost.invokeMutualExclusion(critical_region_callback);
 	}
 	//endregion
 
