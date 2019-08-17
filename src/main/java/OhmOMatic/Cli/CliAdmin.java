@@ -9,7 +9,6 @@ package OhmOMatic.Cli;
 import OhmOMatic.Base.BaseCommandLineApplication;
 import OhmOMatic.Global.GB;
 import OhmOMatic.Sistema.Admin;
-import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
@@ -79,58 +78,19 @@ public final class CliAdmin extends BaseCommandLineApplication
 	//region Opzioni command line
 	private static Options createOptionsInteractiveProgram()
 	{
-		final var quit = Option.builder("q")
-				.desc("Quit")
-				.build();
-
-		final var elencoCase = Option.builder("e")
-				.desc("Elenco case")
-				.build();
-
-		final var ultimeStatisticheCasa = Option.builder("s")
-				.desc("Ultime N statistiche casa")
-				.numberOfArgs(2)
-				.argName("ID N")
-				.build();
-
-		final var ultimeStatisticheCondominio = Option.builder("g")
-				.desc("Ultime N statistiche condominio")
-				.numberOfArgs(1)
-				.argName("N")
-				.build();
-
-		final var deviazioneStandardMediaCasa = Option.builder("y")
-				.desc("Deviazione standard e media delle ultime N statistiche prodotte da una specifica casa")
-				.numberOfArgs(2)
-				.argName("ID N")
-				.build();
-
-		final var deviazioneStandardMediaCondominio = Option.builder("x")
-				.desc("Deviazione standard e media delle ultime N statistiche complessive condominiali")
-				.numberOfArgs(1)
-				.argName("N")
-				.build();
-
 		return new Options()
-				.addOption(quit)
-				.addOption(elencoCase)
-				.addOption(ultimeStatisticheCasa)
-				.addOption(ultimeStatisticheCondominio)
-				.addOption(deviazioneStandardMediaCasa)
-				.addOption(deviazioneStandardMediaCondominio);
+				.addOption(OP("q", "Quit"))
+				.addOption(OP("e", "Elenco case"))
+				.addOption(OP("s", "Ultime N statistiche casa", "ID N", 2, false))
+				.addOption(OP("g", "Ultime N statistiche condominio", "N", 1, false))
+				.addOption(OP("y", "Deviazione standard e media delle ultime N statistiche prodotte da una specifica casa", "ID N", 2, false))
+				.addOption(OP("x", "Deviazione standard e media delle ultime N statistiche complessive condominiali", "N", 1, false));
 	}
 
 	private static Options createOptions()
 	{
-		final var rest_url = Option.builder("r")
-				.desc("REST URL")
-				.required()
-				.hasArg()
-				.argName("URL")
-				.build();
-
 		return new Options()
-				.addOption(rest_url);
+				.addOption(OP("r", "REST URL", "URL", true));
 	}
 	//endregion
 

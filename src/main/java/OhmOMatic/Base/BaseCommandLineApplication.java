@@ -15,7 +15,34 @@ import java.util.function.Supplier;
 public class BaseCommandLineApplication
 {
 
-	public static void LeggiComandiInterattivi(Scanner scanner, Supplier<Options> createOptionsInteractiveProgram, Function<CommandLine, Boolean> execute)
+	protected static Option OP(String opt, String desc)
+	{
+		return Option.builder(opt)
+				.desc(desc)
+				.build();
+	}
+
+	protected static Option OP(String opt, String desc, String argName, boolean required)
+	{
+		return Option.builder(opt)
+				.desc(desc)
+				.required(required)
+				.hasArg()
+				.argName(argName)
+				.build();
+	}
+
+	protected static Option OP(String opt, String desc, String argName, int numberOfArgs, boolean required)
+	{
+		return Option.builder(opt)
+				.desc(desc)
+				.required(required)
+				.numberOfArgs(numberOfArgs)
+				.argName(argName)
+				.build();
+	}
+
+	protected static void LeggiComandiInterattivi(Scanner scanner, Supplier<Options> createOptionsInteractiveProgram, Function<CommandLine, Boolean> execute)
 	{
 		final var commands = createOptionsInteractiveProgram.get();
 

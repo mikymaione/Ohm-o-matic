@@ -7,7 +7,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package OhmOMatic.REST;
 
 import OhmOMatic.Base.BaseCommandLineApplication;
-import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -44,12 +43,8 @@ public final class RestServer extends BaseCommandLineApplication
 	//region Opzioni command line
 	private static Options createOptionsInteractiveProgram()
 	{
-		final var quit = Option.builder("q")
-				.desc("Quit")
-				.build();
-
 		return new Options()
-				.addOption(quit);
+				.addOption(OP("q", "Quit"));
 	}
 	//endregion
 

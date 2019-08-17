@@ -10,7 +10,6 @@ import OhmOMatic.Base.BaseCommandLineApplication;
 import OhmOMatic.Chord.Chord;
 import OhmOMatic.Global.GB;
 import OhmOMatic.Sistema.Casa;
-import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.util.Scanner;
@@ -93,83 +92,23 @@ public final class CliCasa extends BaseCommandLineApplication
 	//region Opzioni command line
 	private static Options createOptionsInteractiveProgram()
 	{
-		final var quit = Option.builder("q")
-				.desc("Quit")
-				.build();
-
-		final var info = Option.builder("i")
-				.desc("Info")
-				.build();
-
-		final var data = Option.builder("d")
-				.desc("Data")
-				.build();
-
-		final var list = Option.builder("l")
-				.desc("List peer")
-				.build();
-
-		final var boost = Option.builder("b")
-				.desc("Boost")
-				.build();
-
 		return new Options()
-				.addOption(quit)
-				.addOption(info)
-				.addOption(data)
-				.addOption(list)
-				.addOption(boost);
+				.addOption(OP("q", "Quit"))
+				.addOption(OP("i", "Info"))
+				.addOption(OP("d", "Data"))
+				.addOption(OP("l", "List peer"))
+				.addOption(OP("b", "Boost"));
 	}
 
 	private static Options createOptionsStartProgram()
 	{
-		final var rest_url = Option.builder("r")
-				.desc("REST URL")
-				.required()
-				.hasArg()
-				.argName("URL")
-				.build();
-
-		final var id = Option.builder("i")
-				.desc("ID")
-				.required()
-				.hasArg()
-				.argName("ID")
-				.build();
-
-		final var mio_peer_address = Option.builder("k")
-				.desc("My P2P Address")
-				.required()
-				.hasArg()
-				.argName("Address")
-				.build();
-
-		final var mio_peer_port = Option.builder("q")
-				.desc("My P2P Port")
-				.required()
-				.hasArg()
-				.argName("Port")
-				.build();
-
-		final var peer_address = Option.builder("j")
-				.desc("P2P Server Address")
-				.hasArg()
-				.argName("Address")
-				.build();
-
-		final var peer_port = Option.builder("p")
-				.desc("P2P Server Port")
-				.hasArg()
-				.argName("Port")
-				.build();
-
 		return new Options()
-				.addOption(rest_url)
-				.addOption(id)
-				.addOption(mio_peer_address)
-				.addOption(mio_peer_port)
-				.addOption(peer_address)
-				.addOption(peer_port);
+				.addOption(OP("r", "REST URL", "URL", true))
+				.addOption(OP("i", "ID", "ID", true))
+				.addOption(OP("k", "My P2P Address", "Address", true))
+				.addOption(OP("q", "My P2P Port", "Port", true))
+				.addOption(OP("j", "P2P Server Address", "Address", false))
+				.addOption(OP("p", "P2P Server Port", "Port", false));
 	}
 	//endregion
 
