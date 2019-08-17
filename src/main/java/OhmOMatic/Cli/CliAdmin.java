@@ -90,8 +90,7 @@ public final class CliAdmin extends BaseCommandLineApplication
 		final var ultimeStatisticheCasa = Option.builder("s")
 				.desc("Ultime N statistiche casa")
 				.numberOfArgs(2)
-				.argName("i")
-				.argName("N")
+				.argName("ID N")
 				.build();
 
 		final var ultimeStatisticheCondominio = Option.builder("g")
@@ -103,8 +102,7 @@ public final class CliAdmin extends BaseCommandLineApplication
 		final var deviazioneStandardMediaCasa = Option.builder("y")
 				.desc("Deviazione standard e media delle ultime N statistiche prodotte da una specifica casa")
 				.numberOfArgs(2)
-				.argName("i")
-				.argName("N")
+				.argName("ID N")
 				.build();
 
 		final var deviazioneStandardMediaCondominio = Option.builder("x")

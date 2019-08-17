@@ -95,27 +95,22 @@ public final class CliCasa extends BaseCommandLineApplication
 	{
 		final var quit = Option.builder("q")
 				.desc("Quit")
-				.hasArg(false)
 				.build();
 
 		final var info = Option.builder("i")
 				.desc("Info")
-				.hasArg(false)
 				.build();
 
 		final var data = Option.builder("d")
 				.desc("Data")
-				.hasArg(false)
 				.build();
 
 		final var list = Option.builder("l")
 				.desc("List peer")
-				.hasArg(false)
 				.build();
 
 		final var boost = Option.builder("b")
 				.desc("Boost")
-				.hasArg(false)
 				.build();
 
 		return new Options()
@@ -146,14 +141,14 @@ public final class CliCasa extends BaseCommandLineApplication
 				.desc("My P2P Address")
 				.required()
 				.hasArg()
-				.argName("MyAddress")
+				.argName("Address")
 				.build();
 
 		final var mio_peer_port = Option.builder("q")
 				.desc("My P2P Port")
 				.required()
 				.hasArg()
-				.argName("MyPort")
+				.argName("Port")
 				.build();
 
 		final var peer_address = Option.builder("j")
