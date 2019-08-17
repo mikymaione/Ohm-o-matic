@@ -25,7 +25,7 @@ public class gRPCtoRESTserver implements AutoCloseable
 	public gRPCtoRESTserver(final String indirizzo)
 	{
 		client = ClientBuilder.newClient();
-		webTargetRest = client.target(indirizzo + "/OOM");
+		webTargetRest = client.target(indirizzo);
 	}
 
 	@Override
@@ -44,11 +44,12 @@ public class gRPCtoRESTserver implements AutoCloseable
 
 
 	//region Funzioni case
-	public boolean iscriviCasa(final String myAddress, final int myPort)
+	public boolean iscriviCasa(final String identificatore, final String myAddress, final int myPort)
 	{
 		try
 		{
 			final var par = Home.casa.newBuilder()
+					.setIdentificatore(identificatore)
 					.setIP(myAddress)
 					.setPort(myPort)
 					.build();
@@ -56,7 +57,7 @@ public class gRPCtoRESTserver implements AutoCloseable
 			final var wt = getWebTarget("iscriviCasa");
 			final var resListaCase = wt
 					.request()
-					.put(Entity.entity(par, "application/x-protobuf"), Home.listaCase.class);
+					.post(Entity.entity(par, "application/x-protobuf"), Home.listaCase.class);
 
 			final var res = resListaCase.getStandardResponse();
 
@@ -73,11 +74,12 @@ public class gRPCtoRESTserver implements AutoCloseable
 		return false;
 	}
 
-	public boolean disiscriviCasa(final String myAddress, final int myPort)
+	public boolean disiscriviCasa(final String identificatore, final String myAddress, final int myPort)
 	{
 		try
 		{
 			final var par = Home.casa.newBuilder()
+					.setIdentificatore(identificatore)
 					.setIP(myAddress)
 					.setPort(myPort)
 					.build();
@@ -85,7 +87,7 @@ public class gRPCtoRESTserver implements AutoCloseable
 			final var wt = getWebTarget("disiscriviCasa");
 			final var res = wt
 					.request()
-					.put(Entity.entity(par, "application/x-protobuf"), Common.standardRes.class);
+					.post(Entity.entity(par, "application/x-protobuf"), Common.standardRes.class);
 
 			if (res.getOk())
 				return true;
@@ -157,7 +159,7 @@ public class gRPCtoRESTserver implements AutoCloseable
 			final var wt = getWebTarget("aggiungiStatisticaLocale");
 			final var res = wt
 					.request()
-					.put(Entity.entity(params, "application/x-protobuf"), Common.standardRes.class);
+					.post(Entity.entity(params, "application/x-protobuf"), Common.standardRes.class);
 
 			if (res.getOk())
 				return true;
@@ -188,7 +190,7 @@ public class gRPCtoRESTserver implements AutoCloseable
 			final var wt = getWebTarget("aggiungiStatisticaGlobale");
 			final var res = wt
 					.request()
-					.put(Entity.entity(params, "application/x-protobuf"), Common.standardRes.class);
+					.post(Entity.entity(params, "application/x-protobuf"), Common.standardRes.class);
 
 			if (res.getOk())
 				return true;

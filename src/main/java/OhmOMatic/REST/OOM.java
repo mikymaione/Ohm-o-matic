@@ -20,7 +20,7 @@ public final class OOM extends Backend
 {
 
 	//region Casa
-	@PUT
+	@POST
 	@Path("/iscriviCasa")
 	@Consumes("application/x-protobuf")
 	@Produces("application/x-protobuf")
@@ -63,7 +63,7 @@ public final class OOM extends Backend
 
 
 	//region Statistiche
-	@PUT
+	@POST
 	@Path("/aggiungiStatisticaLocale")
 	@Consumes("application/x-protobuf")
 	@Produces("application/x-protobuf")
@@ -84,7 +84,7 @@ public final class OOM extends Backend
 		}
 	}
 
-	@PUT
+	@POST
 	@Path("/aggiungiStatisticaGlobale")
 	@Consumes("application/x-protobuf")
 	@Produces("application/x-protobuf")

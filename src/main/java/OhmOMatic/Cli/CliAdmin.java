@@ -12,7 +12,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import java.net.URISyntaxException;
 import java.util.Scanner;
 
 public final class CliAdmin extends BaseCommandLineApplication
@@ -27,22 +26,14 @@ public final class CliAdmin extends BaseCommandLineApplication
 		{
 			final var cmd = getCommandLine(options, args);
 
-			try
-			{
-				final var server_url = cmd.getOptionValue("u");
-				final var server_port = cmd.getOptionValue("p");
+			final var rest_url = cmd.getOptionValue("r");
 
-				try (final var admin = new Admin(stringToURI(server_url, server_port, "OOM")))
-				{
-					try (final var scanner = new Scanner(System.in))
-					{
-						LeggiComandiInterattivi(admin, scanner);
-					}
-				}
-			}
-			catch (URISyntaxException e)
+			try (final var admin = new Admin(rest_url))
 			{
-				e.printStackTrace();
+				try (final var scanner = new Scanner(System.in))
+				{
+					LeggiComandiInterattivi(admin, scanner);
+				}
 			}
 		}
 		catch (ParseException e)
@@ -87,7 +78,7 @@ public final class CliAdmin extends BaseCommandLineApplication
 				}
 				else if (cmd.hasOption("y")) //Deviazione standard e media delle ultime N statistiche prodotte da una specifica casa
 				{
-					final var ops = cmd.getOptionValues("s");
+					final var ops = cmd.getOptionValues("y");
 					final var id = ops[0];
 					final var n = stringToInt(ops[1], 1);
 
@@ -154,23 +145,15 @@ public final class CliAdmin extends BaseCommandLineApplication
 
 	private static Options createOptions()
 	{
-		final var url = Option.builder("u")
-				.desc("Server URL")
+		final var rest_url = Option.builder("r")
+				.desc("REST URL")
 				.required()
 				.hasArg()
 				.argName("URL")
 				.build();
 
-		final var port = Option.builder("p")
-				.desc("Server port")
-				.required()
-				.hasArg()
-				.argName("PORT")
-				.build();
-
 		return new Options()
-				.addOption(url)
-				.addOption(port);
+				.addOption(rest_url);
 	}
 	//endregion
 

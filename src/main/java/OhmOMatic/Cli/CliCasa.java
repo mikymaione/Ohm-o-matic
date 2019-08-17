@@ -40,7 +40,7 @@ public final class CliCasa extends BaseCommandLineApplication
 				{
 					System.out.println("Casa " + identificatore + " avviata!");
 
-					if (casa.iscriviCasa(mio_peer_address, mio_peer_port))
+					if (casa.iscriviCasa(identificatore, mio_peer_address, mio_peer_port))
 					{
 						System.out.println("Casa iscritta sul server!");
 
@@ -62,7 +62,7 @@ public final class CliCasa extends BaseCommandLineApplication
 						casa.fermaSmartMeter();
 						System.out.println("Smart meter fermato!");
 
-						if (casa.disiscriviCasa(mio_peer_address, mio_peer_port))
+						if (casa.disiscriviCasa(identificatore, mio_peer_address, mio_peer_port))
 							System.out.println("Casa fuori dal condominio!");
 					}
 				}

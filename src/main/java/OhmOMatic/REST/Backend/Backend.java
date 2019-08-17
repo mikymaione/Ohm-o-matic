@@ -17,13 +17,17 @@ import java.util.LinkedList;
 public class Backend
 {
 
-	protected final HashSet<Home.casa> elencoCase = new HashSet<>();
-	protected final HashMap<String, LinkedList<Stat.statistica>> statisticheCasa = new HashMap<>();
-	protected final LinkedList<Stat.statistica> statisticheCondominio = new LinkedList<>();
+	protected static final HashSet<Home.casa> elencoCase = new HashSet<>();
+	protected static final HashMap<String, LinkedList<Stat.statistica>> statisticheCasa = new HashMap<>();
+	protected static final LinkedList<Stat.statistica> statisticheCondominio = new LinkedList<>();
+
 
 	protected LinkedList<Stat.statistica> getStatisticaCasa(Home.casa casa)
 	{
-		return statisticheCasa.getOrDefault(casa.getIdentificatore(), new LinkedList<>());
+		synchronized (statisticheCasa)
+		{
+			return statisticheCasa.getOrDefault(casa.getIdentificatore(), new LinkedList<>());
+		}
 	}
 
 	protected Stat.deviazioneStandardMediaRes buildDeviazioneStandardMedia(LinkedList<Stat.statistica> lista)
@@ -80,11 +84,14 @@ public class Backend
 
 	protected Home.listaCase buildListaCase()
 	{
-		return Home.listaCase
-				.newBuilder()
-				.setStandardResponse(buildStandardRes())
-				.addAllCase(elencoCase)
-				.build();
+		synchronized (elencoCase)
+		{
+			return Home.listaCase
+					.newBuilder()
+					.addAllCase(elencoCase)
+					.setStandardResponse(buildStandardRes())
+					.build();
+		}
 	}
 
 	protected Common.standardRes buildStandardRes()
