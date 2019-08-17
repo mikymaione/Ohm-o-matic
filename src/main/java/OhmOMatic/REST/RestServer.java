@@ -9,7 +9,6 @@ package OhmOMatic.REST;
 import OhmOMatic.Base.BaseCommandLineApplication;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 
@@ -35,7 +34,7 @@ public final class RestServer extends BaseCommandLineApplication
 
 		try (final var scanner = new Scanner(System.in))
 		{
-			LeggiComandiInterattivi(scanner);
+			LeggiComandiInterattivi(scanner, RestServer::createOptionsInteractiveProgram, inpts -> !inpts.hasOption("q"));
 		}
 
 		server.shutdown();
@@ -43,33 +42,6 @@ public final class RestServer extends BaseCommandLineApplication
 
 
 	//region Opzioni command line
-	private static void LeggiComandiInterattivi(Scanner scanner)
-	{
-		final var commands = createOptionsInteractiveProgram();
-
-		var inEsecuzione = true;
-
-		do
-		{
-			printOptions(commands);
-
-			final var line = scanner.nextLine();
-
-			try
-			{
-				final var cmd = getCommandLine(commands, line.split(" "));
-
-				if (cmd.hasOption("q"))
-					inEsecuzione = false;
-			}
-			catch (ParseException e)
-			{
-				System.out.println("Il comando " + line + " non esiste!");
-			}
-		}
-		while (inEsecuzione);
-	}
-
 	private static Options createOptionsInteractiveProgram()
 	{
 		final var quit = Option.builder("q")

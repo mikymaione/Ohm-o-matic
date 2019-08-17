@@ -8,8 +8,37 @@ package OhmOMatic.Base;
 
 import org.apache.commons.cli.*;
 
+import java.util.Scanner;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
 public class BaseCommandLineApplication
 {
+
+	public static void LeggiComandiInterattivi(Scanner scanner, Supplier<Options> createOptionsInteractiveProgram, Function<CommandLine, Boolean> execute)
+	{
+		final var commands = createOptionsInteractiveProgram.get();
+
+		var inEsecuzione = true;
+
+		do
+		{
+			printOptions(commands);
+
+			final var line = scanner.nextLine();
+
+			try
+			{
+				final var cmd = getCommandLine(commands, line.split(" "));
+				inEsecuzione = execute.apply(cmd);
+			}
+			catch (ParseException e)
+			{
+				System.out.println("Il comando " + line + " non esiste!");
+			}
+		}
+		while (inEsecuzione);
+	}
 
 	protected static CommandLine getCommandLine(Options options, String[] args) throws ParseException
 	{

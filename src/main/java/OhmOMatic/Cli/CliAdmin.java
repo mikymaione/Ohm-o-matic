@@ -26,7 +26,6 @@ public final class CliAdmin extends BaseCommandLineApplication
 		try
 		{
 			final var cmd = getCommandLine(options, args);
-
 			final var rest_url = cmd.getOptionValue("r");
 
 			try (
@@ -34,7 +33,41 @@ public final class CliAdmin extends BaseCommandLineApplication
 					final var scanner = new Scanner(System.in)
 			)
 			{
-				LeggiComandiInterattivi(admin, scanner);
+				LeggiComandiInterattivi(scanner, CliAdmin::createOptionsInteractiveProgram, inpts ->
+				{
+					if (inpts.hasOption("q"))
+						return false;
+					else if (inpts.hasOption("e")) //Elenco case
+						admin.elencoCase();
+					else if (inpts.hasOption("s")) //Ultime N statistiche casa
+					{
+						final var ops = inpts.getOptionValues("s");
+						final var id = ops[0];
+						final var n = GB.stringToInt(ops[1], 1);
+
+						admin.ultimeStatisticheCasa(id, n);
+					}
+					else if (inpts.hasOption("g")) //Ultime N statistiche condominio
+					{
+						final var n = GB.stringToInt(inpts.getOptionValue("g"), 1);
+						admin.ultimeStatisticheCondominio(n);
+					}
+					else if (inpts.hasOption("y")) //Deviazione standard e media delle ultime N statistiche prodotte da una specifica casa
+					{
+						final var ops = inpts.getOptionValues("y");
+						final var id = ops[0];
+						final var n = GB.stringToInt(ops[1], 1);
+
+						admin.deviazioneStandardMediaCasa(id, n);
+					}
+					else if (inpts.hasOption("x")) //Deviazione standard e media delle ultime N statistiche complessive condominiali
+					{
+						final var n = GB.stringToInt(inpts.getOptionValue("x"), 1);
+						admin.deviazioneStandardMediaCondominio(n);
+					}
+
+					return true;
+				});
 			}
 		}
 		catch (ParseException e)
@@ -44,61 +77,6 @@ public final class CliAdmin extends BaseCommandLineApplication
 	}
 
 	//region Opzioni command line
-	private static void LeggiComandiInterattivi(Admin admin, Scanner scanner)
-	{
-		final var commands = createOptionsInteractiveProgram();
-
-		var inEsecuzione = true;
-
-		do
-		{
-			printOptions(commands);
-
-			final var line = scanner.nextLine();
-
-			try
-			{
-				final var cmd = getCommandLine(commands, line.split(" "));
-
-				if (cmd.hasOption("q"))
-					inEsecuzione = false;
-				else if (cmd.hasOption("e")) //Elenco case
-					admin.elencoCase();
-				else if (cmd.hasOption("s")) //Ultime N statistiche casa
-				{
-					final var ops = cmd.getOptionValues("s");
-					final var id = ops[0];
-					final var n = GB.stringToInt(ops[1], 1);
-
-					admin.ultimeStatisticheCasa(id, n);
-				}
-				else if (cmd.hasOption("g")) //Ultime N statistiche condominio
-				{
-					final var n = GB.stringToInt(cmd.getOptionValue("g"), 1);
-					admin.ultimeStatisticheCondominio(n);
-				}
-				else if (cmd.hasOption("y")) //Deviazione standard e media delle ultime N statistiche prodotte da una specifica casa
-				{
-					final var ops = cmd.getOptionValues("y");
-					final var id = ops[0];
-					final var n = GB.stringToInt(ops[1], 1);
-
-					admin.deviazioneStandardMediaCasa(id, n);
-				}
-				else if (cmd.hasOption("x")) //Deviazione standard e media delle ultime N statistiche complessive condominiali
-				{
-					final var n = GB.stringToInt(cmd.getOptionValue("x"), 1);
-					admin.deviazioneStandardMediaCondominio(n);
-				}
-			}
-			catch (ParseException e)
-			{
-				System.out.println("Il comando " + line + " non esiste!");
-			}
-		}
-		while (inEsecuzione);
-	}
-
 	private static Options createOptionsInteractiveProgram()
 	{
 		final var quit = Option.builder("q")

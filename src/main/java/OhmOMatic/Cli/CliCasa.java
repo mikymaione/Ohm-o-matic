@@ -12,7 +12,6 @@ import OhmOMatic.Global.GB;
 import OhmOMatic.Sistema.Casa;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 
 import java.util.Scanner;
 
@@ -56,9 +55,23 @@ public final class CliCasa extends BaseCommandLineApplication
 					casa.avviaSmartMeter();
 					System.out.println("Smart meter avviato!");
 
-					try (var scanner = new Scanner(System.in))
+					try (final var scanner = new Scanner(System.in))
 					{
-						LeggiComandiInterattivi(casa, chord, scanner);
+						LeggiComandiInterattivi(scanner, CliCasa::createOptionsInteractiveProgram, inpts ->
+						{
+							if (inpts.hasOption("q"))
+								return false;
+							else if (inpts.hasOption("i"))
+								chord.stampaStato();
+							else if (inpts.hasOption("d"))
+								chord.stampaData();
+							else if (inpts.hasOption("l"))
+								chord.stampaListaPeer();
+							else if (inpts.hasOption("b"))
+								casa.boost();
+
+							return true;
+						});
 					}
 
 					casa.fermaSmartMeter();
@@ -78,41 +91,6 @@ public final class CliCasa extends BaseCommandLineApplication
 	}
 
 	//region Opzioni command line
-	private static void LeggiComandiInterattivi(Casa casa, Chord chord, Scanner scanner)
-	{
-		final var commands = createOptionsInteractiveProgram();
-
-		var inEsecuzione = true;
-
-		do
-		{
-			printOptions(commands);
-
-			final var line = scanner.nextLine();
-
-			try
-			{
-				final var inpts = getCommandLine(commands, line.split(" "));
-
-				if (inpts.hasOption("q"))
-					inEsecuzione = false;
-				else if (inpts.hasOption("i"))
-					chord.stampaStato();
-				else if (inpts.hasOption("d"))
-					chord.stampaData();
-				else if (inpts.hasOption("l"))
-					chord.stampaListaPeer();
-				else if (inpts.hasOption("b"))
-					casa.boost();
-			}
-			catch (ParseException e)
-			{
-				System.out.println("Il comando " + line + " non esiste!");
-			}
-		}
-		while (inEsecuzione);
-	}
-
 	private static Options createOptionsInteractiveProgram()
 	{
 		final var quit = Option.builder("q")
