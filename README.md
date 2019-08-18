@@ -10,6 +10,10 @@ An open-source distributed and pervasive system for peer-to-peer control of elec
 ### Web service
 * Project Jersey: an open source framework for developing RESTful Web Services.
 * Project Grizzly: a framework for build scalable and robust servers using NIO as well as offering extended framework components.
+### Mutual exclusion
+* Ricart-Agrawala Algorithm: an algorithm for mutual exclusion on a distributed system.
+### Charting
+* Knowm XChart: a light-weight and convenient library for plotting data.
 
 
 ## Minimum system requirements
