@@ -29,36 +29,35 @@ public final class OOM extends Backend
 	@Produces("application/x-protobuf")
 	public PushNotification.notificaRes getNotifiche()
 	{
-		var R = PushNotification.notificaRes
-				.newBuilder()
+		var R = PushNotification.notificaRes.newBuilder()
 				.setStandardRes(buildStandardRes());
 
 		GB.waitfor(() ->
 		{
 			synchronized (notifiche)
 			{
-				return notifiche.size() > 0;
+				if (notifiche.size() > 0)
+				{
+					for (var n : notifiche)
+						R.addNotifiche(PushNotification.notifica.newBuilder()
+								.setData(n.getKey().getTime())
+								.setMsg(n.getValue())
+						);
+
+					notifiche.clear();
+					return true;
+				}
+
+				return false;
 			}
 		}, 500);
 
-		synchronized (notifiche)
-		{
-			for (var n : notifiche)
-				R.addNotifiche(PushNotification.notifica.newBuilder()
-						.setData(n.getKey().getTime())
-						.setMsg(n.getValue())
-				);
-
-			notifiche.clear();
-
-			return R.build();
-		}
+		return R.build();
 	}
 	//endregion
 
 
 	//region Casa
-	
 	@POST
 	@Path("/iscriviCasa")
 	@Consumes("application/x-protobuf")
@@ -72,8 +71,8 @@ public final class OOM extends Backend
 			synchronized (notifiche)
 			{
 				notifiche.add(new Pair<>(
-					new Date(), 
-					"Casa " + par.getIdentificatore() + " si è aggiunta!")
+						new Date(),
+						"Casa " + par.getIdentificatore() + " si è aggiunta!")
 				);
 			}
 

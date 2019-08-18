@@ -396,7 +396,6 @@ public class gRPCtoRESTserver implements AutoCloseable
 
 
 	//region Notifiche push
-	
 	public boolean getNotifiche()
 	{
 		final var wt = getWebTarget("getNotifiche");
@@ -421,9 +420,8 @@ public class gRPCtoRESTserver implements AutoCloseable
 		{
 			System.out.println(res.getErrore());
 			return false;
-		}		
+		}
 	}
-	
 	//endregion
 
 }
