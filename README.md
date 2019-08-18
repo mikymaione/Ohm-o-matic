@@ -17,7 +17,9 @@ An open-source distributed and pervasive system for peer-to-peer control of elec
 
 
 ## Minimum system requirements
-1. Java 10
+1. Oracle Java 10
+2. Apache Maven 3.6
+3. Google Protocol Buffers 3.7
 
 
 ## IDE
