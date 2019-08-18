@@ -25,6 +25,20 @@ An open-source distributed and pervasive system for peer-to-peer control of elec
 ## IDE
 IntelliJ IDEA Community 2019.1 (http://www.jetbrains.com/idea)
 
+## Run the software
+1. Run the REST Server
+```java -cp target\Ohm-o-matic-jar-with-dependencies.jar OhmOMatic.REST.RestServer```
+2. Run the Admin client
+```java -cp target\Ohm-o-matic-jar-with-dependencies.jar OhmOMatic.Cli.CliAdmin -r http://localhost:8080/OOM/OOM```
+3. Run the first Chord client
+```java -cp target\Ohm-o-matic-jar-with-dependencies.jar OhmOMatic.Cli.CliCasa -r http://localhost:8080/OOM/OOM -i Naruto -k 127.0.0.1 -q 9001```
+4. Run some Chord clients
+```java -cp target\Ohm-o-matic-jar-with-dependencies.jar OhmOMatic.Cli.CliCasa -r http://localhost:8080/OOM/OOM -i Sasuke -k 127.0.0.1 -q 9002 -j 127.0.0.1 -p 9001```
+5. Run some Chord clients
+```java -cp target\Ohm-o-matic-jar-with-dependencies.jar OhmOMatic.Cli.CliCasa -r http://localhost:8080/OOM/OOM -i Sakura -k 127.0.0.1 -q 9003 -j 127.0.0.1 -p 9001```
+6. Run some Chord clients
+```java -cp target\Ohm-o-matic-jar-with-dependencies.jar OhmOMatic.Cli.CliCasa -r http://localhost:8080/OOM/OOM -i Kakashi -k 127.0.0.1 -q 9004 -j 127.0.0.1 -p 9001```
+
 
 ## License
 Copyright 2019 (c) [MAIONE MIKY]. All rights reserved.
