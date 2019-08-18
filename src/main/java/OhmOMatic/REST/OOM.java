@@ -58,6 +58,7 @@ public final class OOM extends Backend
 
 
 	//region Casa
+	
 	@POST
 	@Path("/iscriviCasa")
 	@Consumes("application/x-protobuf")
@@ -70,7 +71,10 @@ public final class OOM extends Backend
 
 			synchronized (notifiche)
 			{
-				notifiche.add(new Pair<>(new Date(), "Casa " + par.getIdentificatore() + " si è aggiunta!"));
+				notifiche.add(new Pair<>(
+					new Date(), 
+					"Casa " + par.getIdentificatore() + " si è aggiunta!")
+				);
 			}
 
 			return buildListaCase();

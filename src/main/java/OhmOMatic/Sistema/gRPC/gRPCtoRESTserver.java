@@ -396,38 +396,34 @@ public class gRPCtoRESTserver implements AutoCloseable
 
 
 	//region Notifiche push
+	
 	public boolean getNotifiche()
 	{
-		try
+		final var wt = getWebTarget("getNotifiche");
+		final var lista = wt
+				.request()
+				.get(PushNotification.notificaRes.class);
+
+		final var res = lista.getStandardRes();
+
+		if (res.getOk())
 		{
-			final var wt = getWebTarget("getNotifiche");
-			final var lista = wt
-					.request()
-					.get(PushNotification.notificaRes.class);
+			System.out.println("Nuove notifiche:");
 
-			final var res = lista.getStandardRes();
+			final var elenco = lista.getNotificheList();
 
-			if (res.getOk())
-			{
-				System.out.println("Nuove notifiche:");
+			for (var n : elenco)
+				System.out.println("-" + new Date(n.getData()) + ": " + n.getMsg());
 
-				final var elenco = lista.getNotificheList();
-
-				for (var n : elenco)
-					System.out.println("-" + new Date(n.getData()) + ": " + n.getMsg());
-
-				return true;
-			}
-			else
-				System.out.println(res.getErrore());
+			return true;
 		}
-		catch (Exception e)
+		else
 		{
-			e.printStackTrace();
-		}
-
-		return false;
+			System.out.println(res.getErrore());
+			return false;
+		}		
 	}
+	
 	//endregion
 
 }

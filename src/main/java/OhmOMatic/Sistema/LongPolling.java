@@ -54,7 +54,7 @@ public class LongPolling implements AutoCloseable
 		longPolling.stop();
 	}
 
-	private void doPolling()
+	private void start()
 	{
 		GB.loopUntil(() ->
 		{
