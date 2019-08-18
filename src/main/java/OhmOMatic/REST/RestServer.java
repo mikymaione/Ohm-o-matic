@@ -7,6 +7,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package OhmOMatic.REST;
 
 import OhmOMatic.Base.BaseCommandLineApplication;
+import com.pakulov.jersey.protobuf.ProtobufFeature;
 import org.apache.commons.cli.Options;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -24,7 +25,8 @@ public final class RestServer extends BaseCommandLineApplication
 	public static void main(String[] args)
 	{
 		final var rc = new ResourceConfig()
-				.packages("OhmOMatic");
+				.packages("OhmOMatic")
+				.register(ProtobufFeature.class);
 
 		final var server = GrizzlyHttpServerFactory.createHttpServer(URI.create(Server_URI), rc);
 
@@ -36,7 +38,8 @@ public final class RestServer extends BaseCommandLineApplication
 			LeggiComandiInterattivi(scanner, RestServer::createOptionsInteractiveProgram, inpts -> !inpts.hasOption("q"));
 		}
 
-		server.shutdown();
+		server.shutdownNow();
+		System.exit(0);
 	}
 
 

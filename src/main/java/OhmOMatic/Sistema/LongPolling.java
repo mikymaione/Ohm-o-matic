@@ -28,7 +28,9 @@ public class LongPolling implements AutoCloseable
 	public LongPolling(final String indirizzoREST)
 	{
 		_gRPCtoRESTserver = new gRPCtoRESTserver(indirizzoREST);
+
 		longPolling = new Thread(this::doPolling);
+		longPolling.setName("__longPolling");
 	}
 
 	@Override
@@ -50,8 +52,6 @@ public class LongPolling implements AutoCloseable
 		{
 			inEsecuzione = false;
 		}
-
-		longPolling.stop();
 	}
 
 	private void doPolling()

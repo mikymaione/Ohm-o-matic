@@ -77,6 +77,8 @@ public final class CliAdmin extends BaseCommandLineApplication
 		{
 			e.printStackTrace();
 		}
+
+		System.exit(0);
 	}
 
 	//region Opzioni command line

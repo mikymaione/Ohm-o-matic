@@ -14,6 +14,7 @@ import OhmOMatic.ProtoBuffer.Home.listaCase;
 import OhmOMatic.ProtoBuffer.PushNotification;
 import OhmOMatic.ProtoBuffer.Stat;
 import OhmOMatic.REST.Backend.Backend;
+import com.pakulov.jersey.protobuf.internal.MediaTypeExt;
 
 import javax.ws.rs.*;
 import java.util.Date;
@@ -26,7 +27,7 @@ public final class OOM extends Backend
 	//region Notiche push
 	@GET
 	@Path("/getNotifiche")
-	@Produces("application/x-protobuf")
+	@Produces(MediaTypeExt.APPLICATION_PROTOBUF)
 	public PushNotification.notificaRes getNotifiche()
 	{
 		var R = PushNotification.notificaRes.newBuilder()
@@ -60,8 +61,8 @@ public final class OOM extends Backend
 	//region Casa
 	@POST
 	@Path("/iscriviCasa")
-	@Consumes("application/x-protobuf")
-	@Produces("application/x-protobuf")
+	@Consumes(MediaTypeExt.APPLICATION_PROTOBUF)
+	@Produces(MediaTypeExt.APPLICATION_PROTOBUF)
 	public listaCase iscriviCasa(casa par)
 	{
 		synchronized (elencoCase)
@@ -82,8 +83,8 @@ public final class OOM extends Backend
 
 	@POST
 	@Path("/disiscriviCasa")
-	@Consumes("application/x-protobuf")
-	@Produces("application/x-protobuf")
+	@Consumes(MediaTypeExt.APPLICATION_PROTOBUF)
+	@Produces(MediaTypeExt.APPLICATION_PROTOBUF)
 	public standardRes disiscriviCasa(casa par)
 	{
 		synchronized (elencoCase)
@@ -104,7 +105,7 @@ public final class OOM extends Backend
 
 	@GET
 	@Path("/elencoCase")
-	@Produces("application/x-protobuf")
+	@Produces(MediaTypeExt.APPLICATION_PROTOBUF)
 	public listaCase elencoCase()
 	{
 		synchronized (elencoCase)
@@ -118,8 +119,8 @@ public final class OOM extends Backend
 	//region Statistiche
 	@POST
 	@Path("/aggiungiStatisticaLocale")
-	@Consumes("application/x-protobuf")
-	@Produces("application/x-protobuf")
+	@Consumes(MediaTypeExt.APPLICATION_PROTOBUF)
+	@Produces(MediaTypeExt.APPLICATION_PROTOBUF)
 	public standardRes aggiungiStatisticaLocale(Stat.statisticheCasa par)
 	{
 		synchronized (statisticheCasa)
@@ -139,8 +140,8 @@ public final class OOM extends Backend
 
 	@POST
 	@Path("/aggiungiStatisticaGlobale")
-	@Consumes("application/x-protobuf")
-	@Produces("application/x-protobuf")
+	@Consumes(MediaTypeExt.APPLICATION_PROTOBUF)
+	@Produces(MediaTypeExt.APPLICATION_PROTOBUF)
 	public standardRes aggiungiStatisticaGlobale(Stat.statisticheCondominio par)
 	{
 		synchronized (statisticheCondominio)
@@ -153,8 +154,8 @@ public final class OOM extends Backend
 
 	@POST
 	@Path("/ultimeStatisticheCasa")
-	@Consumes("application/x-protobuf")
-	@Produces("application/x-protobuf")
+	@Consumes(MediaTypeExt.APPLICATION_PROTOBUF)
+	@Produces(MediaTypeExt.APPLICATION_PROTOBUF)
 	public Stat.statisticheRes ultimeStatisticheCasa(Stat.getStatisticheCasa par)
 	{
 		synchronized (statisticheCasa)
@@ -165,8 +166,8 @@ public final class OOM extends Backend
 
 	@POST
 	@Path("/ultimeStatisticheCondominio")
-	@Consumes("application/x-protobuf")
-	@Produces("application/x-protobuf")
+	@Consumes(MediaTypeExt.APPLICATION_PROTOBUF)
+	@Produces(MediaTypeExt.APPLICATION_PROTOBUF)
 	public Stat.statisticheRes ultimeStatisticheCondominio(Stat.getStatisticheCondominio par)
 	{
 		synchronized (statisticheCondominio)
@@ -177,8 +178,8 @@ public final class OOM extends Backend
 
 	@POST
 	@Path("/deviazioneStandardMediaCasa")
-	@Consumes("application/x-protobuf")
-	@Produces("application/x-protobuf")
+	@Consumes(MediaTypeExt.APPLICATION_PROTOBUF)
+	@Produces(MediaTypeExt.APPLICATION_PROTOBUF)
 	public Stat.deviazioneStandardMediaRes deviazioneStandardMediaCasa(Stat.getStatisticheCasa par)
 	{
 		synchronized (statisticheCasa)
@@ -189,8 +190,8 @@ public final class OOM extends Backend
 
 	@POST
 	@Path("/deviazioneStandardMediaCondominio")
-	@Consumes("application/x-protobuf")
-	@Produces("application/x-protobuf")
+	@Consumes(MediaTypeExt.APPLICATION_PROTOBUF)
+	@Produces(MediaTypeExt.APPLICATION_PROTOBUF)
 	public Stat.deviazioneStandardMediaRes deviazioneStandardMediaCondominio(Stat.getStatisticheCondominio par)
 	{
 		synchronized (statisticheCondominio)
@@ -202,8 +203,8 @@ public final class OOM extends Backend
 
 	@POST
 	@Path("/boostRichiesto")
-	@Consumes("application/x-protobuf")
-	@Produces("application/x-protobuf")
+	@Consumes(MediaTypeExt.APPLICATION_PROTOBUF)
+	@Produces(MediaTypeExt.APPLICATION_PROTOBUF)
 	public standardRes boostRichiesto(casa par)
 	{
 		synchronized (notifiche)

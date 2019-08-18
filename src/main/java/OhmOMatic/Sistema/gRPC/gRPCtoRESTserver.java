@@ -11,6 +11,9 @@ import OhmOMatic.ProtoBuffer.Common;
 import OhmOMatic.ProtoBuffer.Home;
 import OhmOMatic.ProtoBuffer.PushNotification;
 import OhmOMatic.ProtoBuffer.Stat;
+import com.pakulov.jersey.protobuf.ProtobufFeature;
+import com.pakulov.jersey.protobuf.internal.MediaTypeExt;
+import org.glassfish.jersey.client.ClientConfig;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -27,7 +30,10 @@ public class gRPCtoRESTserver implements AutoCloseable
 
 	public gRPCtoRESTserver(final String indirizzo)
 	{
-		client = ClientBuilder.newClient();
+		final var cc = new ClientConfig();
+		cc.register(ProtobufFeature.class);
+
+		client = ClientBuilder.newClient(cc);
 		webTargetRest = client.target(indirizzo);
 	}
 
@@ -60,7 +66,7 @@ public class gRPCtoRESTserver implements AutoCloseable
 			final var wt = getWebTarget("iscriviCasa");
 			final var resListaCase = wt
 					.request()
-					.post(Entity.entity(par, "application/x-protobuf"), Home.listaCase.class);
+					.post(Entity.entity(par, MediaTypeExt.APPLICATION_PROTOBUF), Home.listaCase.class);
 
 			final var res = resListaCase.getStandardResponse();
 
@@ -90,7 +96,7 @@ public class gRPCtoRESTserver implements AutoCloseable
 			final var wt = getWebTarget("disiscriviCasa");
 			final var res = wt
 					.request()
-					.post(Entity.entity(par, "application/x-protobuf"), Common.standardRes.class);
+					.post(Entity.entity(par, MediaTypeExt.APPLICATION_PROTOBUF), Common.standardRes.class);
 
 			if (res.getOk())
 				return true;
@@ -111,7 +117,7 @@ public class gRPCtoRESTserver implements AutoCloseable
 		{
 			final var wt = getWebTarget("elencoCase");
 			final var lista = wt
-					.request()
+					.request(MediaTypeExt.APPLICATION_PROTOBUF)
 					.get(Home.listaCase.class);
 
 			final var res = lista.getStandardResponse();
@@ -162,7 +168,7 @@ public class gRPCtoRESTserver implements AutoCloseable
 			final var wt = getWebTarget("aggiungiStatisticaLocale");
 			final var res = wt
 					.request()
-					.post(Entity.entity(params, "application/x-protobuf"), Common.standardRes.class);
+					.post(Entity.entity(params, MediaTypeExt.APPLICATION_PROTOBUF), Common.standardRes.class);
 
 			if (res.getOk())
 				return true;
@@ -194,7 +200,7 @@ public class gRPCtoRESTserver implements AutoCloseable
 			final var wt = getWebTarget("aggiungiStatisticaGlobale");
 			final var res = wt
 					.request()
-					.post(Entity.entity(paramsB.build(), "application/x-protobuf"), Common.standardRes.class);
+					.post(Entity.entity(paramsB.build(), MediaTypeExt.APPLICATION_PROTOBUF), Common.standardRes.class);
 
 			if (res.getOk())
 				return true;
@@ -226,7 +232,7 @@ public class gRPCtoRESTserver implements AutoCloseable
 			final var wt = getWebTarget("ultimeStatisticheCasa");
 			final var stats = wt
 					.request()
-					.post(Entity.entity(params, "application/x-protobuf"), Stat.statisticheRes.class);
+					.post(Entity.entity(params, MediaTypeExt.APPLICATION_PROTOBUF), Stat.statisticheRes.class);
 
 			final var res = stats.getStandardRes();
 
@@ -262,7 +268,7 @@ public class gRPCtoRESTserver implements AutoCloseable
 			final var wt = getWebTarget("ultimeStatisticheCondominio");
 			final var stats = wt
 					.request()
-					.post(Entity.entity(params, "application/x-protobuf"), Stat.statisticheRes.class);
+					.post(Entity.entity(params, MediaTypeExt.APPLICATION_PROTOBUF), Stat.statisticheRes.class);
 
 			final var res = stats.getStandardRes();
 
@@ -303,7 +309,7 @@ public class gRPCtoRESTserver implements AutoCloseable
 			final var wt = getWebTarget("deviazioneStandardMediaCasa");
 			final var stats = wt
 					.request()
-					.post(Entity.entity(params, "application/x-protobuf"), Stat.deviazioneStandardMediaRes.class);
+					.post(Entity.entity(params, MediaTypeExt.APPLICATION_PROTOBUF), Stat.deviazioneStandardMediaRes.class);
 
 			final var res = stats.getStandardRes();
 
@@ -340,7 +346,7 @@ public class gRPCtoRESTserver implements AutoCloseable
 			final var wt = getWebTarget("deviazioneStandardMediaCondominio");
 			final var stats = wt
 					.request()
-					.post(Entity.entity(params, "application/x-protobuf"), Stat.deviazioneStandardMediaRes.class);
+					.post(Entity.entity(params, MediaTypeExt.APPLICATION_PROTOBUF), Stat.deviazioneStandardMediaRes.class);
 
 			final var res = stats.getStandardRes();
 
@@ -378,7 +384,7 @@ public class gRPCtoRESTserver implements AutoCloseable
 			final var wt = getWebTarget("boostRichiesto");
 			final var res = wt
 					.request()
-					.post(Entity.entity(par, "application/x-protobuf"), Common.standardRes.class);
+					.post(Entity.entity(par, MediaTypeExt.APPLICATION_PROTOBUF), Common.standardRes.class);
 
 			if (res.getOk())
 				return true;
